@@ -1,0 +1,53 @@
+{
+  "name": "saas-xray",
+  "version": "1.0.0",
+  "description": "Enterprise Shadow AI & Automation Detection Platform",
+  "private": true,
+  "scripts": {
+    "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
+    "dev:backend": "cd backend && npm run dev",
+    "dev:frontend": "cd frontend && npm run dev",
+    "build": "npm run build:backend && npm run build:frontend",
+    "build:backend": "cd backend && npm run build",
+    "build:frontend": "cd frontend && npm run build",
+    "test": "npm run test:backend && npm run test:frontend && npm run test:e2e",
+    "test:backend": "cd backend && npm test",
+    "test:frontend": "cd frontend && npm test",
+    "test:e2e": "playwright test",
+    "test:e2e:headed": "playwright test --headed",
+    "test:e2e:debug": "playwright test --debug",
+    "test:e2e:ui": "playwright test --ui",
+    "test:e2e:codegen": "playwright codegen localhost:3000",
+    "test:e2e:report": "playwright show-report",
+    "test:e2e:ci": "playwright test --reporter=github",
+    "test:e2e:install": "playwright install",
+    "test:oauth": "playwright test oauth-flows.spec.ts",
+    "test:auth": "playwright test authentication.spec.ts",
+    "start": "cd backend && npm start",
+    "start:prod": "cd backend && node dist/server-with-socketio.js",
+    "docker:build": "docker-compose build",
+    "docker:up": "docker-compose up -d",
+    "docker:down": "docker-compose down",
+    "docker:prod:build": "docker build -t saas-xray:latest .",
+    "docker:prod:up": "docker-compose -f docker-compose.prod.yml --env-file .env.production up -d",
+    "docker:prod:down": "docker-compose -f docker-compose.prod.yml down",
+    "docker:prod:logs": "docker-compose -f docker-compose.prod.yml logs -f",
+    "docker:prod:restart": "npm run docker:prod:down && npm run docker:prod:up",
+    "deploy": "scripts/deploy.sh",
+    "deploy:staging": "scripts/deploy.sh latest .env.staging",
+    "deploy:production": "scripts/deploy.sh latest .env.production"
+  },
+  "workspaces": [
+    "backend",
+    "frontend"
+  ],
+  "devDependencies": {
+    "concurrently": "^8.2.2",
+    "@playwright/test": "^1.55.0",
+    "dotenv": "^16.3.1"
+  },
+  "engines": {
+    "node": ">=20.0.0",
+    "npm": ">=9.0.0"
+  }
+}

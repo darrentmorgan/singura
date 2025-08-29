@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/shield.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    
+    <!-- SEO Meta Tags -->
+    <title>SaaS X-Ray - Automation Discovery Platform</title>
+    <meta name="description" content="Discover and monitor automations across your SaaS platforms with enterprise-grade security and compliance." />
+    <meta name="keywords" content="automation, discovery, security, compliance, SaaS, enterprise, monitoring" />
+    <meta name="author" content="SaaS X-Ray" />
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://saasxray.com/" />
+    <meta property="og:title" content="SaaS X-Ray - Automation Discovery Platform" />
+    <meta property="og:description" content="Discover and monitor automations across your SaaS platforms with enterprise-grade security and compliance." />
+    <meta property="og:image" content="/og-image.png" />
+    
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image" />
+    <meta property="twitter:url" content="https://saasxray.com/" />
+    <meta property="twitter:title" content="SaaS X-Ray - Automation Discovery Platform" />
+    <meta property="twitter:description" content="Discover and monitor automations across your SaaS platforms with enterprise-grade security and compliance." />
+    <meta property="twitter:image" content="/og-image.png" />
+    
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="#3B82F6" />
+    <link rel="manifest" href="/manifest.json" />
+    
+    <!-- Preload Critical Resources -->
+    <link rel="preload" href="/fonts/inter-var.woff2" as="font" type="font/woff2" crossorigin />
+    
+    <!-- Security Headers -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' http://localhost:3001 ws: wss:;" />
+    <meta http-equiv="X-Content-Type-Options" content="nosniff" />
+    <meta http-equiv="X-XSS-Protection" content="1; mode=block" />
+    <meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin" />
+  </head>
+  <body>
+    <div id="root"></div>
+    
+    <!-- Loading Fallback (shown while React loads) -->
+    <noscript>
+      <div style="
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: system-ui, sans-serif;
+        text-align: center;
+        padding: 2rem;
+        box-sizing: border-box;
+      ">
+        <div>
+          <h1 style="color: #1f2937; margin-bottom: 1rem;">JavaScript Required</h1>
+          <p style="color: #6b7280; margin-bottom: 2rem;">
+            SaaS X-Ray requires JavaScript to function properly.<br>
+            Please enable JavaScript in your browser and refresh the page.
+          </p>
+          <button 
+            onclick="location.reload()" 
+            style="
+              background: #3B82F6;
+              color: white;
+              border: none;
+              padding: 0.75rem 1.5rem;
+              border-radius: 0.5rem;
+              cursor: pointer;
+              font-size: 1rem;
+            "
+          >
+            Refresh Page
+          </button>
+        </div>
+      </div>
+    </noscript>
+    
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

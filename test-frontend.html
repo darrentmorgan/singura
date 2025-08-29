@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SaaS X-Ray - Stage 1 Test</title>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .card {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 10px 5px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+        .success { background: #d4edda; color: #155724; }
+        .error { background: #f8d7da; color: #721c24; }
+        .info { background: #d1ecf1; color: #0c5460; }
+        input {
+            width: 100%;
+            padding: 8px;
+            margin: 5px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        pre {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 4px;
+            overflow-x: auto;
+            white-space: pre-wrap;
+        }
+        .automation-card {
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 15px;
+            margin: 10px 0;
+            background: #f9f9f9;
+        }
+        .risk-low { border-left: 4px solid #28a745; }
+        .risk-medium { border-left: 4px solid #ffc107; }
+        .risk-high { border-left: 4px solid #dc3545; }
+    </style>
+</head>
+<body>
+    <h1>🔍 SaaS X-Ray - Stage 1 Test</h1>
+    
+    <!-- Backend Health Check -->
+    <div class="card">
+        <h2>Backend Health Check</h2>
+        <button onclick="checkHealth()">Check Backend Status</button>
+        <div id="healthStatus"></div>
+    </div>
+
+    <!-- Authentication Test -->
+    <div class="card">
+        <h2>Authentication Test</h2>
+        <input type="email" id="email" placeholder="Email (try: admin@example.com)" value="admin@example.com">
+        <input type="password" id="password" placeholder="Password (try: SecurePass123!)" value="SecurePass123!">
+        <button onclick="testLogin()">Test Login</button>
+        <div id="authStatus"></div>
+    </div>
+
+    <!-- OAuth Test -->
+    <div class="card">
+        <h2>Slack OAuth Test</h2>
+        <button onclick="testSlackOAuth()">Test Slack OAuth URL</button>
+        <div id="oauthStatus"></div>
+    </div>
+
+    <!-- Connections Test -->
+    <div class="card">
+        <h2>Platform Connections</h2>
+        <button onclick="getConnections()">Get Connections</button>
+        <div id="connectionsStatus"></div>
+    </div>
+
+    <!-- Discovery Test -->
+    <div class="card">
+        <h2>Automation Discovery</h2>
+        <button onclick="testDiscovery()">Test Discovery (conn-1)</button>
+        <div id="discoveryStatus"></div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:3001/api';
+        let authToken = null;
+
+        function showStatus(elementId, message, type = 'info') {
+            const element = document.getElementById(elementId);
+            element.innerHTML = `<div class="status ${type}">${message}</div>`;
+        }
+
+        async function checkHealth() {
+            try {
+                const response = await axios.get(`${API_BASE}/health`);
+                showStatus('healthStatus', 
+                    `✅ Backend is healthy!<br><pre>${JSON.stringify(response.data, null, 2)}</pre>`, 
+                    'success'
+                );
+            } catch (error) {
+                showStatus('healthStatus', 
+                    `❌ Backend health check failed: ${error.message}`, 
+                    'error'
+                );
+            }
+        }
+
+        async function testLogin() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            
+            try {
+                const response = await axios.post(`${API_BASE}/auth/login`, {
+                    email, password
+                });
+                
+                authToken = response.data.accessToken;
+                showStatus('authStatus', 
+                    `✅ Login successful!<br><pre>${JSON.stringify(response.data, null, 2)}</pre>`, 
+                    'success'
+                );
+            } catch (error) {
+                showStatus('authStatus', 
+                    `❌ Login failed: ${error.response?.data?.message || error.message}`, 
+                    'error'
+                );
+            }
+        }
+
+        async function testSlackOAuth() {
+            try {
+                const response = await axios.get(`${API_BASE}/auth/oauth/slack/authorize`);
+                showStatus('oauthStatus', 
+                    `✅ OAuth URL generated!<br><pre>${JSON.stringify(response.data, null, 2)}</pre>`, 
+                    'success'
+                );
+            } catch (error) {
+                showStatus('oauthStatus', 
+                    `❌ OAuth test failed: ${error.message}`, 
+                    'error'
+                );
+            }
+        }
+
+        async function getConnections() {
+            try {
+                const response = await axios.get(`${API_BASE}/connections`);
+                let html = '✅ Connections retrieved!<br><pre>' + JSON.stringify(response.data, null, 2) + '</pre>';
+                
+                if (response.data.connections && response.data.connections.length > 0) {
+                    html += '<h4>Connected Platforms:</h4>';
+                    response.data.connections.forEach(conn => {
+                        html += `
+                            <div class="automation-card">
+                                <strong>${conn.platform.toUpperCase()}</strong> - ${conn.displayName}<br>
+                                <small>Status: ${conn.status} | Permissions: ${conn.permissions.join(', ')}</small>
+                            </div>
+                        `;
+                    });
+                }
+                
+                showStatus('connectionsStatus', html, 'success');
+            } catch (error) {
+                showStatus('connectionsStatus', 
+                    `❌ Connections test failed: ${error.message}`, 
+                    'error'
+                );
+            }
+        }
+
+        async function testDiscovery() {
+            try {
+                const response = await axios.post(`${API_BASE}/connections/conn-1/discover`);
+                let html = '✅ Discovery completed!<br><pre>' + JSON.stringify(response.data, null, 2) + '</pre>';
+                
+                if (response.data.discovery && response.data.discovery.automations) {
+                    html += '<h4>Discovered Automations:</h4>';
+                    response.data.discovery.automations.forEach(automation => {
+                        html += `
+                            <div class="automation-card risk-${automation.riskLevel}">
+                                <strong>${automation.name}</strong> (${automation.type})<br>
+                                <small>Platform: ${automation.platform} | Risk: ${automation.riskLevel} | Status: ${automation.status}</small><br>
+                                <small>Permissions: ${automation.permissions.join(', ')}</small>
+                            </div>
+                        `;
+                    });
+                }
+                
+                showStatus('discoveryStatus', html, 'success');
+            } catch (error) {
+                showStatus('discoveryStatus', 
+                    `❌ Discovery test failed: ${error.message}`, 
+                    'error'
+                );
+            }
+        }
+
+        // Auto-check health on page load
+        window.onload = function() {
+            checkHealth();
+        }
+    </script>
+</body>
+</html>

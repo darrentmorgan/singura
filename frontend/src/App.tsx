@@ -1,0 +1,308 @@
+/**
+ * Main Application Component
+ * Root component that sets up routing, providers, and global components
+ */
+
+import React, { useEffect } from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { Helmet, HelmetProvider } from 'react-helmet-async';
+import toast, { Toaster } from 'react-hot-toast';
+
+// Layout and Auth Components
+import DashboardLayout from '@/components/layout/DashboardLayout';
+import ProtectedRoute from '@/components/auth/ProtectedRoute';
+import OAuthCallback from '@/components/auth/OAuthCallback';
+
+// Pages
+import LoginPage from '@/pages/LoginPage';
+import DashboardPage from '@/pages/DashboardPage';
+import ConnectionsPage from '@/pages/ConnectionsPage';
+import AutomationsPage from '@/pages/AutomationsPage';
+
+// Services and Stores
+import { websocketService } from '@/services/websocket';
+import { useIsAuthenticated } from '@/stores/auth';
+import { useUIActions, useNotifications, useTheme } from '@/stores/ui';
+
+// Global Error Boundary
+import ErrorBoundary from '@/components/common/ErrorBoundary';
+
+// Global Styles
+import '@/index.css';
+
+// React Query client
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 2,
+      refetchOnWindowFocus: false,
+      staleTime: 5 * 60 * 1000, // 5 minutes
+    },
+  },
+});
+
+// Notification Component
+const NotificationManager: React.FC = () => {
+  const notifications = useNotifications();
+  
+  useEffect(() => {
+    notifications.forEach(notification => {
+      if (notification.type === 'success') {
+        toast.success(notification.message, {
+          duration: notification.duration || 4000,
+        });
+      } else if (notification.type === 'error') {
+        toast.error(notification.message, {
+          duration: notification.duration || 6000,
+        });
+      } else if (notification.type === 'warning') {
+        toast(notification.message, {
+          icon: '⚠️',
+          duration: notification.duration || 5000,
+        });
+      } else if (notification.type === 'info') {
+        toast(notification.message, {
+          icon: 'ℹ️',
+          duration: notification.duration || 4000,
+        });
+      }
+    });
+  }, [notifications]);
+
+  return null;
+};
+
+// Theme Manager
+const ThemeManager: React.FC = () => {
+  const theme = useTheme();
+
+  useEffect(() => {
+    // Apply theme to document
+    const root = document.documentElement;
+    
+    if (theme.mode === 'dark') {
+      root.classList.add('dark');
+    } else {
+      root.classList.remove('dark');
+    }
+
+    // Apply theme colors as CSS custom properties
+    root.style.setProperty('--primary', theme.primaryColor);
+    root.style.setProperty('--accent', theme.accentColor);
+  }, [theme]);
+
+  return null;
+};
+
+// Connection Status Manager
+const ConnectionManager: React.FC = () => {
+  const isAuthenticated = useIsAuthenticated();
+  const { setOnlineStatus, setWebsocketStatus } = useUIActions();
+
+  useEffect(() => {
+    // Handle online/offline status
+    const handleOnline = () => setOnlineStatus(true);
+    const handleOffline = () => setOnlineStatus(false);
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
+    // Set initial online status
+    setOnlineStatus(navigator.onLine);
+
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, [setOnlineStatus]);
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      // Connect to WebSocket when authenticated
+      websocketService.connect().then(connected => {
+        setWebsocketStatus(connected);
+      });
+    } else {
+      // Disconnect WebSocket when not authenticated
+      websocketService.disconnect();
+      setWebsocketStatus(false);
+    }
+
+    return () => {
+      if (!isAuthenticated) {
+        websocketService.cleanup();
+      }
+    };
+  }, [isAuthenticated, setWebsocketStatus]);
+
+  return null;
+};
+
+// 404 Page Component
+const NotFoundPage: React.FC = () => (
+  <div className="min-h-screen flex items-center justify-center bg-background p-4">
+    <div className="text-center space-y-4">
+      <h1 className="text-4xl font-bold text-foreground">404</h1>
+      <h2 className="text-xl font-semibold text-foreground">Page Not Found</h2>
+      <p className="text-muted-foreground max-w-md">
+        The page you're looking for doesn't exist or has been moved.
+      </p>
+      <div className="space-x-4">
+        <button
+          onClick={() => window.history.back()}
+          className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+        >
+          Go Back
+        </button>
+        <a
+          href="/dashboard"
+          className="px-4 py-2 text-sm font-medium bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors"
+        >
+          Go to Dashboard
+        </a>
+      </div>
+    </div>
+  </div>
+);
+
+// Placeholder pages for future implementation
+const SecurityPage: React.FC = () => (
+  <div className="flex-1 p-6">
+    <div className="text-center py-12 space-y-4">
+      <h1 className="text-3xl font-bold text-foreground">Security Dashboard</h1>
+      <p className="text-muted-foreground">
+        Security analysis and compliance features coming soon.
+      </p>
+    </div>
+  </div>
+);
+
+const AnalyticsPage: React.FC = () => (
+  <div className="flex-1 p-6">
+    <div className="text-center py-12 space-y-4">
+      <h1 className="text-3xl font-bold text-foreground">Analytics Dashboard</h1>
+      <p className="text-muted-foreground">
+        Advanced analytics and reporting features coming soon.
+      </p>
+    </div>
+  </div>
+);
+
+const SettingsPage: React.FC = () => (
+  <div className="flex-1 p-6">
+    <div className="text-center py-12 space-y-4">
+      <h1 className="text-3xl font-bold text-foreground">Settings</h1>
+      <p className="text-muted-foreground">
+        Application settings and preferences coming soon.
+      </p>
+    </div>
+  </div>
+);
+
+const App: React.FC = () => {
+  return (
+    <ErrorBoundary>
+      <HelmetProvider>
+        <QueryClientProvider client={queryClient}>
+          <Router>
+            <Helmet>
+              <title>SaaS X-Ray - Automation Discovery Platform</title>
+              <meta name="description" content="Discover and monitor automations across your SaaS platforms with enterprise-grade security." />
+              <meta name="viewport" content="width=device-width, initial-scale=1" />
+            </Helmet>
+
+            {/* Global Managers */}
+            <ThemeManager />
+            <ConnectionManager />
+            <NotificationManager />
+
+            {/* Toast Notifications */}
+            <Toaster
+              position="top-right"
+              toastOptions={{
+                duration: 4000,
+                style: {
+                  background: 'hsl(var(--card))',
+                  color: 'hsl(var(--card-foreground))',
+                  border: '1px solid hsl(var(--border))',
+                },
+              }}
+            />
+
+            {/* Routes */}
+            <Routes>
+              {/* Public Routes */}
+              <Route path="/login" element={<LoginPage />} />
+              <Route path="/oauth/callback" element={<OAuthCallback />} />
+
+              {/* Protected Routes */}
+              <Route path="/" element={<Navigate to="/dashboard" replace />} />
+              
+              <Route path="/dashboard" element={
+                <ProtectedRoute>
+                  <DashboardLayout>
+                    <DashboardPage />
+                  </DashboardLayout>
+                </ProtectedRoute>
+              } />
+              
+              <Route path="/connections" element={
+                <ProtectedRoute>
+                  <DashboardLayout>
+                    <ConnectionsPage />
+                  </DashboardLayout>
+                </ProtectedRoute>
+              } />
+              
+              <Route path="/connections/:id" element={
+                <ProtectedRoute>
+                  <DashboardLayout>
+                    <ConnectionsPage />
+                  </DashboardLayout>
+                </ProtectedRoute>
+              } />
+              
+              <Route path="/automations" element={
+                <ProtectedRoute>
+                  <DashboardLayout>
+                    <AutomationsPage />
+                  </DashboardLayout>
+                </ProtectedRoute>
+              } />
+              
+              <Route path="/security" element={
+                <ProtectedRoute>
+                  <DashboardLayout>
+                    <SecurityPage />
+                  </DashboardLayout>
+                </ProtectedRoute>
+              } />
+              
+              <Route path="/analytics" element={
+                <ProtectedRoute>
+                  <DashboardLayout>
+                    <AnalyticsPage />
+                  </DashboardLayout>
+                </ProtectedRoute>
+              } />
+              
+              <Route path="/settings" element={
+                <ProtectedRoute>
+                  <DashboardLayout>
+                    <SettingsPage />
+                  </DashboardLayout>
+                </ProtectedRoute>
+              } />
+
+              {/* 404 Route */}
+              <Route path="*" element={<NotFoundPage />} />
+            </Routes>
+          </Router>
+        </QueryClientProvider>
+      </HelmetProvider>
+    </ErrorBoundary>
+  );
+};
+
+export default App;

@@ -1,0 +1,493 @@
+/**
+ * Automations API Routes
+ * Handles automation discovery, retrieval, and management
+ */
+
+import { Router, Request, Response } from 'express';
+import { z } from 'zod';
+import { authenticateToken } from '../middleware/auth';
+import { validateRequest } from '../middleware/validation';
+import { discoveryService } from '../services/discovery-service';
+import { riskService } from '../services/risk-service';
+import { db } from '../database/pool';
+import { 
+  DiscoveredAutomation, 
+  RiskAssessment, 
+  AutomationType, 
+  AutomationStatus, 
+  RiskLevel,
+  PlatformType 
+} from '../types/database';
+
+const router = Router();
+
+// Validation schemas
+const automationFiltersSchema = z.object({
+  platform: z.enum(['slack', 'google', 'microsoft', 'hubspot', 'salesforce', 'notion', 'asana', 'jira']).optional(),
+  status: z.enum(['active', 'inactive', 'paused', 'error', 'unknown']).optional(),
+  type: z.enum(['workflow', 'bot', 'integration', 'webhook', 'scheduled_task', 'trigger', 'script', 'service_account']).optional(),
+  riskLevel: z.enum(['low', 'medium', 'high', 'critical']).optional(),
+  search: z.string().optional(),
+  page: z.coerce.number().min(1).default(1),
+  limit: z.coerce.number().min(1).max(100).default(20),
+  sort_by: z.enum(['name', 'type', 'riskLevel', 'lastTriggered', 'createdAt']).default('name'),
+  sort_order: z.enum(['ASC', 'DESC']).default('ASC'),
+});
+
+/**
+ * GET /automations
+ * Get discovered automations with filtering and pagination
+ */
+router.get('/', authenticateToken, validateRequest({ query: automationFiltersSchema }), async (req: Request, res: Response) => {
+  try {
+    const organizationId = req.user?.organizationId;
+    if (!organizationId) {
+      return res.status(401).json({
+        success: false,
+        error: 'ORGANIZATION_NOT_FOUND',
+        message: 'Organization ID not found in token'
+      });
+    }
+
+    const { 
+      platform, 
+      status, 
+      type, 
+      riskLevel, 
+      search, 
+      page, 
+      limit, 
+      sort_by, 
+      sort_order 
+    } = req.query as z.infer<typeof automationFiltersSchema>;
+
+    // Build base query
+    let query = `
+      SELECT 
+        da.id,
+        da.external_id,
+        da.name,
+        da.description,
+        da.automation_type,
+        da.status,
+        da.trigger_type,
+        da.actions,
+        da.permissions_required,
+        da.data_access_patterns,
+        da.owner_info,
+        da.last_modified_at,
+        da.last_triggered_at,
+        da.execution_frequency,
+        da.platform_metadata,
+        da.first_discovered_at,
+        da.last_seen_at,
+        da.is_active,
+        da.created_at,
+        da.updated_at,
+        pc.platform_type,
+        pc.display_name as connection_name,
+        ra.risk_level,
+        ra.risk_score,
+        ra.risk_factors,
+        ra.recommendations
+      FROM discovered_automations da
+      LEFT JOIN platform_connections pc ON da.platform_connection_id = pc.id
+      LEFT JOIN risk_assessments ra ON da.id = ra.automation_id
+      WHERE da.organization_id = $1
+    `;
+
+    const queryParams: any[] = [organizationId];
+    let paramIndex = 2;
+
+    // Add filters
+    if (platform) {
+      query += ` AND pc.platform_type = $${paramIndex}`;
+      queryParams.push(platform);
+      paramIndex++;
+    }
+
+    if (status) {
+      query += ` AND da.status = $${paramIndex}`;
+      queryParams.push(status);
+      paramIndex++;
+    }
+
+    if (type) {
+      query += ` AND da.automation_type = $${paramIndex}`;
+      queryParams.push(type);
+      paramIndex++;
+    }
+
+    if (riskLevel) {
+      query += ` AND ra.risk_level = $${paramIndex}`;
+      queryParams.push(riskLevel);
+      paramIndex++;
+    }
+
+    if (search) {
+      query += ` AND (da.name ILIKE $${paramIndex} OR da.description ILIKE $${paramIndex})`;
+      queryParams.push(`%${search}%`);
+      paramIndex++;
+    }
+
+    // Add sorting
+    const sortField = sort_by === 'riskLevel' ? 'ra.risk_level' : `da.${sort_by}`;
+    query += ` ORDER BY ${sortField} ${sort_order}`;
+
+    // Add pagination
+    const offset = (page - 1) * limit;
+    query += ` LIMIT $${paramIndex} OFFSET $${paramIndex + 1}`;
+    queryParams.push(limit, offset);
+
+    // Execute query
+    const result = await db.query(query, queryParams);
+
+    // Get total count for pagination
+    let countQuery = `
+      SELECT COUNT(DISTINCT da.id) as total
+      FROM discovered_automations da
+      LEFT JOIN platform_connections pc ON da.platform_connection_id = pc.id
+      LEFT JOIN risk_assessments ra ON da.id = ra.automation_id
+      WHERE da.organization_id = $1
+    `;
+    const countParams: any[] = [organizationId];
+    let countParamIndex = 2;
+
+    // Apply same filters for count
+    if (platform) {
+      countQuery += ` AND pc.platform_type = $${countParamIndex}`;
+      countParams.push(platform);
+      countParamIndex++;
+    }
+
+    if (status) {
+      countQuery += ` AND da.status = $${countParamIndex}`;
+      countParams.push(status);
+      countParamIndex++;
+    }
+
+    if (type) {
+      countQuery += ` AND da.automation_type = $${countParamIndex}`;
+      countParams.push(type);
+      countParamIndex++;
+    }
+
+    if (riskLevel) {
+      countQuery += ` AND ra.risk_level = $${countParamIndex}`;
+      countParams.push(riskLevel);
+      countParamIndex++;
+    }
+
+    if (search) {
+      countQuery += ` AND (da.name ILIKE $${countParamIndex} OR da.description ILIKE $${countParamIndex})`;
+      countParams.push(`%${search}%`);
+      countParamIndex++;
+    }
+
+    const countResult = await db.query(countQuery, countParams);
+    const total = parseInt(countResult.rows[0].total);
+    const totalPages = Math.ceil(total / limit);
+
+    // Transform results to match frontend expectations
+    const automations = result.rows.map(row => ({
+      id: row.id,
+      name: row.name,
+      description: row.description,
+      type: row.automation_type,
+      platform: row.platform_type,
+      status: row.status,
+      riskLevel: row.risk_level || 'medium',
+      createdAt: row.first_discovered_at,
+      lastTriggered: row.last_triggered_at,
+      permissions: row.permissions_required || [],
+      createdBy: row.owner_info?.name || row.owner_info?.email,
+      metadata: {
+        ...row.platform_metadata,
+        isInternal: true,
+        triggers: row.trigger_type ? [row.trigger_type] : [],
+        actions: row.actions || [],
+        riskScore: row.risk_score,
+        riskFactors: row.risk_factors || [],
+        recommendations: row.recommendations || [],
+      }
+    }));
+
+    res.json({
+      success: true,
+      automations,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages,
+        hasNext: page < totalPages,
+        hasPrevious: page > 1,
+      }
+    });
+
+  } catch (error) {
+    console.error('Failed to get automations:', error);
+    res.status(500).json({
+      success: false,
+      error: 'FETCH_AUTOMATIONS_FAILED',
+      message: 'Failed to retrieve automations'
+    });
+  }
+});
+
+/**
+ * GET /automations/stats
+ * Get automation statistics for the dashboard
+ */
+router.get('/stats', authenticateToken, async (req: Request, res: Response) => {
+  try {
+    const organizationId = req.user?.organizationId;
+    if (!organizationId) {
+      return res.status(401).json({
+        success: false,
+        error: 'ORGANIZATION_NOT_FOUND',
+        message: 'Organization ID not found in token'
+      });
+    }
+
+    const query = `
+      SELECT 
+        COUNT(*) as total_automations,
+        COUNT(*) FILTER (WHERE da.status = 'active') as active_count,
+        COUNT(*) FILTER (WHERE da.status = 'inactive') as inactive_count,
+        COUNT(*) FILTER (WHERE da.status = 'error') as error_count,
+        COUNT(*) FILTER (WHERE ra.risk_level = 'low') as low_risk_count,
+        COUNT(*) FILTER (WHERE ra.risk_level = 'medium') as medium_risk_count,
+        COUNT(*) FILTER (WHERE ra.risk_level = 'high') as high_risk_count,
+        COUNT(*) FILTER (WHERE ra.risk_level = 'critical') as critical_risk_count,
+        COUNT(*) FILTER (WHERE da.automation_type = 'bot') as bot_count,
+        COUNT(*) FILTER (WHERE da.automation_type = 'workflow') as workflow_count,
+        COUNT(*) FILTER (WHERE da.automation_type = 'integration') as integration_count,
+        COUNT(*) FILTER (WHERE da.automation_type = 'webhook') as webhook_count,
+        COUNT(*) FILTER (WHERE pc.platform_type = 'slack') as slack_count,
+        COUNT(*) FILTER (WHERE pc.platform_type = 'google') as google_count,
+        COUNT(*) FILTER (WHERE pc.platform_type = 'microsoft') as microsoft_count,
+        AVG(ra.risk_score) as avg_risk_score
+      FROM discovered_automations da
+      LEFT JOIN platform_connections pc ON da.platform_connection_id = pc.id
+      LEFT JOIN risk_assessments ra ON da.id = ra.automation_id
+      WHERE da.organization_id = $1
+    `;
+
+    const result = await db.query(query, [organizationId]);
+    const stats = result.rows[0];
+
+    const response = {
+      totalAutomations: parseInt(stats.total_automations),
+      byStatus: {
+        active: parseInt(stats.active_count),
+        inactive: parseInt(stats.inactive_count),
+        error: parseInt(stats.error_count),
+        unknown: 0
+      },
+      byRiskLevel: {
+        low: parseInt(stats.low_risk_count),
+        medium: parseInt(stats.medium_risk_count),
+        high: parseInt(stats.high_risk_count),
+        critical: parseInt(stats.critical_risk_count)
+      },
+      byType: {
+        bot: parseInt(stats.bot_count),
+        workflow: parseInt(stats.workflow_count),
+        integration: parseInt(stats.integration_count),
+        webhook: parseInt(stats.webhook_count)
+      },
+      byPlatform: {
+        slack: parseInt(stats.slack_count),
+        google: parseInt(stats.google_count),
+        microsoft: parseInt(stats.microsoft_count),
+        hubspot: 0,
+        salesforce: 0,
+        notion: 0,
+        asana: 0,
+        jira: 0
+      },
+      averageRiskScore: parseFloat(stats.avg_risk_score) || 0
+    };
+
+    res.json({
+      success: true,
+      stats: response
+    });
+
+  } catch (error) {
+    console.error('Failed to get automation stats:', error);
+    res.status(500).json({
+      success: false,
+      error: 'FETCH_STATS_FAILED',
+      message: 'Failed to retrieve automation statistics'
+    });
+  }
+});
+
+/**
+ * GET /automations/:id
+ * Get detailed information about a specific automation
+ */
+router.get('/:id', authenticateToken, async (req: Request, res: Response) => {
+  try {
+    const organizationId = req.user?.organizationId;
+    const automationId = req.params.id;
+
+    if (!organizationId) {
+      return res.status(401).json({
+        success: false,
+        error: 'ORGANIZATION_NOT_FOUND',
+        message: 'Organization ID not found in token'
+      });
+    }
+
+    const query = `
+      SELECT 
+        da.*,
+        pc.platform_type,
+        pc.display_name as connection_name,
+        ra.risk_level,
+        ra.risk_score,
+        ra.permission_risk_score,
+        ra.data_access_risk_score,
+        ra.activity_risk_score,
+        ra.ownership_risk_score,
+        ra.risk_factors,
+        ra.compliance_issues,
+        ra.security_concerns,
+        ra.recommendations,
+        ra.assessed_at
+      FROM discovered_automations da
+      LEFT JOIN platform_connections pc ON da.platform_connection_id = pc.id
+      LEFT JOIN risk_assessments ra ON da.id = ra.automation_id
+      WHERE da.id = $1 AND da.organization_id = $2
+    `;
+
+    const result = await db.query(query, [automationId, organizationId]);
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        error: 'AUTOMATION_NOT_FOUND',
+        message: 'Automation not found'
+      });
+    }
+
+    const automation = result.rows[0];
+
+    const response = {
+      id: automation.id,
+      name: automation.name,
+      description: automation.description,
+      type: automation.automation_type,
+      platform: automation.platform_type,
+      status: automation.status,
+      riskLevel: automation.risk_level || 'medium',
+      createdAt: automation.first_discovered_at,
+      lastTriggered: automation.last_triggered_at,
+      permissions: automation.permissions_required || [],
+      createdBy: automation.owner_info?.name || automation.owner_info?.email,
+      metadata: {
+        ...automation.platform_metadata,
+        isInternal: true,
+        triggers: automation.trigger_type ? [automation.trigger_type] : [],
+        actions: automation.actions || [],
+        riskScore: automation.risk_score,
+        riskFactors: automation.risk_factors || [],
+        recommendations: automation.recommendations || [],
+        complianceIssues: automation.compliance_issues || [],
+        securityConcerns: automation.security_concerns || [],
+        detailedRiskScores: {
+          permission: automation.permission_risk_score,
+          dataAccess: automation.data_access_risk_score,
+          activity: automation.activity_risk_score,
+          ownership: automation.ownership_risk_score
+        },
+        lastAssessed: automation.assessed_at
+      }
+    };
+
+    res.json({
+      success: true,
+      data: response
+    });
+
+  } catch (error) {
+    console.error('Failed to get automation details:', error);
+    res.status(500).json({
+      success: false,
+      error: 'FETCH_AUTOMATION_FAILED',
+      message: 'Failed to retrieve automation details'
+    });
+  }
+});
+
+/**
+ * POST /automations/:id/assess-risk
+ * Trigger risk assessment for a specific automation
+ */
+router.post('/:id/assess-risk', authenticateToken, async (req: Request, res: Response) => {
+  try {
+    const organizationId = req.user?.organizationId;
+    const automationId = req.params.id;
+
+    if (!organizationId) {
+      return res.status(401).json({
+        success: false,
+        error: 'ORGANIZATION_NOT_FOUND',
+        message: 'Organization ID not found in token'
+      });
+    }
+
+    // Get the automation
+    const automationQuery = `
+      SELECT da.*, pc.platform_type 
+      FROM discovered_automations da
+      LEFT JOIN platform_connections pc ON da.platform_connection_id = pc.id
+      WHERE da.id = $1 AND da.organization_id = $2
+    `;
+
+    const automationResult = await db.query(automationQuery, [automationId, organizationId]);
+
+    if (automationResult.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        error: 'AUTOMATION_NOT_FOUND',
+        message: 'Automation not found'
+      });
+    }
+
+    const automation = automationResult.rows[0];
+
+    // Run risk assessment
+    const assessment = await riskService.assessAutomationRisk({
+      id: automation.id,
+      name: automation.name,
+      type: automation.automation_type,
+      platform: automation.platform_type,
+      status: automation.status,
+      permissions: automation.permissions_required || [],
+      actions: automation.actions || [],
+      dataAccessPatterns: automation.data_access_patterns || [],
+      ownerInfo: automation.owner_info || {},
+      lastTriggered: automation.last_triggered_at,
+      metadata: automation.platform_metadata || {}
+    });
+
+    res.json({
+      success: true,
+      assessment
+    });
+
+  } catch (error) {
+    console.error('Failed to assess automation risk:', error);
+    res.status(500).json({
+      success: false,
+      error: 'RISK_ASSESSMENT_FAILED',
+      message: 'Failed to assess automation risk'
+    });
+  }
+});
+
+export default router;
