@@ -7,6 +7,7 @@ import express, { Request, Response } from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import automationRoutes from './routes/automations-mock';
+import { getDataProvider, isDataToggleEnabled } from './services/data-provider';
 
 // Load environment variables
 dotenv.config();
@@ -96,197 +97,84 @@ app.get('/api/auth/callback/slack', (req: Request, res: Response) => {
   }
 });
 
-// Mock connections endpoint
+// Connections endpoint with data provider support
 app.get('/api/connections', (req: Request, res: Response) => {
-  res.json({
-    success: true,
-    connections: [
-      {
-        id: 'conn-1',
-        platform: 'slack',
-        displayName: 'Slack - Test Workspace',
-        status: 'active',
-        permissions: ['channels:read', 'users:read', 'team:read'],
-        createdAt: new Date().toISOString(),
-        lastSyncAt: new Date().toISOString()
-      },
-      {
-        id: 'conn-2',
-        platform: 'google',
-        displayName: 'Google Workspace - Demo Org',
-        status: 'active',
-        permissions: [
-          'https://www.googleapis.com/auth/userinfo.email',
-          'https://www.googleapis.com/auth/userinfo.profile', 
-          'https://www.googleapis.com/auth/drive.readonly',
-          'https://www.googleapis.com/auth/script.projects.readonly'
-        ],
-        createdAt: new Date().toISOString(),
-        lastSyncAt: new Date().toISOString()
-      }
-    ]
-  });
-});
-
-// Mock discovery endpoint
-app.post('/api/connections/:id/discover', (req: Request, res: Response) => {
-  const { id } = req.params;
-  
-  // Different discovery results based on platform
-  if (id === 'conn-2') {
-    // Google Workspace discovery results
+  try {
+    // Check if client wants to toggle data source
+    const useMockData = req.headers['x-use-mock-data'] === 'true';
+    const dataProvider = getDataProvider(useMockData);
+    
+    const connections = dataProvider.getConnections();
+    
     res.json({
       success: true,
-      discovery: {
-        automations: [
-          {
-            id: 'google-script-AKfycbwHq8_123abc',
-            name: 'Sales Lead Automation',
-            type: 'workflow',
-            platform: 'google',
-            status: 'active',
-            riskLevel: 'high',
-            riskScore: 60,
-            permissions: ['SHEETS', 'GMAIL', 'EXTERNAL_URL'],
-            createdAt: '2024-07-10T09:15:00Z',
-            lastTriggered: '2024-12-28T14:30:00Z',
-            metadata: {
-              scriptId: 'AKfycbwHq8_123abc',
-              description: 'Automatically processes form submissions and sends to CRM',
-              parentType: 'SHEETS',
-              triggers: ['ON_FORM_SUBMIT', 'TIME_DRIVEN'],
-              functions: ['onFormSubmit', 'dailyCleanup', 'sendToCRM'],
-              riskFactors: ['High-risk permissions (external URLs, admin access)', 'Automated time-based triggers', 'Processes form submissions (potential PII)', 'Integrates with external systems']
-            }
-          },
-          {
-            id: 'google-script-AKfycbwMn7_456def',
-            name: 'Email Report Generator',
-            type: 'workflow',
-            platform: 'google',
-            status: 'active',
-            riskLevel: 'medium',
-            riskScore: 35,
-            permissions: ['ANALYTICS', 'GMAIL', 'DOCS', 'DRIVE'],
-            createdAt: '2024-05-22T16:45:00Z',
-            lastTriggered: '2024-12-30T08:22:00Z',
-            metadata: {
-              scriptId: 'AKfycbwMn7_456def',
-              description: 'Weekly automated reports from Google Analytics data',
-              parentType: 'DOCS',
-              triggers: ['TIME_DRIVEN'],
-              functions: ['generateWeeklyReport', 'fetchAnalyticsData', 'emailReport'],
-              riskFactors: ['Medium-risk permissions (email, drive access)', 'Automated time-based triggers', 'Recently active automation']
-            }
-          },
-          {
-            id: 'google-sa-zapier-integration-sa',
-            name: 'Zapier Integration Service Account',
-            type: 'service_account',
-            platform: 'google',
-            status: 'active',
-            riskLevel: 'high',
-            riskScore: 55,
-            permissions: ['roles/sheets.editor', 'roles/drive.file'],
-            createdAt: '2024-06-15T10:30:00Z',
-            lastTriggered: '2025-01-01T15:45:00Z',
-            metadata: {
-              email: 'zapier-integration-sa@project-12345.iam.gserviceaccount.com',
-              description: 'Service account used by Zapier for Google Sheets automation',
-              keyCount: 2,
-              roles: ['roles/sheets.editor', 'roles/drive.file'],
-              projectId: 'project-12345'
-            }
-          },
-          {
-            id: 'google-script-AKfycbwPq9_789ghi',
-            name: 'Meeting Room Scheduler',
-            type: 'workflow',
-            platform: 'google',
-            status: 'active',
-            riskLevel: 'medium',
-            riskScore: 25,
-            permissions: ['CALENDAR', 'GMAIL', 'SHEETS'],
-            createdAt: '2024-09-03T11:20:00Z',
-            lastTriggered: '2025-01-01T16:10:00Z',
-            metadata: {
-              scriptId: 'AKfycbwPq9_789ghi',
-              description: 'Automated meeting room booking and conflict resolution',
-              parentType: 'SHEETS',
-              triggers: ['ON_EDIT', 'ON_CHANGE'],
-              functions: ['checkAvailability', 'bookRoom', 'sendConfirmation'],
-              riskFactors: ['Medium-risk permissions (email, drive access)', 'Recently active automation']
-            }
-          },
-          {
-            id: 'google-sa-data-pipeline-bot',
-            name: 'Data Pipeline Automation',
-            type: 'service_account',
-            platform: 'google',
-            status: 'active',
-            riskLevel: 'medium',
-            riskScore: 35,
-            permissions: ['roles/analytics.viewer', 'roles/bigquery.dataEditor'],
-            createdAt: '2024-08-20T14:20:00Z',
-            lastTriggered: '2025-01-01T23:15:00Z',
-            metadata: {
-              email: 'data-pipeline-bot@project-12345.iam.gserviceaccount.com',
-              description: 'Automated data extraction from Google Analytics to BigQuery',
-              keyCount: 1,
-              roles: ['roles/analytics.viewer', 'roles/bigquery.dataEditor'],
-              projectId: 'project-12345'
-            }
-          }
-        ],
-        metadata: {
-          executionTimeMs: 2845,
-          automationsFound: 5,
-          riskScore: 42,
-          platform: 'google',
-          discoveryMethods: ['Apps Script API', 'Drive API', 'Service Account Detection'],
-          coverage: {
-            appsScriptProjects: 3,
-            serviceAccounts: 2,
-            oauthApplications: 0
-          }
-        }
+      connections,
+      metadata: {
+        usingMockData: useMockData || process.env.USE_MOCK_DATA === 'true',
+        dataToggleEnabled: isDataToggleEnabled()
       }
     });
-  } else {
-    // Default Slack discovery results
-    res.json({
-      success: true,
-      discovery: {
-        automations: [
-          {
-            id: 'slack-bot-1',
-            name: 'Support Bot',
-            type: 'bot',
-            platform: 'slack',
-            status: 'active',
-            riskLevel: 'medium',
-            permissions: ['channels:read', 'chat:write'],
-            createdAt: '2025-01-01T00:00:00Z'
-          },
-          {
-            id: 'slack-workflow-1',
-            name: 'Onboarding Workflow',
-            type: 'workflow',
-            platform: 'slack',
-            status: 'active', 
-            riskLevel: 'low',
-            permissions: ['users:read'],
-            createdAt: '2025-01-02T00:00:00Z'
-          }
-        ],
-        metadata: {
-          executionTimeMs: 1234,
-          automationsFound: 2,
-          riskScore: 35
-        }
-      }
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error instanceof Error ? error.message : 'Failed to fetch connections',
+      usingMockData: true // Fallback to mock on error
     });
   }
+});
+
+// Discovery endpoint with data provider support
+app.post('/api/connections/:id/discover', async (req: Request, res: Response) => {
+  const { id } = req.params;
+  
+  try {
+    // Check if client wants to toggle data source
+    const useMockData = req.headers['x-use-mock-data'] === 'true';
+    const dataProvider = getDataProvider(useMockData);
+    
+    const result = await dataProvider.discoverAutomations(id || '');
+    
+    // Add metadata about data source
+    (result.discovery.metadata as any).usingMockData = useMockData || process.env.USE_MOCK_DATA === 'true';
+    (result.discovery.metadata as any).dataToggleEnabled = isDataToggleEnabled();
+    
+    res.json(result);
+  } catch (error) {
+    // Fallback to mock data on error
+    console.error('Discovery failed, falling back to mock data:', error);
+    
+    try {
+      const mockProvider = getDataProvider(true);
+      const mockResult = await mockProvider.discoverAutomations(id || '');
+      
+      (mockResult.discovery.metadata as any).usingMockData = true;
+      (mockResult.discovery.metadata as any).dataToggleEnabled = isDataToggleEnabled();
+      (mockResult.discovery.metadata as any).fallbackReason = error instanceof Error ? error.message : 'Unknown error';
+      
+      res.json(mockResult);
+    } catch (fallbackError) {
+      res.status(500).json({
+        success: false,
+        error: 'Discovery failed and fallback to mock data also failed',
+        details: {
+          originalError: error instanceof Error ? error.message : 'Unknown error',
+          fallbackError: fallbackError instanceof Error ? fallbackError.message : 'Unknown fallback error'
+        }
+      });
+    }
+  }
+});
+
+// Data mode configuration endpoint
+app.get('/api/config/data-mode', (req: Request, res: Response) => {
+  res.json({
+    success: true,
+    config: {
+      usingMockData: process.env.USE_MOCK_DATA === 'true',
+      dataToggleEnabled: isDataToggleEnabled(),
+      environment: process.env.NODE_ENV || 'development'
+    }
+  });
 });
 
 // 404 handler
