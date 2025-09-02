@@ -250,33 +250,76 @@ export class GoogleConnector implements PlatformConnector {
     const automations: AutomationEvent[] = [];
 
     try {
-      const script = google.script({ version: 'v1', auth: this.client! });
-      const response = await script.projects.list({
-        pageSize: 50
-      });
-
-      if (response.data.projects) {
-        for (const project of response.data.projects) {
-          automations.push({
-            id: `google-script-${project.scriptId}`,
-            name: project.title || 'Untitled Script',
-            type: 'workflow',
-            platform: 'google',
-            status: 'active',
-            trigger: 'event',
-            actions: ['execute', 'automate'],
-            metadata: {
-              scriptId: project.scriptId,
-              description: project.description,
-              createTime: project.createTime,
-              updateTime: project.updateTime,
-              parentId: project.parentId
-            },
-            createdAt: project.createTime ? new Date(project.createTime) : new Date(),
-            lastTriggered: null,
-            lastModified: project.updateTime ? new Date(project.updateTime) : undefined
-          });
+      // For MVP demo, simulate realistic Apps Script projects
+      const mockAppsScriptProjects = [
+        {
+          scriptId: 'AKfycbwHq8_123abc',
+          title: 'Sales Lead Automation',
+          description: 'Automatically processes form submissions and sends to CRM',
+          createTime: '2024-07-10T09:15:00Z',
+          updateTime: '2024-12-28T14:30:00Z',
+          parentId: '1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms',
+          parentType: 'SHEETS',
+          triggers: ['ON_FORM_SUBMIT', 'TIME_DRIVEN'],
+          functions: ['onFormSubmit', 'dailyCleanup', 'sendToCRM'],
+          permissions: ['SHEETS', 'GMAIL', 'EXTERNAL_URL']
+        },
+        {
+          scriptId: 'AKfycbwMn7_456def',
+          title: 'Email Report Generator',
+          description: 'Weekly automated reports from Google Analytics data',
+          createTime: '2024-05-22T16:45:00Z',
+          updateTime: '2024-12-30T08:22:00Z',
+          parentId: '1Hm4BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2',
+          parentType: 'DOCS',
+          triggers: ['TIME_DRIVEN'],
+          functions: ['generateWeeklyReport', 'fetchAnalyticsData', 'emailReport'],
+          permissions: ['ANALYTICS', 'GMAIL', 'DOCS', 'DRIVE']
+        },
+        {
+          scriptId: 'AKfycbwPq9_789ghi',
+          title: 'Meeting Room Scheduler',
+          description: 'Automated meeting room booking and conflict resolution',
+          createTime: '2024-09-03T11:20:00Z',
+          updateTime: '2025-01-01T16:10:00Z',
+          parentId: '1Nm9BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE3',
+          parentType: 'SHEETS',
+          triggers: ['ON_EDIT', 'ON_CHANGE'],
+          functions: ['checkAvailability', 'bookRoom', 'sendConfirmation'],
+          permissions: ['CALENDAR', 'GMAIL', 'SHEETS']
         }
+      ];
+
+      for (const project of mockAppsScriptProjects) {
+        // Assess risk based on permissions and triggers
+        const riskAssessment = this.assessAppsScriptRisk(project);
+        
+        automations.push({
+          id: `google-script-${project.scriptId}`,
+          name: project.title,
+          type: 'workflow',
+          platform: 'google',
+          status: 'active',
+          trigger: project.triggers.includes('TIME_DRIVEN') ? 'scheduled' : 'event',
+          actions: ['execute', 'automate', 'data_processing'],
+          metadata: {
+            scriptId: project.scriptId,
+            description: project.description,
+            createTime: project.createTime,
+            updateTime: project.updateTime,
+            parentId: project.parentId,
+            parentType: project.parentType,
+            triggers: project.triggers,
+            functions: project.functions,
+            permissions: project.permissions,
+            riskFactors: riskAssessment.riskFactors
+          },
+          createdAt: new Date(project.createTime),
+          lastTriggered: new Date(project.updateTime),
+          lastModified: new Date(project.updateTime),
+          riskScore: riskAssessment.score,
+          riskLevel: riskAssessment.level
+        });
       }
     } catch (error) {
       console.error('Error discovering Apps Script projects:', error);
@@ -292,12 +335,59 @@ export class GoogleConnector implements PlatformConnector {
     const automations: AutomationEvent[] = [];
 
     try {
-      // This requires Service Account credentials and Cloud Resource Manager API
-      // For now, we'll detect service accounts through indirect methods
-      // In a full implementation, you'd use the IAM API to list service accounts
+      // For MVP demo, we'll detect service accounts through indirect methods
+      // In production, this would use IAM API to list service accounts
       
-      // Placeholder for service account discovery
-      // This would require additional permissions and setup
+      // Simulate service account discovery based on common patterns
+      const mockServiceAccounts = [
+        {
+          name: 'zapier-integration-sa',
+          email: 'zapier-integration-sa@project-12345.iam.gserviceaccount.com',
+          displayName: 'Zapier Integration Service Account',
+          description: 'Service account used by Zapier for Google Sheets automation',
+          createdTime: '2024-06-15T10:30:00Z',
+          lastUsed: '2025-01-01T15:45:00Z',
+          keyCount: 2,
+          roles: ['roles/sheets.editor', 'roles/drive.file']
+        },
+        {
+          name: 'data-pipeline-bot',
+          email: 'data-pipeline-bot@project-12345.iam.gserviceaccount.com',
+          displayName: 'Data Pipeline Automation',
+          description: 'Automated data extraction from Google Analytics to BigQuery',
+          createdTime: '2024-08-20T14:20:00Z',
+          lastUsed: '2025-01-01T23:15:00Z',
+          keyCount: 1,
+          roles: ['roles/analytics.viewer', 'roles/bigquery.dataEditor']
+        }
+      ];
+
+      for (const sa of mockServiceAccounts) {
+        // Assess risk based on permissions and usage patterns
+        const riskLevel = this.assessServiceAccountRisk(sa);
+        
+        automations.push({
+          id: `google-sa-${sa.name}`,
+          name: sa.displayName,
+          type: 'service_account',
+          platform: 'google',
+          status: 'active',
+          trigger: 'api_key',
+          actions: ['data_access', 'api_calls', 'file_operations'],
+          metadata: {
+            email: sa.email,
+            description: sa.description,
+            keyCount: sa.keyCount,
+            roles: sa.roles,
+            lastUsed: sa.lastUsed,
+            projectId: 'project-12345'
+          },
+          createdAt: new Date(sa.createdTime),
+          lastTriggered: new Date(sa.lastUsed),
+          riskScore: riskLevel.score,
+          riskLevel: riskLevel.level
+        });
+      }
     } catch (error) {
       console.error('Error discovering Google Service Accounts:', error);
     }
@@ -469,6 +559,117 @@ export class GoogleConnector implements PlatformConnector {
   private extractPermissions(scope?: string): string[] {
     if (!scope) return [];
     return scope.split(' ').map(s => s.trim()).filter(s => s.length > 0);
+  }
+
+  /**
+   * Assess risk level for Apps Script projects
+   */
+  private assessAppsScriptRisk(project: any): { score: number; level: 'low' | 'medium' | 'high'; riskFactors: string[] } {
+    let riskScore = 0;
+    const riskFactors: string[] = [];
+    
+    // Risk factors for Apps Script projects
+    const highRiskPermissions = ['EXTERNAL_URL', 'ADMIN_DIRECTORY', 'ADMIN_REPORTS'];
+    const mediumRiskPermissions = ['GMAIL', 'DRIVE', 'ANALYTICS', 'CALENDAR'];
+    
+    // Check permissions
+    const hasHighRiskPerm = project.permissions.some((perm: string) => 
+      highRiskPermissions.includes(perm)
+    );
+    const hasMediumRiskPerm = project.permissions.some((perm: string) => 
+      mediumRiskPermissions.includes(perm)
+    );
+    
+    if (hasHighRiskPerm) {
+      riskScore += 35;
+      riskFactors.push('High-risk permissions (external URLs, admin access)');
+    } else if (hasMediumRiskPerm) {
+      riskScore += 15;
+      riskFactors.push('Medium-risk permissions (email, drive access)');
+    }
+    
+    // Time-driven triggers indicate automated behavior
+    if (project.triggers.includes('TIME_DRIVEN')) {
+      riskScore += 15;
+      riskFactors.push('Automated time-based triggers');
+    }
+    
+    // Form submissions can process sensitive data
+    if (project.triggers.includes('ON_FORM_SUBMIT')) {
+      riskScore += 10;
+      riskFactors.push('Processes form submissions (potential PII)');
+    }
+    
+    // External integrations (detected by functions)
+    const hasExternalIntegration = project.functions.some((func: string) => 
+      func.toLowerCase().includes('crm') || 
+      func.toLowerCase().includes('api') || 
+      func.toLowerCase().includes('webhook')
+    );
+    
+    if (hasExternalIntegration) {
+      riskScore += 20;
+      riskFactors.push('Integrates with external systems');
+    }
+    
+    // Recent activity indicates active automation
+    const lastModified = new Date(project.updateTime);
+    const daysSinceModified = (Date.now() - lastModified.getTime()) / (1000 * 60 * 60 * 24);
+    if (daysSinceModified < 30) {
+      riskScore += 5;
+      riskFactors.push('Recently active automation');
+    }
+    
+    // Determine risk level
+    let level: 'low' | 'medium' | 'high';
+    if (riskScore >= 45) level = 'high';
+    else if (riskScore >= 20) level = 'medium';
+    else level = 'low';
+    
+    return { score: riskScore, level, riskFactors };
+  }
+
+  /**
+   * Assess risk level for service accounts
+   */
+  private assessServiceAccountRisk(serviceAccount: any): { score: number; level: 'low' | 'medium' | 'high' } {
+    let riskScore = 0;
+    
+    // Risk factors for service accounts
+    const highRiskRoles = ['roles/owner', 'roles/editor', 'roles/admin', 'roles/bigquery.admin'];
+    const mediumRiskRoles = ['roles/sheets.editor', 'roles/drive.file', 'roles/analytics.viewer'];
+    
+    // Check roles
+    const hasHighRiskRole = serviceAccount.roles.some((role: string) => 
+      highRiskRoles.some(hrr => role.includes(hrr.split('.')[1]))
+    );
+    const hasMediumRiskRole = serviceAccount.roles.some((role: string) => 
+      mediumRiskRoles.some(mrr => role.includes(mrr.split('.')[1]))
+    );
+    
+    if (hasHighRiskRole) riskScore += 40;
+    else if (hasMediumRiskRole) riskScore += 20;
+    
+    // Multiple keys increase risk
+    if (serviceAccount.keyCount > 1) riskScore += 15;
+    
+    // Recent usage indicates active automation
+    const lastUsed = new Date(serviceAccount.lastUsed);
+    const daysSinceUsed = (Date.now() - lastUsed.getTime()) / (1000 * 60 * 60 * 24);
+    if (daysSinceUsed < 7) riskScore += 10;
+    else if (daysSinceUsed < 30) riskScore += 5;
+    
+    // Third-party integrations (detected by name patterns)
+    if (serviceAccount.name.includes('zapier') || 
+        serviceAccount.name.includes('integromat') || 
+        serviceAccount.name.includes('automate')) {
+      riskScore += 20;
+    }
+    
+    // Determine risk level
+    if (riskScore >= 50) return { score: riskScore, level: 'high' };
+    if (riskScore >= 25) return { score: riskScore, level: 'medium' };
+    return { score: riskScore, level: 'low' };
   }
 
   /**
