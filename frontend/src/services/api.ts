@@ -203,17 +203,17 @@ class ApiService {
         refreshToken,
       });
 
-      if (response.data.success && response.data.tokens) {
+      if (response.data.success && response.data.accessToken) {
         // Update tokens in localStorage
         const authData = localStorage.getItem('saas-xray-auth');
         if (authData) {
           const parsed = JSON.parse(authData);
-          parsed.state.accessToken = response.data.tokens.accessToken;
-          parsed.state.refreshToken = response.data.tokens.refreshToken;
+          parsed.state.accessToken = response.data.accessToken;
+          parsed.state.refreshToken = response.data.refreshToken;
           localStorage.setItem('saas-xray-auth', JSON.stringify(parsed));
         }
         
-        return response.data.tokens.accessToken;
+        return response.data.accessToken;
       }
       
       throw new Error('Token refresh failed');

@@ -215,34 +215,15 @@ export const LoginForm: React.FC<LoginFormProps> = ({
         </div>
 
         {/* Submit Button */}
-        <div className="space-y-2">
-          <Button
-            type="submit"
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-md transition-colors duration-200"
-            loading={isLoading || isSubmitting}
-            disabled={isLoading || isSubmitting}
-            data-testid="login-button"
-          >
-            {isLoading || isSubmitting ? 'Signing in...' : 'Sign in'}
-          </Button>
-          
-          {/* Fallback button in case the Button component has issues */}
-          <button
-            type="submit"
-            className="w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold py-3 px-6 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-            disabled={isLoading || isSubmitting}
-            data-testid="fallback-login-button"
-            style={{ 
-              display: 'block',
-              visibility: 'visible',
-              minHeight: '44px',
-              border: '2px solid #2563eb',
-              fontSize: '16px'
-            }}
-          >
-            {isLoading || isSubmitting ? 'Signing in...' : 'Sign in to SaaS X-Ray'}
-          </button>
-        </div>
+        <Button
+          type="submit"
+          className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-md transition-colors duration-200"
+          loading={isLoading || isSubmitting}
+          disabled={isLoading || isSubmitting}
+          data-testid="login-button"
+        >
+          {isLoading || isSubmitting ? 'Signing in...' : 'Sign in'}
+        </Button>
       </form>
 
       {/* Session Expired Message */}
