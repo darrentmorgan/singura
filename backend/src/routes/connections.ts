@@ -9,8 +9,10 @@ import { securityMiddleware } from '../security/middleware';
 import { securityAuditService } from '../security/audit';
 import { platformConnectionRepository } from '../database/repositories/platform-connection';
 import { oauthService } from '../services/oauth-service';
+import { riskService } from '../services/risk-service';
 import { slackConnector } from '../connectors/slack';
 import { PlatformType, ConnectionStatus } from '../types/database';
+import { AutomationEvent, AuditLogEntry } from '../connectors/types';
 
 const router = Router();
 
@@ -408,8 +410,8 @@ router.post('/connections/:connectionId/discover',
 
       const executionTimeMs = Date.now() - startTime;
 
-      // Calculate risk score
-      const riskScore = this.calculateRiskScore(automations);
+      // Calculate risk score for the discovered automations
+      const riskScore = await calculateRiskScore(automations);
 
       // Update connection last sync time
       await platformConnectionRepository.updateLastSync(connectionId);
@@ -444,7 +446,7 @@ router.post('/connections/:connectionId/discover',
           automationsFound: automations.length,
           auditLogsFound: auditLogs.length,
           riskScore,
-          complianceStatus: this.assessComplianceStatus(automations, auditLogs) as any
+          complianceStatus: assessComplianceStatus(automations, auditLogs)
         }
       };
 
@@ -555,6 +557,65 @@ function assessComplianceStatus(automations: any[], auditLogs: any[]): 'complian
   
   if (!hasAuditLogs && hasExternalIntegrations) {
     return 'non_compliant';
+  }
+  
+  if (hasActiveAutomations && hasAuditLogs) {
+    return 'compliant';
+  }
+  
+  return 'unknown';
+}
+
+/**
+ * Calculate risk score for discovered automations
+ */
+async function calculateRiskScore(automations: AutomationEvent[]): Promise<number> {
+  if (!automations || automations.length === 0) {
+    return 0;
+  }
+
+  let totalRisk = 0;
+  let riskCount = 0;
+
+  for (const automation of automations) {
+    try {
+      // Use the risk service to assess each automation
+      const riskAssessment = await riskService.assessAutomationRisk({
+        id: automation.id,
+        name: automation.name,
+        type: automation.type,
+        platform: automation.platform,
+        status: automation.status,
+        permissions: [],
+        actions: automation.actions,
+        dataAccessPatterns: [],
+        ownerInfo: {},
+        lastTriggered: automation.lastTriggered,
+        metadata: automation.metadata || {}
+      });
+
+      totalRisk += riskAssessment.overallScore;
+      riskCount++;
+    } catch (error) {
+      console.error(`Error calculating risk for automation ${automation.id}:`, error);
+      // Assign a medium risk score if calculation fails
+      totalRisk += 5;
+      riskCount++;
+    }
+  }
+
+  return riskCount > 0 ? totalRisk / riskCount : 0;
+}
+
+/**
+ * Assess compliance status based on automations and audit logs
+ */
+function assessComplianceStatus(automations: AutomationEvent[], auditLogs: AuditLogEntry[]): string {
+  const hasActiveAutomations = automations.some(a => a.status === 'active');
+  const hasAuditLogs = auditLogs.length > 0;
+  
+  if (!hasActiveAutomations) {
+    return 'no_automations';
   }
   
   if (hasActiveAutomations && hasAuditLogs) {

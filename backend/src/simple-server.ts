@@ -17,7 +17,7 @@ const NODE_ENV = process.env.NODE_ENV || 'development';
 
 // Basic middleware
 app.use(cors({
-  origin: process.env.CORS_ORIGIN || 'http://localhost:3000',
+  origin: process.env.CORS_ORIGIN || ['http://localhost:3000', 'http://localhost:3003'],
   credentials: true
 }));
 
