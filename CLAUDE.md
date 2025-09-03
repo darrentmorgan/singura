@@ -31,6 +31,8 @@ If the request contains ANY of these keywords or concepts, **IMMEDIATELY** invok
 ### Core Beliefs
 
 - **🚀 Agent-First Development** – Complex tasks require specialized virtual agents, not general responses.
+- **🔒 Type-First Development** – All new code MUST be fully typed with TypeScript, no exceptions.
+- **🧪 Test-First Development** – All new features MUST have comprehensive tests before merge.
 - **Security-First Approach** – Every OAuth integration and data handling decision prioritizes security.
 - **Iterative delivery over massive releases** – Ship small, working slices of functionality from database to UI.
 - **Understand before you code** – Explore both front-end and back-end patterns in the existing codebase.
@@ -156,6 +158,243 @@ graph TD
 - Cross-platform correlation features
 - Compliance or audit requirements
 - Real-time monitoring enhancements
+
+---
+
+## 🔒 **MANDATORY TYPESCRIPT REQUIREMENTS (NO EXCEPTIONS)**
+
+### **Type Safety Rules (ENFORCED BY CI/CD)**
+
+**RULE 1: EXPLICIT TYPES EVERYWHERE**
+- Every function MUST have explicit return types
+- All parameters MUST be properly typed
+- No `any` types allowed - use `unknown` and type guards
+- All third-party libraries MUST have type definitions
+
+**RULE 2: SHARED TYPES BETWEEN FRONTEND/BACKEND**
+- API request/response types MUST be shared via `/shared-types` package
+- Database models MUST have corresponding TypeScript interfaces
+- OAuth flows MUST use strongly-typed credentials and responses
+
+**RULE 3: RUNTIME TYPE VALIDATION**
+- Type guards MUST be used for external data (API responses, user input)
+- Database query results MUST be validated against TypeScript types
+- All environment variables MUST be typed and validated
+
+### **Type Definition Standards**
+
+```typescript
+// ✅ CORRECT: Explicit return types, proper interfaces
+interface CreateUserRequest {
+  email: string;
+  name: string;
+  organizationId: string;
+}
+
+interface CreateUserResponse {
+  userId: string;
+  email: string;
+  createdAt: Date;
+}
+
+function createUser(request: CreateUserRequest): Promise<CreateUserResponse> {
+  // Implementation with proper error handling
+}
+
+// ❌ INCORRECT: No return type, using any
+function createUser(request: any) {
+  // This will be rejected in PR review
+}
+```
+
+### **Required Type Coverage (ENFORCED)**
+- **100% of new code** must be properly typed
+- **Zero @ts-ignore** statements in new code
+- **All API endpoints** must have typed request/response interfaces
+- **All React components** must have typed props interfaces
+- **All database operations** must use typed models
+
+### **Type Architecture Patterns (MANDATORY)**
+
+**1. Discriminated Unions for State Management:**
+```typescript
+type APIResult<T> = 
+  | { status: 'success'; data: T }
+  | { status: 'error'; error: string }
+  | { status: 'loading' };
+```
+
+**2. Generic Repository Pattern:**
+```typescript
+interface Repository<T> {
+  create(data: Omit<T, 'id'>): Promise<T>;
+  findById(id: string): Promise<T | null>;
+  update(id: string, data: Partial<T>): Promise<T>;
+  delete(id: string): Promise<boolean>;
+}
+```
+
+**3. OAuth Flow Types:**
+```typescript
+interface OAuthCredentials {
+  accessToken: string;
+  refreshToken?: string;
+  expiresAt: Date;
+  scope: string[];
+  platform: 'slack' | 'google' | 'microsoft';
+}
+
+type OAuthFlowResult = 
+  | { success: true; credentials: OAuthCredentials }
+  | { success: false; error: string; code: string };
+```
+
+---
+
+## 🧪 **MANDATORY TESTING REQUIREMENTS (ENFORCED BY CI/CD)**
+
+### **Test Coverage Requirements (NO COMPROMISES)**
+
+**MINIMUM COVERAGE THRESHOLDS:**
+- **New Features**: 80% test coverage (functions, lines, branches)
+- **Bug Fixes**: Must include regression tests that fail before fix
+- **OAuth/Security Code**: 100% test coverage
+- **API Endpoints**: Integration tests for all status codes
+- **React Components**: Render tests + interaction tests
+
+### **Testing Checklist (MUST COMPLETE BEFORE MERGE)**
+
+**Backend Testing Requirements:**
+- [ ] Unit tests for all service functions
+- [ ] Integration tests for API endpoints
+- [ ] Database migration tests
+- [ ] OAuth flow integration tests
+- [ ] Security/encryption tests
+- [ ] Error handling tests
+- [ ] Rate limiting tests
+
+**Frontend Testing Requirements:**
+- [ ] Component render tests
+- [ ] User interaction tests (clicks, forms, navigation)
+- [ ] State management tests (Zustand stores)
+- [ ] API client tests with mocked responses
+- [ ] Form validation tests
+- [ ] Error boundary tests
+- [ ] Accessibility tests
+
+**E2E Testing Requirements:**
+- [ ] Complete OAuth flows (Slack, Google, Microsoft)
+- [ ] Discovery workflows with real API calls
+- [ ] Risk assessment calculations
+- [ ] Cross-platform correlation tests
+- [ ] Dashboard navigation and data display
+
+### **Test File Structure (STANDARDIZED)**
+
+```
+src/
+├── components/
+│   ├── AutomationCard.tsx
+│   └── __tests__/
+│       └── AutomationCard.test.tsx
+├── services/
+│   ├── oauth-service.ts
+│   └── __tests__/
+│       ├── oauth-service.test.ts        # Unit tests
+│       └── oauth-service.integration.test.ts  # Integration tests
+└── __tests__/
+    └── e2e/
+        └── oauth-flows.e2e.test.ts
+```
+
+### **Testing Standards (ENFORCED)**
+
+**1. Test Naming Convention:**
+```typescript
+describe('OAuthService', () => {
+  describe('when exchanging authorization code', () => {
+    it('should return credentials for valid code', async () => {
+      // Test implementation
+    });
+    
+    it('should throw error for invalid code', async () => {
+      // Test implementation
+    });
+  });
+});
+```
+
+**2. Mock Strategy:**
+```typescript
+// ✅ CORRECT: Type-safe mocks
+const mockSlackAPI = {
+  oauth: {
+    v2: {
+      access: jest.fn().mockResolvedValue({
+        ok: true,
+        access_token: 'mock-token',
+        scope: 'channels:read'
+      } as SlackOAuthResponse)
+    }
+  }
+} as jest.Mocked<WebClient>;
+
+// ❌ INCORRECT: Untyped mocks
+const mockSlackAPI = {
+  oauth: { v2: { access: jest.fn() } }
+};
+```
+
+**3. Test Data Management:**
+```typescript
+// Centralized test fixtures with proper types
+export const TEST_USER: User = {
+  id: 'test-user-id',
+  email: 'test@example.com',
+  organizationId: 'test-org-id',
+  createdAt: new Date('2025-01-01')
+};
+
+export const TEST_OAUTH_CREDENTIALS: OAuthCredentials = {
+  accessToken: 'test-access-token',
+  refreshToken: 'test-refresh-token',
+  expiresAt: new Date('2025-12-31'),
+  scope: ['channels:read', 'users:read'],
+  platform: 'slack'
+};
+```
+
+### **CI/CD Integration (AUTOMATIC ENFORCEMENT)**
+
+**Pre-commit Hooks:**
+- TypeScript type checking (`tsc --noEmit`)
+- ESLint with TypeScript rules
+- Test execution for changed files
+- Coverage threshold validation
+
+**PR Requirements (AUTOMATED CHECKS):**
+- All tests passing
+- Coverage meets minimum thresholds
+- TypeScript compilation successful
+- No console.log statements in production code
+- API documentation updated for endpoint changes
+
+### **Quality Gates (CANNOT BE BYPASSED)**
+
+**Before ANY merge to main:**
+1. ✅ All TypeScript compilation passes
+2. ✅ All tests pass (unit + integration + e2e)
+3. ✅ Coverage meets 80% threshold for new code
+4. ✅ No runtime type errors in development
+5. ✅ Security tests pass for auth-related changes
+6. ✅ Performance tests pass for database changes
+7. ✅ Accessibility tests pass for UI changes
+
+**Emergency Override Process:**
+- Only for production hotfixes
+- Requires two senior developer approvals
+- Must include follow-up ticket for proper testing
+- Cannot be used for new features
 
 ---
 
