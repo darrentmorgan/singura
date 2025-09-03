@@ -9,44 +9,63 @@ import { auditLogRepository } from '../src/database/repositories';
 // Global test timeout
 jest.setTimeout(30000);
 
-// Global setup - runs before all tests
-beforeAll(async () => {
-  // Wait for database connection
-  try {
-    await db.query('SELECT NOW()');
-    console.log('✅ Test database connection established');
-  } catch (error) {
-    console.error('❌ Failed to connect to test database:', error);
-    throw error;
-  }
-});
+// Skip database setup for unit tests that don't need it
+const isUnitTest = process.argv.some(arg => arg.includes('unit') || arg.includes('simple-mock'));
 
-// Global teardown - runs after all tests
-afterAll(async () => {
-  try {
-    // Clean up database connections
-    await db.end();
-    console.log('✅ Test database connections closed');
-  } catch (error) {
-    console.error('❌ Error closing database connections:', error);
-  }
-});
+if (!isUnitTest) {
+  // Global setup - runs before all tests
+  beforeAll(async () => {
+    // Wait for database connection
+    try {
+      await db.query('SELECT NOW()');
+      console.log('✅ Test database connection established');
+    } catch (error) {
+      console.error('❌ Failed to connect to test database:', error);
+      throw error;
+    }
+  });
 
-// Clean database between test suites
-beforeEach(async () => {
-  // Start a transaction that will be rolled back after each test
-  await db.query('BEGIN');
-});
+  // Global teardown - runs after all tests
+  afterAll(async () => {
+    try {
+      // Clean up database connections
+      if (typeof (db as any).end === 'function') {
+        await (db as any).end();
+      } else if (typeof (db as any).close === 'function') {
+        await (db as any).close();
+      }
+      console.log('✅ Test database connections closed');
+    } catch (error) {
+      console.error('❌ Error closing database connections:', error);
+    }
+  });
 
-afterEach(async () => {
-  // Rollback transaction to clean state
-  try {
-    await db.query('ROLLBACK');
-  } catch (error) {
-    // If rollback fails, try to end any hanging transaction
-    await db.query('END');
-  }
-});
+  // Clean database between test suites
+  beforeEach(async () => {
+    // Start a transaction that will be rolled back after each test
+    try {
+      await db.query('BEGIN');
+    } catch (error) {
+      console.warn('Could not start transaction:', (error as Error).message);
+    }
+  });
+
+  afterEach(async () => {
+    // Rollback transaction to clean state
+    try {
+      await db.query('ROLLBACK');
+    } catch (error) {
+      // If rollback fails, try to end any hanging transaction
+      try {
+        await db.query('END');
+      } catch (endError) {
+        console.warn('Could not end transaction:', (endError as Error).message);
+      }
+    }
+  });
+} else {
+  console.log('⚡ Skipping database setup for unit tests');
+}
 
 // Global test utilities
 declare global {

@@ -4,7 +4,11 @@
  */
 
 import crypto from 'crypto';
-import { PlatformType, ConnectionStatus, CredentialType } from '../../src/types/database';
+import { Platform, ConnectionStatus } from '@saas-xray/shared-types';
+
+// For now, using these types until shared-types is fully migrated
+type PlatformType = Platform;
+type CredentialType = 'access_token' | 'refresh_token' | 'api_key' | 'webhook_secret';
 
 export class MockDataGenerator {
   /**
@@ -37,7 +41,7 @@ export class MockDataGenerator {
     const timestamp = new Date();
     
     const platforms: PlatformType[] = ['slack', 'google', 'microsoft'];
-    const platform = platforms[Math.floor(Math.random() * platforms.length)];
+    const platform = platforms[Math.floor(Math.random() * platforms.length)] || 'slack';
 
     return {
       id: connectionId,
@@ -46,7 +50,7 @@ export class MockDataGenerator {
       platform_user_id: `${platform}-user-${Math.floor(Math.random() * 10000)}`,
       platform_workspace_id: platform === 'slack' ? `T${Math.floor(Math.random() * 1000000000)}` : null,
       display_name: `Test ${platform.charAt(0).toUpperCase() + platform.slice(1)} Connection`,
-      status: 'active' as ConnectionStatus,
+      status: 'connected' as ConnectionStatus,
       permissions_granted: this.getMockPermissions(platform),
       last_sync_at: new Date(Date.now() - Math.random() * 86400000), // Random time in last 24h
       last_error: null,
@@ -110,7 +114,7 @@ export class MockDataGenerator {
     ];
     
     const eventCategories = ['auth', 'connection', 'sync', 'error', 'admin'];
-    const eventType = eventTypes[Math.floor(Math.random() * eventTypes.length)];
+    const eventType = eventTypes[Math.floor(Math.random() * eventTypes.length)] || 'platform_connection_created';
     const category = this.getCategoryForEvent(eventType);
 
     return {
@@ -182,11 +186,9 @@ export class MockDataGenerator {
       slack: ['channels:read', 'users:read', 'chat:write', 'files:read'],
       google: ['https://www.googleapis.com/auth/drive.readonly', 'https://www.googleapis.com/auth/gmail.readonly'],
       microsoft: ['https://graph.microsoft.com/User.Read', 'https://graph.microsoft.com/Files.Read'],
-      hubspot: ['contacts', 'companies', 'deals'],
-      salesforce: ['api', 'full', 'refresh_token'],
-      notion: ['read_content', 'read_user_info'],
-      asana: ['default'],
-      jira: ['read:jira-work', 'read:jira-user']
+      github: ['repo', 'user'],
+      atlassian: ['read:jira-work', 'read:jira-user'],
+      notion: ['read_content', 'read_user_info']
     };
 
     return permissionMap[platform] || ['read'];
@@ -211,25 +213,17 @@ export class MockDataGenerator {
         tenant_id: crypto.randomUUID(),
         tenant_name: 'Test Tenant'
       },
-      hubspot: {
-        portal_id: Math.floor(Math.random() * 10000000),
-        hub_domain: 'test-hub'
+      github: {
+        organization: 'test-org',
+        username: 'test-user'
       },
-      salesforce: {
-        instance_url: 'https://test.my.salesforce.com',
-        organization_id: crypto.randomUUID().replace(/-/g, '').slice(0, 15)
+      atlassian: {
+        cloud_id: crypto.randomUUID(),
+        site_url: 'https://test.atlassian.net'
       },
       notion: {
         workspace_name: 'Test Workspace',
         workspace_icon: '🚀'
-      },
-      asana: {
-        workspace_gid: Math.floor(Math.random() * 1000000000).toString(),
-        workspace_name: 'Test Workspace'
-      },
-      jira: {
-        cloud_id: crypto.randomUUID(),
-        site_url: 'https://test.atlassian.net'
       }
     };
 
@@ -282,7 +276,7 @@ export class MockDataGenerator {
       'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
       'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36'
     ];
-    return agents[Math.floor(Math.random() * agents.length)];
+    return agents[Math.floor(Math.random() * agents.length)] || agents[0];
   }
 
   /**

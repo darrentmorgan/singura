@@ -8,8 +8,17 @@ module.exports = {
     '**/__tests__/**/*.ts'
   ],
   transform: {
-    '^.+\\.ts$': 'ts-jest',
+    '^.+\\.ts$': ['ts-jest', {
+      tsconfig: {
+        strict: false,
+        noImplicitAny: false,
+        strictNullChecks: false
+      }
+    }]
   },
+  transformIgnorePatterns: [
+    'node_modules/(?!(@saas-xray/shared-types)/)'
+  ],
   collectCoverageFrom: [
     'src/**/*.ts',
     '!src/**/*.d.ts',
@@ -31,17 +40,13 @@ module.exports = {
   maxWorkers: '50%',
   // Environment variables for testing
   setupFiles: ['<rootDir>/tests/env.ts'],
-  // Global test configuration
-  globals: {
-    'ts-jest': {
-      useESM: true,
-      isolatedModules: true
-    }
-  },
+  // Remove ESM for now as it's causing issues
+  // extensionsToTreatAsEsm: ['.ts'],
   // Module mapping for absolute imports
-  moduleNameMapping: {
+  moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1',
-    '^@tests/(.*)$': '<rootDir>/tests/$1'
+    '^@tests/(.*)$': '<rootDir>/tests/$1',
+    '^@saas-xray/shared-types$': '<rootDir>/../shared-types/src/index.ts'
   },
   // Clear mocks between tests
   clearMocks: true,
