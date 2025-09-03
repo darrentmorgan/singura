@@ -210,12 +210,12 @@ export class AuditLogRepository extends BaseRepository<
 
     if (fromDate) {
       whereClause += ` AND created_at >= $${paramIndex++}`;
-      params.push(fromDate);
+      params.push(fromDate.toISOString());
     }
 
     if (toDate) {
       whereClause += ` AND created_at <= $${paramIndex++}`;
-      params.push(toDate);
+      params.push(toDate.toISOString());
     }
 
     const query = `

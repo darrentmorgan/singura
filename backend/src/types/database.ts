@@ -418,6 +418,7 @@ export interface CreatePlatformConnectionInput {
   platform_user_id: string;
   platform_workspace_id?: string;
   display_name: string;
+  status?: ConnectionStatus;
   permissions_granted: string[];
   expires_at?: Date;
   metadata?: Partial<ConnectionMetadata>;

@@ -3,6 +3,12 @@
  * Centralized export for all repository classes and instances
  */
 
+// Import repository instances for internal use
+import { organizationRepository } from './organization';
+import { platformConnectionRepository } from './platform-connection';
+import { encryptedCredentialRepository } from './encrypted-credential';
+import { auditLogRepository } from './audit-log';
+
 export { BaseRepository } from './base';
 export { OrganizationRepository, organizationRepository } from './organization';
 export { PlatformConnectionRepository, platformConnectionRepository } from './platform-connection';

@@ -3,6 +3,10 @@
  * Centralized export for all database functionality
  */
 
+// Import directly for internal use
+import { db, ensureInitialized } from './pool';
+import { migrationRunner } from './migrate';
+
 // Core database connection
 export { db, DatabasePool, ensureInitialized } from './pool';
 
