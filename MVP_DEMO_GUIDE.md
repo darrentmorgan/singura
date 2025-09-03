@@ -23,9 +23,10 @@
 
 **What We Show**:
 ```
-✅ 3 AI Automations Discovered
-⚠️ 2 High-Risk (potential GDPR issues)
+✅ 5 AI Automations Discovered
+⚠️ 4 Critical-Risk + 1 High-Risk (AI data exposure)
 ⏱️ Discovery Time: 2.8 seconds
+⚠️ Average Risk Score: 89 (Extremely High)
 ```
 
 ### **2. AI Risk Assessment** (4 minutes)
@@ -97,14 +98,17 @@
 
 | Name | Type | Risk | What We Detect |
 |------|------|------|----------------|
-| ChatGPT Data Processor | Apps Script | HIGH (65) | OpenAI API + Sheets access + Auto triggers |
-| Claude Document Analyzer | Apps Script | HIGH (60) | Anthropic API + Drive access + Form processing |
-| AI-Integration Service Account | Service Account | MED (45) | Multiple APIs + Recent activity + Third-party pattern |
+| AI Customer Support Bot | Slack Bot | CRITICAL (92) | GPT-4 + Customer PII + File Access + Unfiltered Responses |
+| AI Meeting Intelligence System | Teams Bot | CRITICAL (96) | Whisper + GPT-4 + C-Suite Meetings + No Consent |
+| AI Document Intelligence Pipeline | Workflow | CRITICAL (94) | Multi-AI + HR Docs + Legal Contracts + Cross-Provider |
+| Claude Financial Data Analyzer | Integration | CRITICAL (88) | Anthropic + Financial Data + Revenue Analysis |
+| AI Content Generation Bot | Slack Bot | HIGH (76) | GPT-3.5 + Marketing Data + Public Content Risk |
 
 ### **What Each Risk Score Means**:
-- **HIGH (50+)**: Has data access + AI API endpoints + automated execution
-- **MEDIUM (25-49)**: Has data access + external permissions but limited automation
-- **LOW (<25)**: Limited permissions or internal-only automation
+- **CRITICAL (80+)**: AI processing of sensitive data (PII, financial, confidential)
+- **HIGH (60-79)**: AI access to business data with public exposure risk
+- **MEDIUM (40-59)**: AI integration with limited data access
+- **LOW (<40)**: Internal AI tools with minimal external data sharing
 
 ### **Detection Capabilities (Be Honest)**:
 - **What we see**: OAuth permissions, API whitelists, automation triggers
@@ -123,8 +127,8 @@
 - ✅ Risk assessment algorithms functional
 
 ### **Frontend Status**:
-- ✅ Dashboard accessible at `http://localhost:3003`
-- ✅ Authentication working (admin@example.com / SecurePass123!)
+- ✅ Dashboard accessible at `http://localhost:3000`
+- ✅ Authentication working (admin@example.com / SecurePass123)
 - ✅ Connections page shows both platforms
 - ✅ Discovery results displaying correctly
 
@@ -132,7 +136,7 @@
 - **Health Check**: `http://localhost:3001/api/health`
 - **Connections API**: `http://localhost:3001/api/connections`
 - **Discovery API**: `http://localhost:3001/api/connections/conn-2/discover`
-- **Frontend Dashboard**: `http://localhost:3003`
+- **Frontend Dashboard**: `http://localhost:3000`
 
 ---
 
@@ -195,9 +199,9 @@ A: "This demo shows Google, but the same permission-based approach works for Sla
 ## 📋 **Demo Day Checklist**
 
 ### **30 Minutes Before**:
-- [ ] Navigate to `/backend` and start simple server
-- [ ] Open `http://localhost:3003` and test login (admin@example.com / SecurePass123!)
-- [ ] Test Google discovery endpoint once
+- [ ] Navigate to `/backend` and start simple server with `USE_MOCK_DATA=true ENABLE_DATA_TOGGLE=true node test-data-toggle.js`
+- [ ] Open `http://localhost:3000` and test login (admin@example.com / SecurePass123)
+- [ ] Test Google discovery endpoint once to verify 5 AI automations appear
 - [ ] Have this guide open for talking points
 
 ### **During Demo** (Keep it casual):

@@ -51,24 +51,43 @@ fetch('/api/connections/conn-2/discover', {
 ## 📊 Mock Data Features
 
 ### AI-Focused Automations
-The mock data now specifically targets AI automation discovery:
+The mock data now specifically targets comprehensive AI automation discovery with 5 realistic scenarios:
 
-**ChatGPT Data Processor**:
+**1. AI Customer Support Bot** (Critical - Score: 92):
+- **Risk Level**: Critical
+- **AI Provider**: OpenAI GPT-4
+- **Permissions**: Slack channels, files, direct messages
+- **Risk Factors**: Customer PII processing, unfiltered AI responses, prompt injection vulnerabilities
+
+**2. Claude Financial Data Analyzer** (Critical - Score: 88):
+- **Risk Level**: Critical  
+- **AI Provider**: Anthropic Claude
+- **Permissions**: Google Sheets, Drive, financial data access
+- **Risk Factors**: Revenue data to external AI, unencrypted data transmission, regulatory compliance risks
+
+**3. AI Meeting Intelligence System** (Critical - Score: 96):
+- **Risk Level**: Critical
+- **AI Provider**: OpenAI Whisper + GPT-4
+- **Permissions**: Teams meetings, calendar, email
+- **Risk Factors**: C-suite confidential discussions, no participant consent, strategic intelligence exposure
+
+**4. AI Document Intelligence Pipeline** (Critical - Score: 94):
+- **Risk Level**: Critical
+- **AI Provider**: Multi-AI (OpenAI + Anthropic + Cohere)
+- **Permissions**: Google Drive, Docs, Gmail
+- **Risk Factors**: HR/legal documents, employee PII, multi-provider data replication
+
+**5. AI Content Generation Bot** (High - Score: 76):
 - **Risk Level**: High
-- **Permissions**: SHEETS + EXTERNAL_URL
-- **AI Endpoints**: OpenAI API detected
-- **Risk Factors**: PII data access + AI processing
+- **AI Provider**: OpenAI GPT-3.5
+- **Permissions**: Slack channels, file access
+- **Risk Factors**: Unvetted public content, brand reputation risk, marketing strategy exposure
 
-**Claude Document Analyzer**:
-- **Risk Level**: High  
-- **Permissions**: DOCS + DRIVE + EXTERNAL_URL
-- **AI Endpoints**: Anthropic API detected
-- **Risk Factors**: Employee PII + document analysis
-
-### Risk Assessment
-- **Overall Risk Score**: 71 (calculated from AI usage patterns)
-- **High-Risk Indicators**: AI API endpoints + data access permissions
-- **GDPR Concerns**: Automated processing of potential PII
+### Enhanced Risk Assessment
+- **Overall Risk Score**: 89 (up from 71 - reflects critical AI exposure)
+- **Critical-Risk Indicators**: 4 out of 5 automations process sensitive data through external AI
+- **AI Provider Breakdown**: OpenAI (4), Anthropic (2), Cohere (1)
+- **GDPR Concerns**: All automations involve automated processing of PII or confidential data
 
 ## 🎯 Demo Usage
 
@@ -85,9 +104,11 @@ The mock data now specifically targets AI automation discovery:
    - Demonstrates production-ready error handling
 
 3. **Key Talking Points**:
-   - "This is what we typically find in a Google Workspace"
-   - "We can detect AI integrations that send data to ChatGPT, Claude, etc."
-   - "The system gracefully handles both demo and production scenarios"
+   - "This shows 5 AI automations we discovered - all with critical security risks"
+   - "We can detect when customer PII is being sent to ChatGPT, Claude, and other AI services"
+   - "Notice the 96 risk score on the meeting bot - it's processing C-suite discussions through OpenAI"
+   - "The financial analyzer is sending revenue data directly to Anthropic's Claude"
+   - "These are real patterns we see - employees connecting AI without IT knowledge"
 
 ### Demo Commands
 

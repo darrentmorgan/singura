@@ -2,29 +2,32 @@
 
 **Enterprise Shadow AI & Automation Detection Platform**
 
-SaaS X-Ray automatically discovers and monitors unauthorized AI agents, bots, and automations running across your organization's SaaS applications. Get visibility into your shadow AI usage before it becomes a security or compliance risk.
+SaaS X-Ray automatically discovers and monitors unauthorized AI agents, bots, and automations running across your organization's SaaS applications. Our AI-focused detection engine identifies when employees are connecting ChatGPT, Claude, and other AI services to sensitive business data, giving security teams visibility into shadow AI usage before it becomes a compliance violation.
 
 ## 🎯 Problem Statement
 
-Most enterprises have **20-50 unauthorized AI agents** already running in their SaaS applications without IT knowledge:
-- Sales reps using ChatGPT bots in Slack
-- Marketing teams with HubSpot workflow automations
-- Support teams running Jira ticket bots
-- Finance using Google Apps Script automations
+Most enterprises have **20-50 unauthorized AI integrations** already running in their SaaS applications without IT knowledge:
+- Customer support bots using GPT-4 with access to customer PII
+- Financial analysis scripts sending revenue data to Claude
+- Meeting transcription bots processing confidential C-suite discussions
+- Document analysis workflows exposing HR and legal files to multiple AI providers
+- Marketing content generators with unvetted public-facing AI outputs
 
-**The Risk:** Data leaks, compliance violations, and security vulnerabilities.
+**The Risk:** GDPR violations, financial data exposure, confidential meeting leaks, and AI-driven security breaches.
 
 ## ✨ Key Features
 
-### 🤖 **Automated Discovery**
-- Detect bots, automations, and AI agents across Slack, Google Workspace, Microsoft 365, and more
-- Real-time monitoring of new installations and activities
-- Historical analysis of existing automations
+### 🤖 **AI-Powered Discovery**
+- Detect AI integrations and bots across Slack, Google Workspace, Microsoft 365, and more
+- Identify OpenAI, Anthropic, Cohere, and other AI service connections
+- Real-time monitoring of AI API calls and data transmission patterns
+- Historical analysis of AI automation usage and risk evolution
 
-### 📊 **Risk Assessment**
-- Risk scoring based on permissions, data access, and activity patterns
-- Identify high-risk automations accessing sensitive data
-- Track cross-application automation chains
+### 📊 **AI-Specific Risk Assessment**
+- Risk scoring based on AI provider, data sensitivity, and automation permissions
+- Identify critical-risk AI automations processing PII, financial, or confidential data
+- Track AI data flows and cross-platform correlation chains
+- GDPR Article 30 compliance assessment for AI data processing
 
 ### 🔗 **Cross-Platform Correlation**
 - Map automation sequences across multiple SaaS platforms
@@ -61,19 +64,21 @@ cp .env.example .env
 npm run db:migrate
 ```
 
-### 4. Start Development
+### 4. Start Development (MVP Demo Mode)
 ```bash
-# Backend API (port 3000)
-npm run dev:backend
+# Backend API with AI-enhanced mock data (port 3001)
+cd backend
+USE_MOCK_DATA=true ENABLE_DATA_TOGGLE=true node test-data-toggle.js
 
-# Frontend Dashboard (port 3001)
-npm run dev:frontend
+# Frontend Dashboard (port 3000)
+cd frontend
+VITE_API_URL=http://localhost:3001/api npm run dev
 ```
 
-### 5. Connect Your First Platform
-1. Visit http://localhost:3001
-2. Click "Connect Slack" and authorize
-3. Watch as SaaS X-Ray discovers your automations
+### 5. Access Demo Dashboard
+1. Visit http://localhost:3000
+2. Login with: admin@example.com / SecurePass123
+3. Click "Discover" on Google Workspace to see 5 AI automations with critical security risks
 
 ## 📱 Supported Platforms
 
@@ -120,16 +125,17 @@ npm run dev:frontend
 
 ## 📊 Sample Dashboard
 
-**Bot Inventory View:**
+**AI Automation Inventory View:**
 ```
-┌─────────────────────────────────────────────────────┐
-│ 🤖 Discovered Automations (Last 30 Days)          │
-├─────────────────────────────────────────────────────┤
-│ GitBot (Slack)           │ High Risk    │ 247 msgs │
-│ HubSpot Workflows        │ Medium Risk  │ 89 leads │
-│ Google Apps Script       │ Low Risk     │ 12 runs  │
-│ Jira Service Desk Bot    │ Medium Risk  │ 156 tkts │
-└─────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────┐
+│ 🤖 Discovered AI Automations (Last 30 Days)               │
+├─────────────────────────────────────────────────────────────┤
+│ AI Customer Support Bot (GPT-4)    │ Critical Risk │ Score: 92 │
+│ AI Meeting Intelligence (Whisper)   │ Critical Risk │ Score: 96 │
+│ Claude Financial Analyzer          │ Critical Risk │ Score: 88 │
+│ Multi-AI Document Pipeline         │ Critical Risk │ Score: 94 │
+│ GPT-3.5 Content Generator          │ High Risk     │ Score: 76 │
+└─────────────────────────────────────────────────────────────┘
 ```
 
 **Risk Timeline:**
@@ -161,10 +167,12 @@ Today    ●───●───●────●──────●──�
 
 ## 🛣️ Roadmap
 
-### Week 1: MVP Release
-- ✅ Slack, Google, Microsoft connectors
-- ✅ Basic bot detection
-- ✅ Simple dashboard
+### ✅ MVP Release (Current Status)
+- ✅ AI-focused automation discovery
+- ✅ Google Workspace connector with mock data
+- ✅ Authentication and dashboard
+- ✅ Risk assessment with AI-specific scoring
+- ✅ 5 realistic AI automation scenarios for demos
 
 ### Month 1: Platform Expansion
 - Add Jira, HubSpot, Notion

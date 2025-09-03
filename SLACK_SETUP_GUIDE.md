@@ -36,6 +36,7 @@ In the **"OAuth & Permissions"** section:
 
 1. **Redirect URLs** → Click **"Add New Redirect URL"**
 2. **Enter**: `http://localhost:3001/api/auth/callback/slack`
+   *Note: Backend runs on port 3001, Frontend on port 3000*
 3. **Click "Save URLs"**
 
 ## Step 4: Get Your Credentials
