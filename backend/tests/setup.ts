@@ -10,7 +10,17 @@ import { auditLogRepository } from '../src/database/repositories';
 jest.setTimeout(30000);
 
 // Skip database setup for unit tests that don't need it
-const isUnitTest = process.argv.some(arg => arg.includes('unit') || arg.includes('simple-mock'));
+const isUnitTest = process.argv.some(arg => 
+  arg.includes('unit') || 
+  arg.includes('simple-mock') || 
+  arg.includes('security/encryption') ||
+  arg.includes('security/jwt')
+);
+
+// Set NODE_ENV=test for JWT and security tests
+if (process.argv.some(arg => arg.includes('security/jwt'))) {
+  process.env.NODE_ENV = 'test';
+}
 
 if (!isUnitTest) {
   // Global setup - runs before all tests

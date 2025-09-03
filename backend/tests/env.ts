@@ -5,13 +5,13 @@
 
 process.env.NODE_ENV = 'test';
 
-// Database configuration - Using SQLite in-memory for tests
+// Database configuration - Using PostgreSQL test database
 process.env.DB_HOST = 'localhost';
-process.env.DB_PORT = '5432';
+process.env.DB_PORT = '5433';
 process.env.DB_NAME = 'saas_xray_test';
 process.env.DB_USER = 'postgres';
-process.env.DB_PASSWORD = 'postgres';
-process.env.TEST_DATABASE_URL = 'postgresql://postgres:postgres@localhost:5432/saas_xray_test';
+process.env.DB_PASSWORD = 'password';
+process.env.TEST_DATABASE_URL = 'postgresql://postgres:password@localhost:5433/saas_xray_test';
 
 // JWT configuration for testing
 process.env.JWT_PRIVATE_KEY = `-----BEGIN PRIVATE KEY-----

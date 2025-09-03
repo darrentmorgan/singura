@@ -112,7 +112,7 @@ export class EncryptionService {
       const operationKey = this.deriveOperationKey(key, salt);
 
       // Create cipher with GCM mode  
-      const cipher = crypto.createCipherGCM('aes-256-gcm', operationKey);
+      const cipher = crypto.createCipheriv('aes-256-gcm', operationKey, iv) as crypto.CipherGCM;
       cipher.setAAD(this.aad);
 
       // Encrypt the plaintext
@@ -185,7 +185,7 @@ export class EncryptionService {
       const operationKey = this.deriveOperationKey(key, saltBuffer);
 
       // Create decipher  
-      const decipher = crypto.createDecipherGCM('aes-256-gcm', operationKey);
+      const decipher = crypto.createDecipheriv('aes-256-gcm', operationKey, ivBuffer) as crypto.DecipherGCM;
       decipher.setAAD(this.aad);
       decipher.setAuthTag(authTagBuffer);
 

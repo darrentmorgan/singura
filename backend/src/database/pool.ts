@@ -15,8 +15,13 @@ class DatabasePool {
   }
 
   private createPool(): Pool {
+    // Use TEST_DATABASE_URL in test environment, fallback to DATABASE_URL
+    const connectionString = process.env.NODE_ENV === 'test' && process.env.TEST_DATABASE_URL
+      ? process.env.TEST_DATABASE_URL
+      : process.env.DATABASE_URL;
+    
     const config: PoolConfig = {
-      connectionString: process.env.DATABASE_URL,
+      connectionString,
       ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
       
       // Connection pool settings
