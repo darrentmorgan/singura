@@ -6,7 +6,7 @@
 import { auditLogRepository } from '../database/repositories/audit-log';
 import { platformConnectionRepository } from '../database/repositories/platform-connection';
 import { organizationRepository } from '../database/repositories/organization';
-import { securityAuditService } from '../security/audit';
+import { auditService } from '../security/audit';
 
 export interface ComplianceReport {
   id: string;
@@ -454,7 +454,7 @@ export class ComplianceService {
 
     try {
       // Check for privileged access management
-      const connections = await platformConnectionRepository.findByOrganizationId(organizationId);
+      const connections = await platformConnectionRepository.findByOrganization(organizationId);
       
       // Analyze OAuth permissions for excessive access
       for (const connection of connections) {
@@ -479,8 +479,13 @@ export class ComplianceService {
       }
 
       // Check for access reviews
-      const auditLogs = await auditLogRepository.findByDateRange(organizationId, periodStart, periodEnd);
-      const accessReviewLogs = auditLogs.filter(log => 
+      const auditLogsResult = await auditLogRepository.findMany({
+        organization_id: organizationId,
+        created_after: periodStart,
+        created_before: periodEnd
+      });
+      const auditLogs = auditLogsResult.data;
+      const accessReviewLogs = auditLogs.filter((log: { event_type: string }) => 
         log.event_type === 'access_review' || log.event_type === 'permission_modified'
       );
 
@@ -543,7 +548,12 @@ export class ComplianceService {
 
     try {
       // Check audit log coverage
-      const auditLogs = await auditLogRepository.findByDateRange(organizationId, periodStart, periodEnd);
+      const auditLogsResult = await auditLogRepository.findMany({
+        organization_id: organizationId,
+        created_after: periodStart,
+        created_before: periodEnd
+      });
+      const auditLogs = auditLogsResult.data;
       
       if (auditLogs.length === 0) {
         findings.push({
@@ -601,8 +611,13 @@ export class ComplianceService {
 
     try {
       // Check for security incidents
-      const auditLogs = await auditLogRepository.findByDateRange(organizationId, periodStart, periodEnd);
-      const incidentLogs = auditLogs.filter(log => 
+      const auditLogsResult = await auditLogRepository.findMany({
+        organization_id: organizationId,
+        created_after: periodStart,
+        created_before: periodEnd
+      });
+      const auditLogs = auditLogsResult.data;
+      const incidentLogs = auditLogs.filter((log: { event_type: string }) => 
         log.event_type.includes('incident') || 
         log.event_type.includes('breach') ||
         log.event_type.includes('security_alert')

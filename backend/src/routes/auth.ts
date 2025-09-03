@@ -6,7 +6,7 @@
 import { Router, Request, Response } from 'express';
 import { jwtService } from '../security/jwt';
 import { securityMiddleware } from '../security/middleware';
-import { securityAuditService } from '../security/audit';
+import { auditService } from '../security/audit';
 import { oauthService } from '../services/oauth-service';
 import { PlatformType } from '../types/database';
 
@@ -49,7 +49,7 @@ router.post('/login',
         );
 
         // Log successful authentication
-        await securityAuditService.logAuthenticationEvent(
+        await auditService.logAuthenticationEvent(
           'login_success',
           userId,
           organizationId,
@@ -68,7 +68,7 @@ router.post('/login',
         });
       } else {
         // Log failed authentication
-        await securityAuditService.logAuthenticationEvent(
+        await auditService.logAuthenticationEvent(
           'login_failure',
           'unknown',
           undefined,
@@ -85,7 +85,7 @@ router.post('/login',
         });
       }
     } catch (error) {
-      await securityAuditService.logSecurityViolation(
+      await auditService.logSecurityViolation(
         'authentication_error',
         `Authentication system error: ${error instanceof Error ? error.message : 'Unknown error'}`,
         undefined,
@@ -111,7 +111,7 @@ router.post('/refresh',
     // Validate refresh token format
     securityMiddleware.validationRules.uuid.withMessage('Valid refresh token required')
   ]),
-  async (req: Request, res: Response) => {
+  async (req: Request, res: Response): Promise<Response> => {
     try {
       const { refreshToken } = req.body;
 
@@ -129,12 +129,12 @@ router.post('/refresh',
         req.get('User-Agent')
       );
 
-      res.json({
+      return res.json({
         success: true,
         tokens: newTokens
       });
     } catch (error) {
-      await securityAuditService.logAuthenticationEvent(
+      await auditService.logAuthenticationEvent(
         'token_refresh',
         'unknown',
         undefined,
@@ -145,7 +145,7 @@ router.post('/refresh',
         }
       );
 
-      res.status(401).json({
+      return res.status(401).json({
         error: 'Token refresh failed',
         code: 'REFRESH_FAILED',
         message: error instanceof Error ? error.message : 'Unknown error'
@@ -174,7 +174,7 @@ router.post('/logout',
       }
 
       // Log logout
-      await securityAuditService.logAuthenticationEvent(
+      await auditService.logAuthenticationEvent(
         'logout',
         user.userId,
         user.organizationId,
@@ -389,7 +389,7 @@ router.get('/security/metrics',
       const { timeframe = '24h' } = req.query;
       const user = req.user!;
 
-      const metrics = await securityAuditService.getSecurityMetrics(
+      const metrics = await auditService.getSecurityMetrics(
         user.organizationId,
         timeframe as '1h' | '24h' | '7d' | '30d'
       );
@@ -430,7 +430,7 @@ router.get('/security/compliance-report',
         });
       }
 
-      const report = await securityAuditService.generateComplianceReport(
+      const report = await auditService.generateComplianceReport(
         reportType as 'soc2' | 'gdpr' | 'owasp',
         new Date(startDate as string),
         new Date(endDate as string),

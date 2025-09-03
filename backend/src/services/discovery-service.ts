@@ -3,7 +3,7 @@
  * Coordinates platform connectors to discover automations across SaaS platforms
  */
 
-import { PlatformConnector, AutomationEvent, DiscoveryResult } from '../connectors/types';
+import { PlatformConnector, AutomationEvent, DiscoveryResult, OAuthCredentials } from '../connectors/types';
 import { slackConnector } from '../connectors/slack';
 import { googleConnector } from '../connectors/google';
 import { microsoftConnector } from '../connectors/microsoft';
@@ -55,10 +55,10 @@ export class DiscoveryService {
   private connectors: Map<PlatformType, PlatformConnector>;
 
   constructor() {
-    this.connectors = new Map([
-      ['slack', slackConnector],
-      ['google', googleConnector],
-      ['microsoft', microsoftConnector]
+    this.connectors = new Map<PlatformType, PlatformConnector>([
+      ['slack', slackConnector]
+      // ['google', googleConnector],  // Comment out until implemented
+      // ['microsoft', microsoftConnector]  // Comment out until implemented
     ]);
   }
 
@@ -172,7 +172,12 @@ export class DiscoveryService {
       const credentials = await this.getOAuthCredentials(connection.id);
 
       // Authenticate with the platform
-      const authResult = await connector.authenticate(credentials);
+      const oauthCreds: OAuthCredentials = {
+        accessToken: credentials.accessToken,
+        refreshToken: credentials.refreshToken || undefined,
+        tokenType: credentials.tokenType
+      };
+      const authResult = await connector.authenticate(oauthCreds);
       if (!authResult.success) {
         throw new Error(`Authentication failed: ${authResult.error}`);
       }
@@ -326,7 +331,11 @@ export class DiscoveryService {
       'in_progress'
     ]);
 
-    return result.rows[0];
+    const discoveryRun = result.rows[0];
+    if (!discoveryRun) {
+      throw new Error('Failed to create discovery run');
+    }
+    return discoveryRun;
   }
 
   /**

@@ -9,8 +9,7 @@ import {
   OAuthAuthorizationRequest,
   OAuthCallbackRequest, 
   OAuthCredentials,
-  OAuthAuthorizationResponse,
-  Connection,
+  PlatformConnection,
   Platform 
 } from '@saas-xray/shared-types';
 import { oauthSecurityService, OAuthConfig } from '../security/oauth';
@@ -52,7 +51,7 @@ export class OAuthService {
     userId: string,
     organizationId: string,
     req: Request
-  ): Promise<OAuthAuthorizationResponse> {
+  ): Promise<{ authorizationUrl: string; state: string }> {
     try {
       // Validate platform support
       this.validatePlatformSupport(platform);
@@ -391,8 +390,8 @@ export class OAuthService {
   /**
    * Validate platform support
    */
-  private validatePlatformSupport(platform: PlatformType): void {
-    const supportedPlatforms: PlatformType[] = ['slack', 'google', 'microsoft'];
+  private validatePlatformSupport(platform: Platform): void {
+    const supportedPlatforms: Platform[] = ['slack', 'google', 'microsoft'];
     
     if (!supportedPlatforms.includes(platform)) {
       throw new Error(`Platform '${platform}' is not supported for OAuth`);
@@ -402,7 +401,7 @@ export class OAuthService {
   /**
    * Fetch platform user information
    */
-  private async fetchPlatformUserInfo(platform: PlatformType, accessToken: string): Promise<any> {
+  private async fetchPlatformUserInfo(platform: PlatformType, accessToken: string): Promise<Record<string, unknown>> {
     const config = oauthSecurityService.getPlatformConfig(platform);
     
     if (!config.userInfoUrl) {
@@ -429,7 +428,7 @@ export class OAuthService {
   /**
    * Normalize user info across platforms
    */
-  private normalizePlatformUserInfo(platform: PlatformType, userInfo: any): any {
+  private normalizePlatformUserInfo(platform: PlatformType, userInfo: Record<string, unknown>): Record<string, unknown> {
     switch (platform) {
       case 'google':
         return {
@@ -463,10 +462,10 @@ export class OAuthService {
   private async createPlatformConnection(
     organizationId: string,
     platform: PlatformType,
-    platformUserInfo: any,
-    tokens: any,
+    platformUserInfo: Record<string, unknown>,
+    tokens: Record<string, unknown>,
     scopes: string[]
-  ) {
+  ): Promise<{ id: string; display_name: string; platform_type: PlatformType; organization_id: string }> {
     // Check for existing connection
     const existingConnections = await platformConnectionRepository.findMany({
       organization_id: organizationId,
@@ -504,7 +503,7 @@ export class OAuthService {
   /**
    * Store OAuth tokens securely
    */
-  private async storeOAuthTokens(connectionId: string, tokens: any): Promise<void> {
+  private async storeOAuthTokens(connectionId: string, tokens: Record<string, unknown>): Promise<void> {
     // Store access token
     const accessTokenData: EncryptedData = encryptionService.encrypt(tokens.access_token);
     await encryptedCredentialRepository.replaceCredential(
@@ -530,7 +529,7 @@ export class OAuthService {
    */
   private async updateOAuthTokens(
     connectionId: string,
-    tokens: any,
+    tokens: Record<string, unknown>,
     expiresAt: Date
   ): Promise<void> {
     // Update access token
@@ -556,7 +555,7 @@ export class OAuthService {
   /**
    * Extract workspace ID from platform user info
    */
-  private extractWorkspaceId(platform: PlatformType, userInfo: any): string | null {
+  private extractWorkspaceId(platform: PlatformType, userInfo: Record<string, unknown>): string | null {
     switch (platform) {
       case 'slack':
         return userInfo.teamId || null;
@@ -572,7 +571,7 @@ export class OAuthService {
   /**
    * Create display name for connection
    */
-  private createDisplayName(platform: PlatformType, userInfo: any): string {
+  private createDisplayName(platform: PlatformType, userInfo: Record<string, unknown>): string {
     const platformName = platform.charAt(0).toUpperCase() + platform.slice(1);
     const userName = userInfo.name || userInfo.email || 'Unknown User';
     
@@ -584,7 +583,7 @@ export class OAuthService {
   /**
    * Get workspace name from platform user info
    */
-  private getWorkspaceName(platform: PlatformType, userInfo: any): string | null {
+  private getWorkspaceName(platform: PlatformType, userInfo: Record<string, unknown>): string | null {
     switch (platform) {
       case 'slack':
         return userInfo.teamName || null;
@@ -600,7 +599,7 @@ export class OAuthService {
   /**
    * Create connection metadata
    */
-  private createConnectionMetadata(platform: PlatformType, userInfo: any, tokens: any): Record<string, any> {
+  private createConnectionMetadata(platform: PlatformType, userInfo: Record<string, unknown>, tokens: Record<string, unknown>): Record<string, unknown> {
     const baseMetadata = {
       tokenType: tokens.token_type,
       scope: tokens.scope,
