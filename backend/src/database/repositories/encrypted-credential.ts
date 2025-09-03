@@ -12,7 +12,7 @@ import {
   ValidationError
 } from '../../types/database';
 import { encryptionService, EncryptedData } from '../../security/encryption';
-import { securityAuditService } from '../../security/audit';
+import { auditService } from '../../security/audit';
 
 export class EncryptedCredentialRepository extends BaseRepository<
   EncryptedCredential,
@@ -67,7 +67,7 @@ export class EncryptedCredentialRepository extends BaseRepository<
       });
 
       // Audit credential creation
-      await securityAuditService.logSecurityEvent({
+      await auditService.logSecurityEvent({
         type: 'credential_created',
         category: 'auth',
         severity: 'low',
@@ -82,7 +82,7 @@ export class EncryptedCredentialRepository extends BaseRepository<
       return result;
     } catch (error) {
       // Audit credential creation failure
-      await securityAuditService.logSecurityEvent({
+      await auditService.logSecurityEvent({
         type: 'credential_creation_failed',
         category: 'error',
         severity: 'medium',
@@ -147,7 +147,7 @@ export class EncryptedCredentialRepository extends BaseRepository<
         const decryptedValue = encryptionService.decrypt(encryptedData);
         
         // Audit credential access
-        await securityAuditService.logSecurityEvent({
+        await auditService.logSecurityEvent({
           type: 'credential_accessed',
           category: 'auth',
           severity: 'low',
@@ -168,7 +168,7 @@ export class EncryptedCredentialRepository extends BaseRepository<
         );
 
         // Log that legacy format was accessed (should be migrated)
-        await securityAuditService.logSecurityEvent({
+        await auditService.logSecurityEvent({
           type: 'legacy_credential_accessed',
           category: 'auth',
           severity: 'medium',
@@ -185,7 +185,7 @@ export class EncryptedCredentialRepository extends BaseRepository<
       }
     } catch (error) {
       // Secure error handling - don't leak sensitive information
-      await securityAuditService.logSecurityEvent({
+      await auditService.logSecurityEvent({
         type: 'credential_decryption_failed',
         category: 'error',
         severity: 'high',
@@ -230,7 +230,7 @@ export class EncryptedCredentialRepository extends BaseRepository<
         await this.executeQuery('COMMIT', []);
 
         // Audit credential replacement
-        await securityAuditService.logSecurityEvent({
+        await auditService.logSecurityEvent({
           type: 'credential_replaced',
           category: 'auth',
           severity: 'medium',
@@ -249,7 +249,7 @@ export class EncryptedCredentialRepository extends BaseRepository<
         await this.executeQuery('ROLLBACK', []);
         
         // Audit credential replacement failure
-        await securityAuditService.logSecurityEvent({
+        await auditService.logSecurityEvent({
           type: 'credential_replacement_failed',
           category: 'error',
           severity: 'high',
@@ -412,7 +412,7 @@ export class EncryptedCredentialRepository extends BaseRepository<
     return result.rows.map(row => ({
       id: row.id,
       credential_type: row.credential_type,
-      decrypted_value: this.decryptValue(row.encrypted_value)
+      decrypted_value: encryptionService.decrypt(JSON.parse(row.encrypted_value))
     }));
   }
 
@@ -456,7 +456,7 @@ export class EncryptedCredentialRepository extends BaseRepository<
         rotatedCount++;
 
         // Audit successful key rotation
-        await securityAuditService.logSecurityEvent({
+        await auditService.logSecurityEvent({
           type: 'credential_key_rotated',
           category: 'admin',
           severity: 'medium',
@@ -472,7 +472,7 @@ export class EncryptedCredentialRepository extends BaseRepository<
         failedCount++;
         
         // Audit failed key rotation
-        await securityAuditService.logSecurityEvent({
+        await auditService.logSecurityEvent({
           type: 'credential_key_rotation_failed',
           category: 'error',
           severity: 'high',
@@ -491,7 +491,7 @@ export class EncryptedCredentialRepository extends BaseRepository<
     }
 
     // Log overall rotation summary
-    await securityAuditService.logSecurityEvent({
+    await auditService.logSecurityEvent({
       type: 'bulk_key_rotation_completed',
       category: 'admin',
       severity: 'high',
@@ -543,7 +543,7 @@ export class EncryptedCredentialRepository extends BaseRepository<
       await this.executeQuery(query, [newEncryptedValue, credentialId]);
 
       // Audit migration
-      await securityAuditService.logSecurityEvent({
+      await auditService.logSecurityEvent({
         type: 'credential_migrated',
         category: 'admin',
         severity: 'low',
@@ -557,7 +557,7 @@ export class EncryptedCredentialRepository extends BaseRepository<
 
       return true;
     } catch (error) {
-      await securityAuditService.logSecurityEvent({
+      await auditService.logSecurityEvent({
         type: 'credential_migration_failed',
         category: 'error',
         severity: 'medium',
@@ -600,7 +600,7 @@ export class EncryptedCredentialRepository extends BaseRepository<
     }
 
     // Audit batch migration
-    await securityAuditService.logSecurityEvent({
+    await auditService.logSecurityEvent({
       type: 'batch_credential_migration_completed',
       category: 'admin',
       severity: 'high',

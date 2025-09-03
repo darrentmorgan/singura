@@ -4,7 +4,7 @@
  * Complies with OWASP, NIST, and SOC 2 requirements
  */
 
-import crypto from 'crypto';
+import * as crypto from 'crypto';
 import { createHash, pbkdf2Sync, randomBytes } from 'crypto';
 
 export interface EncryptionConfig {
@@ -111,8 +111,8 @@ export class EncryptionService {
       // Derive operation-specific key using HKDF-like approach
       const operationKey = this.deriveOperationKey(key, salt);
 
-      // Create cipher with GCM mode
-      const cipher = crypto.createCipher(this.config.algorithm, operationKey);
+      // Create cipher with GCM mode  
+      const cipher = crypto.createCipherGCM('aes-256-gcm', operationKey);
       cipher.setAAD(this.aad);
 
       // Encrypt the plaintext
@@ -184,8 +184,8 @@ export class EncryptionService {
       // Derive the same operation key
       const operationKey = this.deriveOperationKey(key, saltBuffer);
 
-      // Create decipher
-      const decipher = crypto.createDecipher(algorithm, operationKey);
+      // Create decipher  
+      const decipher = crypto.createDecipherGCM('aes-256-gcm', operationKey);
       decipher.setAAD(this.aad);
       decipher.setAuthTag(authTagBuffer);
 
