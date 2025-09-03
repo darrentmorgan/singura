@@ -7,6 +7,13 @@
 // ENUMS
 // ============================================================================
 
+// Import shared types for consistency
+import type { 
+  OrganizationSettings, 
+  ConnectionMetadata as SharedConnectionMetadata,
+  AutomationRisk 
+} from '@saas-xray/shared-types';
+
 export type PlatformType = 
   | 'slack'
   | 'google'
@@ -68,6 +75,135 @@ export type DiscoveryStatus =
   | 'cancelled';
 
 // ============================================================================
+// METADATA INTERFACES
+// ============================================================================
+
+export interface ConnectionMetadata {
+  platformSpecific: PlatformSpecificMetadata;
+  syncConfig?: {
+    lastSyncAt?: string;
+    syncFrequency?: string;
+    syncEnabled?: boolean;
+  };
+  webhookConfig?: {
+    url?: string;
+    secret?: string;
+    enabled?: boolean;
+  };
+  rateLimit?: {
+    requestsPerMinute?: number;
+    burstLimit?: number;
+  };
+}
+
+export interface CredentialMetadata {
+  tokenType?: 'Bearer' | 'Basic' | 'API-Key';
+  scope?: string[];
+  issuer?: string;
+  audience?: string;
+  usage?: {
+    lastUsedAt?: string;
+    requestCount?: number;
+  };
+}
+
+export interface AuditEventData {
+  action: string;
+  resourceType?: string;
+  resourceId?: string;
+  changes?: {
+    field: string;
+    oldValue?: unknown;
+    newValue?: unknown;
+  }[];
+  context?: {
+    userAgent?: string;
+    sessionId?: string;
+    requestId?: string;
+  };
+  metadata?: Record<string, string | number | boolean>;
+}
+
+export interface DiscoveryMetadata {
+  version: string;
+  method: 'api' | 'webhook' | 'polling';
+  filters?: {
+    types?: string[];
+    dateRange?: {
+      startDate: string;
+      endDate: string;
+    };
+  };
+  performance?: {
+    requestCount?: number;
+    rateLimitHits?: number;
+    avgResponseTime?: number;
+  };
+}
+
+export interface AutomationOwnerInfo {
+  userId?: string;
+  userName?: string;
+  email?: string;
+  department?: string;
+  role?: string;
+  isServiceAccount?: boolean;
+  lastModifiedBy?: {
+    userId?: string;
+    userName?: string;
+    timestamp?: string;
+  };
+}
+
+export interface PlatformSpecificMetadata {
+  slack?: SlackConnectionMetadata;
+  google?: GoogleConnectionMetadata;
+  microsoft?: MicrosoftConnectionMetadata;
+  [key: string]: unknown;
+}
+
+export interface DataFlowStep {
+  stepId: string;
+  stepType: 'input' | 'transformation' | 'output' | 'condition' | 'loop';
+  description?: string;
+  source?: {
+    type: string;
+    identifier: string;
+    fields?: string[];
+  };
+  target?: {
+    type: string;
+    identifier: string;
+    fields?: string[];
+  };
+  transformation?: {
+    type: 'map' | 'filter' | 'aggregate' | 'format';
+    rules?: Record<string, unknown>;
+  };
+}
+
+export interface ActivityMetadata {
+  executionId?: string;
+  triggeredBy?: {
+    type: 'schedule' | 'webhook' | 'manual' | 'event';
+    source?: string;
+    timestamp?: string;
+  };
+  performance?: {
+    startTime?: string;
+    endTime?: string;
+    memoryUsage?: number;
+    cpuUsage?: number;
+  };
+  errors?: {
+    code?: string;
+    message?: string;
+    stackTrace?: string;
+    recoverable?: boolean;
+  }[];
+}
+
+// ============================================================================
 // CORE INTERFACES
 // ============================================================================
 
@@ -76,7 +212,7 @@ export interface Organization {
   name: string;
   domain: string | null;
   slug: string;
-  settings: Record<string, any>;
+  settings: OrganizationSettings;
   is_active: boolean;
   plan_tier: PlanTier;
   max_connections: number;
@@ -96,7 +232,7 @@ export interface PlatformConnection {
   last_sync_at: Date | null;
   last_error: string | null;
   expires_at: Date | null;
-  metadata: Record<string, any>;
+  metadata: ConnectionMetadata;
   webhook_url: string | null;
   webhook_secret_id: string | null;
   created_at: Date;
@@ -110,7 +246,7 @@ export interface EncryptedCredential {
   encrypted_value: string;
   encryption_key_id: string;
   expires_at: Date | null;
-  metadata: Record<string, any>;
+  metadata: CredentialMetadata;
   created_at: Date;
   updated_at: Date;
 }
@@ -125,7 +261,7 @@ export interface AuditLog {
   actor_type: ActorType;
   resource_type: string | null;
   resource_id: string | null;
-  event_data: Record<string, any>;
+  event_data: AuditEventData;
   ip_address: string | null;
   user_agent: string | null;
   created_at: Date;
@@ -146,7 +282,7 @@ export interface DiscoveryRun {
   automations_found: number;
   errors_count: number;
   warnings_count: number;
-  metadata: Record<string, any>;
+  metadata: DiscoveryMetadata;
   error_details: string | null;
   created_at: Date;
   updated_at: Date;
@@ -166,11 +302,11 @@ export interface DiscoveredAutomation {
   actions: string[];
   permissions_required: string[];
   data_access_patterns: string[];
-  owner_info: Record<string, any>;
+  owner_info: AutomationOwnerInfo;
   last_modified_at: Date | null;
   last_triggered_at: Date | null;
   execution_frequency: string | null;
-  platform_metadata: Record<string, any>;
+  platform_metadata: PlatformSpecificMetadata;
   first_discovered_at: Date;
   last_seen_at: Date;
   is_active: boolean;
@@ -208,7 +344,7 @@ export interface CrossPlatformIntegration {
   source_automation_id: string | null;
   target_automation_id: string | null;
   related_automations: string[];
-  data_flow: Record<string, any>[];
+  data_flow: DataFlowStep[];
   data_types: string[];
   confidence_score: number;
   last_detected_at: Date;
@@ -232,7 +368,7 @@ export interface AutomationActivity {
   data_volume_bytes: number | null;
   error_message: string | null;
   error_code: string | null;
-  activity_metadata: Record<string, any>;
+  activity_metadata: ActivityMetadata;
   created_at: Date;
 }
 
@@ -262,7 +398,7 @@ export interface CreateOrganizationInput {
   name: string;
   domain?: string;
   slug: string;
-  settings?: Record<string, any>;
+  settings?: Partial<OrganizationSettings>;
   plan_tier?: PlanTier;
   max_connections?: number;
 }
@@ -270,7 +406,7 @@ export interface CreateOrganizationInput {
 export interface UpdateOrganizationInput {
   name?: string;
   domain?: string;
-  settings?: Record<string, any>;
+  settings?: Partial<OrganizationSettings>;
   is_active?: boolean;
   plan_tier?: PlanTier;
   max_connections?: number;
@@ -284,7 +420,7 @@ export interface CreatePlatformConnectionInput {
   display_name: string;
   permissions_granted: string[];
   expires_at?: Date;
-  metadata?: Record<string, any>;
+  metadata?: Partial<ConnectionMetadata>;
   webhook_url?: string;
 }
 
@@ -295,7 +431,7 @@ export interface UpdatePlatformConnectionInput {
   last_sync_at?: Date;
   last_error?: string;
   expires_at?: Date;
-  metadata?: Record<string, any>;
+  metadata?: Partial<ConnectionMetadata>;
   webhook_url?: string;
 }
 
@@ -305,7 +441,7 @@ export interface CreateEncryptedCredentialInput {
   encrypted_value: string;
   encryption_key_id?: string;
   expires_at?: Date;
-  metadata?: Record<string, any>;
+  metadata?: Partial<CredentialMetadata>;
 }
 
 export interface CreateAuditLogInput {
@@ -317,7 +453,7 @@ export interface CreateAuditLogInput {
   actor_type: ActorType;
   resource_type?: string;
   resource_id?: string;
-  event_data?: Record<string, any>;
+  event_data?: Partial<AuditEventData>;
   ip_address?: string;
   user_agent?: string;
 }
@@ -420,7 +556,20 @@ export interface MicrosoftConnectionMetadata {
   user_principal_name: string;
   display_name: string;
   scopes: string[];
-  id_token_claims?: Record<string, any>;
+  id_token_claims?: {
+    oid?: string;
+    tid?: string;
+    sub?: string;
+    aud?: string;
+    iss?: string;
+    name?: string;
+    preferred_username?: string;
+    family_name?: string;
+    given_name?: string;
+    roles?: string[];
+    groups?: string[];
+    [claim: string]: string | string[] | number | boolean | undefined;
+  };
 }
 
 // ============================================================================
@@ -440,7 +589,7 @@ export interface DatabaseError {
 export interface ValidationError {
   field: string;
   message: string;
-  value?: any;
+  value?: unknown;
 }
 
 // ============================================================================
@@ -464,11 +613,11 @@ export type UpdateInput<T> = Partial<OmitTimestamps<Omit<T, 'id'>>>;
 // ============================================================================
 
 export interface DatabaseConnection {
-  query<T = any>(text: string, params?: any[]): Promise<DatabaseQueryResult<T>>;
+  query<T = unknown>(text: string, params?: unknown[]): Promise<DatabaseQueryResult<T>>;
   release(): void;
 }
 
-export interface DatabaseQueryResult<T = any> {
+export interface DatabaseQueryResult<T = unknown> {
   rows: T[];
   rowCount: number | null;
   command: string;

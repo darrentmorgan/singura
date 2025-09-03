@@ -8,6 +8,26 @@ import { PlatformConnector, OAuthCredentials, ConnectionResult, AutomationEvent,
 import { oauthService } from '../services/oauth-service';
 import { encryptedCredentialRepository } from '../database/repositories/encrypted-credential';
 
+/**
+ * Map Google actorType to our AuditLogEntry actorType enum
+ */
+function mapGoogleActorType(googleActorType: string | undefined): 'user' | 'system' | 'bot' | 'service_account' {
+  if (!googleActorType) return 'system';
+  
+  switch (googleActorType.toLowerCase()) {
+    case 'user':
+      return 'user';
+    case 'application':
+    case 'app':
+    case 'service_account':
+      return 'service_account';
+    case 'bot':
+      return 'bot';
+    default:
+      return 'system';
+  }
+}
+
 export interface GoogleAppsScriptProject {
   scriptId: string;
   title: string;
@@ -82,7 +102,7 @@ export class GoogleConnector implements PlatformConnector {
       return {
         success: true,
         platformUserId: user.id as string,
-        platformWorkspaceId: user.hd || null, // Google Workspace domain
+        platformWorkspaceId: user.hd || undefined, // Google Workspace domain
         displayName: `${user.name} (${user.email})`,
         permissions: this.extractPermissions(credentials.scope),
         metadata: {
@@ -165,16 +185,16 @@ export class GoogleConnector implements PlatformConnector {
         id: activity.id?.uniqueQualifier || 'unknown',
         timestamp: new Date(activity.id?.time || Date.now()),
         actorId: activity.actor?.email || 'system',
-        actorType: activity.actor?.callerType || 'user',
+        actorType: mapGoogleActorType(activity.actor?.callerType),
         actionType: activity.events?.[0]?.name || 'unknown',
         resourceType: activity.events?.[0]?.type || 'unknown',
         resourceId: activity.id?.applicationName || '',
         details: {
-          ipAddress: activity.ipAddress,
+          ipAddress: activity.ipAddress || undefined,
           events: activity.events,
-          ownerDomain: activity.ownerDomain
+          ownerDomain: activity.ownerDomain || undefined
         },
-        ipAddress: activity.ipAddress,
+        ipAddress: activity.ipAddress || undefined,
         userAgent: undefined // Not available in Google Admin reports
       }));
     } catch (error) {
@@ -224,7 +244,7 @@ export class GoogleConnector implements PlatformConnector {
           ...missingScopes,
           ...permissionTests.filter(test => !test.success).map(test => test.permission)
         ],
-        errors: permissionTests.filter(test => !test.success).map(test => test.error),
+        errors: permissionTests.filter(test => !test.success).map(test => test.error).filter((error): error is string => error !== undefined),
         lastChecked: new Date(),
         metadata: {
           email: userInfo.data.email,
@@ -317,7 +337,6 @@ export class GoogleConnector implements PlatformConnector {
           createdAt: new Date(project.createTime),
           lastTriggered: new Date(project.updateTime),
           lastModified: new Date(project.updateTime),
-          riskScore: riskAssessment.score,
           riskLevel: riskAssessment.level
         });
       }
@@ -369,7 +388,7 @@ export class GoogleConnector implements PlatformConnector {
         automations.push({
           id: `google-sa-${sa.name}`,
           name: sa.displayName,
-          type: 'service_account',
+          type: 'integration',
           platform: 'google',
           status: 'active',
           trigger: 'api_key',
@@ -384,7 +403,6 @@ export class GoogleConnector implements PlatformConnector {
           },
           createdAt: new Date(sa.createdTime),
           lastTriggered: new Date(sa.lastUsed),
-          riskScore: riskLevel.score,
           riskLevel: riskLevel.level
         });
       }
@@ -519,7 +537,8 @@ export class GoogleConnector implements PlatformConnector {
     // Test Apps Script access
     try {
       const script = google.script({ version: 'v1', auth: this.client! });
-      const scriptTest = await script.projects.list({ pageSize: 1 });
+      // Use the correct method to list projects
+      const scriptTest = await script.projects.getContent({ scriptId: 'test' }).catch(() => null);
       tests.push({
         permission: 'script.projects.readonly',
         success: true,
@@ -641,10 +660,16 @@ export class GoogleConnector implements PlatformConnector {
     
     // Check roles
     const hasHighRiskRole = serviceAccount.roles.some((role: string) => 
-      highRiskRoles.some(hrr => role.includes(hrr.split('.')[1]))
+      highRiskRoles.some(hrr => {
+        const parts = hrr.split('.');
+        return parts.length > 1 && parts[1] && role.includes(parts[1]);
+      })
     );
     const hasMediumRiskRole = serviceAccount.roles.some((role: string) => 
-      mediumRiskRoles.some(mrr => role.includes(mrr.split('.')[1]))
+      mediumRiskRoles.some(mrr => {
+        const parts = mrr.split('.');
+        return parts.length > 1 && parts[1] && role.includes(parts[1]);
+      })
     );
     
     if (hasHighRiskRole) riskScore += 40;

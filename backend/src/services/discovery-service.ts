@@ -9,7 +9,7 @@ import { googleConnector } from '../connectors/google';
 import { microsoftConnector } from '../connectors/microsoft';
 import { platformConnectionRepository } from '../database/repositories/platform-connection';
 import { encryptedCredentialRepository } from '../database/repositories/encrypted-credential';
-import { DiscoveryRun, DiscoveredAutomation, PlatformType, DiscoveryStatus } from '../types/database';
+import { DiscoveryRun, DiscoveredAutomation, PlatformType, DiscoveryStatus, PlatformConnection } from '../types/database';
 import { db } from '../database/pool';
 
 export interface DiscoveryJobConfig {
@@ -31,6 +31,21 @@ export interface DiscoveryJobResult {
   warnings: string[];
   duration: number;
   results: DiscoveryResult[];
+}
+
+export interface DiscoveryStats {
+  total_runs: number;
+  successful_runs: number;
+  failed_runs: number;
+  total_automations_found: number;
+  avg_duration_ms: number;
+  last_discovery_at: Date | null;
+}
+
+interface OAuthCredentialsResult {
+  accessToken: string;
+  refreshToken: string | null;
+  tokenType: string;
 }
 
 /**
@@ -246,7 +261,7 @@ export class DiscoveryService {
   /**
    * Get platform connections for discovery
    */
-  private async getPlatformConnections(config: DiscoveryJobConfig) {
+  private async getPlatformConnections(config: DiscoveryJobConfig): Promise<PlatformConnection[]> {
     if (config.platformConnectionIds) {
       // Get specific connections
       const connections = [];
@@ -270,7 +285,7 @@ export class DiscoveryService {
   /**
    * Get OAuth credentials for a platform connection
    */
-  private async getOAuthCredentials(connectionId: string) {
+  private async getOAuthCredentials(connectionId: string): Promise<OAuthCredentialsResult> {
     const accessToken = await encryptedCredentialRepository.getDecryptedValue(
       connectionId,
       'access_token'
@@ -480,7 +495,7 @@ export class DiscoveryService {
   /**
    * Get discovery statistics for an organization
    */
-  async getDiscoveryStats(organizationId: string, days: number = 30) {
+  async getDiscoveryStats(organizationId: string, days: number = 30): Promise<DiscoveryStats> {
     const query = `
       SELECT 
         COUNT(*) as total_runs,

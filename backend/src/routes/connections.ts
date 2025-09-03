@@ -5,13 +5,24 @@
 
 import { Router, Request, Response } from 'express';
 import { param, query } from 'express-validator';
+import { 
+  Connection, 
+  Platform, 
+  ConnectionStatus,
+  CreateConnectionRequest,
+  CreateConnectionResponse,
+  GetConnectionsResponse,
+  UpdateConnectionRequest,
+  UpdateConnectionResponse,
+  APIResponse 
+} from '@saas-xray/shared-types';
 import { securityMiddleware } from '../security/middleware';
 import { securityAuditService } from '../security/audit';
 import { platformConnectionRepository } from '../database/repositories/platform-connection';
 import { oauthService } from '../services/oauth-service';
 import { riskService } from '../services/risk-service';
 import { slackConnector } from '../connectors/slack';
-import { PlatformType, ConnectionStatus } from '../types/database';
+import { PlatformType } from '../types/database';
 import { AutomationEvent, AuditLogEntry } from '../connectors/types';
 
 const router = Router();

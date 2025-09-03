@@ -3,8 +3,8 @@
  * Handles applying and rolling back database migrations
  */
 
-import fs from 'fs/promises';
-import path from 'path';
+import * as fs from 'fs/promises';
+import * as path from 'path';
 import { db } from './pool';
 
 interface Migration {

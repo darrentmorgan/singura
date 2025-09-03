@@ -3,7 +3,7 @@
  * Extends the discovery service to emit real-time updates via Socket.io
  */
 
-import { discoveryService, DiscoveryJobConfig, DiscoveryJobResult } from './discovery-service';
+import { discoveryService, DiscoveryJobConfig, DiscoveryJobResult, DiscoveryStats } from './discovery-service';
 import { 
   publishDiscoveryEvent, 
   publishAutomationEvent, 
@@ -264,7 +264,7 @@ export class RealTimeDiscoveryService {
   /**
    * Get discovery statistics with real-time capabilities
    */
-  async getDiscoveryStatsWithUpdates(organizationId: string, days: number = 30) {
+  async getDiscoveryStatsWithUpdates(organizationId: string, days: number = 30): Promise<DiscoveryStats> {
     try {
       const stats = await this.baseService.getDiscoveryStats(organizationId, days);
       

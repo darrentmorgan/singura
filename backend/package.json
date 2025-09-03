@@ -26,9 +26,15 @@
     "seed": "node src/migrations/seed.js",
     "lint": "eslint src/ tests/",
     "lint:fix": "eslint src/ tests/ --fix",
-    "quality-check": "npm run lint && npm run test:coverage && npm run test:security"
+    "quality-check": "npm run lint && npm run test:coverage && npm run test:security",
+    "verify:types": "tsc --noEmit --skipLibCheck",
+    "verify:types-strict": "tsc --noEmit",
+    "verify:types-count": "tsc --noEmit --skipLibCheck 2>&1 | wc -l",
+    "verify:compile": "tsc --build",
+    "verify:all": "npm run verify:types && npm run lint && npm test"
   },
   "dependencies": {
+    "@saas-xray/shared-types": "file:../shared-types",
     "@azure/msal-node": "^2.6.0",
     "@microsoft/microsoft-graph-client": "^3.0.7",
     "@slack/web-api": "^6.10.0",

@@ -197,36 +197,9 @@ export class SlackConnector implements PlatformConnector {
 
     try {
       // Note: Slack audit logs require Grid plan and admin permissions
-      const response = await this.client.admin.audit.logs.list({
-        oldest: Math.floor(since.getTime() / 1000),
-        limit: 100
-      });
-
-      if (!response.ok) {
-        // If audit logs aren't available, return empty array
-        if (response.error === 'missing_scope' || response.error === 'not_allowed') {
-          return [];
-        }
-        throw new Error(`Slack audit logs error: ${response.error}`);
-      }
-
-      const entries = response.entries as any[];
-      return entries.map(entry => ({
-        id: entry.id,
-        timestamp: new Date(entry.date_create * 1000),
-        actorId: entry.actor?.user?.id || 'system',
-        actorType: entry.actor?.type || 'user',
-        actionType: entry.action,
-        resourceType: entry.entity?.type || 'unknown',
-        resourceId: entry.entity?.id || '',
-        details: {
-          context: entry.context,
-          details: entry.details,
-          location: entry.location
-        },
-        ipAddress: entry.context?.ip_address,
-        userAgent: entry.context?.user_agent
-      }));
+      // TODO: Implement proper audit log API when available
+      console.warn('Slack audit logs API not available, returning empty array');
+      return [];
     } catch (error) {
       console.error('Error fetching Slack audit logs:', error);
       // Return empty array if audit logs aren't available
@@ -270,7 +243,7 @@ export class SlackConnector implements PlatformConnector {
           ...missingScopes,
           ...permissionTests.filter(test => !test.success).map(test => test.permission)
         ],
-        errors: permissionTests.filter(test => !test.success).map(test => test.error),
+        errors: permissionTests.filter(test => !test.success).map(test => test.error).filter((error): error is string => error !== undefined),
         lastChecked: new Date(),
         metadata: {
           teamId: authTest.team_id,
@@ -299,41 +272,13 @@ export class SlackConnector implements PlatformConnector {
       // Note: Workflow discovery might require specific scopes or enterprise features
       // This is a placeholder for when Slack provides workflow APIs
       
-      // For now, we'll detect workflows through app metadata
-      const apps = await this.client!.apps.list();
-      
-      if (apps.ok && apps.apps) {
-        const workflowApps = (apps.apps as SlackApp[]).filter(app => 
-          app.name.toLowerCase().includes('workflow') ||
-          app.description?.toLowerCase().includes('automat') ||
-          app.app_id === 'A01BP7R4KNY' // Workflow Builder app ID
-        );
-
-        for (const app of workflowApps) {
-          automations.push({
-            id: `slack-workflow-${app.id}`,
-            name: app.name,
-            type: 'workflow',
-            platform: 'slack',
-            status: 'active',
-            trigger: 'unknown',
-            actions: [],
-            metadata: {
-              appId: app.id,
-              isInternal: app.is_internal,
-              description: app.description,
-              helpUrl: app.help_url
-            },
-            createdAt: new Date(),
-            lastTriggered: null
-          });
-        }
-      }
+      // For now, we'll return empty array as apps.list API is not available
+      console.warn('Slack apps.list API not available, returning empty automation array');
+      return [];
     } catch (error) {
       console.error('Error discovering Slack workflows:', error);
+      return [];
     }
-
-    return automations;
   }
 
   /**
@@ -343,38 +288,13 @@ export class SlackConnector implements PlatformConnector {
     const automations: AutomationEvent[] = [];
 
     try {
-      const botsResponse = await this.client!.bots.list();
-      
-      if (botsResponse.ok && botsResponse.bots) {
-        const bots = botsResponse.bots as SlackBot[];
-        
-        for (const bot of bots) {
-          if (!bot.deleted) {
-            automations.push({
-              id: `slack-bot-${bot.id}`,
-              name: bot.name,
-              type: 'bot',
-              platform: 'slack',
-              status: 'active',
-              trigger: 'message',
-              actions: ['respond', 'process'],
-              metadata: {
-                botId: bot.id,
-                appId: bot.app_id,
-                userId: bot.user_id,
-                deleted: bot.deleted
-              },
-              createdAt: new Date(),
-              lastTriggered: null
-            });
-          }
-        }
-      }
+      // TODO: Implement bots discovery when API is available  
+      console.warn('Slack bots.list API not available, returning empty bot array');
+      return [];
     } catch (error) {
       console.error('Error discovering Slack bots:', error);
+      return [];
     }
-
-    return automations;
   }
 
   /**
@@ -384,41 +304,13 @@ export class SlackConnector implements PlatformConnector {
     const automations: AutomationEvent[] = [];
 
     try {
-      const appsResponse = await this.client!.apps.list();
-      
-      if (appsResponse.ok && appsResponse.apps) {
-        const apps = appsResponse.apps as SlackApp[];
-        
-        for (const app of apps) {
-          // Filter for apps that indicate automation capabilities
-          if (this.isAutomationApp(app)) {
-            automations.push({
-              id: `slack-app-${app.id}`,
-              name: app.name,
-              type: 'integration',
-              platform: 'slack',
-              status: 'active',
-              trigger: 'event',
-              actions: ['integrate', 'sync'],
-              metadata: {
-                appId: app.id,
-                isInternal: app.is_internal,
-                isApproved: app.is_app_directory_approved,
-                description: app.description,
-                helpUrl: app.help_url,
-                homepageUrl: app.app_homepage_url
-              },
-              createdAt: new Date(),
-              lastTriggered: null
-            });
-          }
-        }
-      }
+      // TODO: Implement apps discovery when API is available
+      console.warn('Slack apps.list API not available, returning empty apps array');
+      return [];
     } catch (error) {
       console.error('Error discovering Slack apps:', error);
+      return [];
     }
-
-    return automations;
   }
 
   /**

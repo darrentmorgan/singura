@@ -29,6 +29,23 @@ export interface RiskCalculationResult {
   confidenceLevel: number;
 }
 
+export interface RiskStatistics {
+  total_automations: number;
+  critical_risk: number;
+  high_risk: number;
+  medium_risk: number;
+  low_risk: number;
+  avg_risk_score: number;
+  avg_confidence: number;
+}
+
+export interface HighRiskAutomation extends DiscoveredAutomation {
+  risk_level: RiskLevel;
+  risk_score: number;
+  risk_factors: string[];
+  recommendations: string[];
+}
+
 /**
  * Risk Assessment Service - Calculates and manages automation risk scores
  */
@@ -506,7 +523,7 @@ export class RiskService {
   /**
    * Get risk statistics for an organization
    */
-  async getRiskStatistics(organizationId: string) {
+  async getRiskStatistics(organizationId: string): Promise<RiskStatistics> {
     const query = `
       SELECT 
         COUNT(*) as total_automations,
@@ -528,7 +545,7 @@ export class RiskService {
   /**
    * Get high-risk automations for an organization
    */
-  async getHighRiskAutomations(organizationId: string, limit: number = 50) {
+  async getHighRiskAutomations(organizationId: string, limit: number = 50): Promise<HighRiskAutomation[]> {
     const query = `
       SELECT da.*, ra.risk_level, ra.risk_score, ra.risk_factors, ra.recommendations
       FROM discovered_automations da

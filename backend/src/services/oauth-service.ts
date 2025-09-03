@@ -5,6 +5,14 @@
  */
 
 import { Request, Response } from 'express';
+import { 
+  OAuthAuthorizationRequest,
+  OAuthCallbackRequest, 
+  OAuthCredentials,
+  OAuthAuthorizationResponse,
+  Connection,
+  Platform 
+} from '@saas-xray/shared-types';
 import { oauthSecurityService, OAuthConfig } from '../security/oauth';
 import { encryptionService, EncryptedData } from '../security/encryption';
 import { securityAuditService } from '../security/audit';
@@ -40,11 +48,11 @@ export class OAuthService {
    * Implements secure OAuth initiation with state validation
    */
   async initiateOAuthFlow(
-    platform: PlatformType,
+    platform: Platform,
     userId: string,
     organizationId: string,
     req: Request
-  ): Promise<{ authorizationUrl: string; state: string }> {
+  ): Promise<OAuthAuthorizationResponse> {
     try {
       // Validate platform support
       this.validatePlatformSupport(platform);
@@ -212,7 +220,7 @@ export class OAuthService {
       await platformConnectionRepository.update(connectionId, {
         status: 'active',
         expires_at: expiresAt,
-        last_error: null
+        last_error: undefined
       });
 
       // Log successful token refresh
@@ -309,7 +317,7 @@ export class OAuthService {
       // Update connection status
       await platformConnectionRepository.update(connectionId, {
         status: 'inactive',
-        last_error: null
+        last_error: undefined
       });
 
       // Log token revocation
