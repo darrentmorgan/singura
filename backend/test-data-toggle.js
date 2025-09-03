@@ -171,131 +171,198 @@ app.post('/api/auth/logout', (req, res) => {
   });
 });
 
-// Original mock automations from automations-mock.ts
+// AI-Enhanced Mock Automations - Focused on AI/ML service integrations
 const originalMockAutomations = [
   {
     id: '1',
-    name: 'Customer Onboarding Bot',
-    description: 'Automated workflow that guides new customers through the onboarding process',
+    name: 'AI Customer Support Bot',
+    description: 'GPT-4 powered customer support bot that processes support tickets and customer inquiries with direct access to customer data',
     type: 'bot',
     platform: 'slack',
     status: 'active',
-    riskLevel: 'high',
+    riskLevel: 'critical',
     createdAt: '2024-08-15T10:30:00Z',
-    lastTriggered: '2024-08-27T08:15:00Z',
-    permissions: ['channels:read', 'chat:write', 'users:read', 'im:write'],
+    lastTriggered: '2024-12-30T08:15:00Z',
+    permissions: ['channels:read', 'chat:write', 'users:read', 'im:write', 'files:read'],
     createdBy: 'john.doe@company.com',
     metadata: {
-      riskScore: 85,
+      riskScore: 92,
+      aiEndpoints: ['https://api.openai.com/v1/chat/completions'],
+      aiProvider: 'OpenAI GPT-4',
       riskFactors: [
-        'Has elevated permissions including direct message access',
-        'Processes sensitive customer data during onboarding',
-        'No regular security review documented'
+        'Processes customer PII and support history through AI models',
+        'Has access to file uploads which may contain sensitive documents',
+        'AI responses could leak confidential company information',
+        'No data retention controls configured for AI interactions',
+        'Prompt injection vulnerabilities not addressed'
       ],
       recommendations: [
-        'Implement regular permission audit',
-        'Add data encryption for customer information',
-        'Set up monitoring alerts for unusual activity'
+        'Implement data anonymization before sending to AI services',
+        'Configure strict data retention policies for AI interactions',
+        'Add prompt injection detection and filtering',
+        'Enable audit logging for all AI API calls',
+        'Implement human review for sensitive customer interactions'
+      ],
+      aiRiskIndicators: [
+        'Customer PII exposure to third-party AI',
+        'Uncontrolled AI-generated responses to customers',
+        'No AI model output filtering or validation'
       ]
     }
   },
   {
     id: '2',
-    name: 'Google Sheets Data Sync',
-    description: 'Synchronizes sales data between CRM and Google Sheets',
+    name: 'Claude Financial Data Analyzer',
+    description: 'Anthropic Claude integration that analyzes financial spreadsheets and generates reports using sensitive company financial data',
     type: 'integration',
     platform: 'google',
     status: 'active',
-    riskLevel: 'medium',
+    riskLevel: 'critical',
     createdAt: '2024-08-20T14:22:00Z',
-    lastTriggered: '2024-08-27T12:00:00Z',
-    permissions: ['spreadsheets.read', 'spreadsheets.write'],
+    lastTriggered: '2024-12-30T12:00:00Z',
+    permissions: ['spreadsheets.read', 'spreadsheets.write', 'drive.file'],
     createdBy: 'jane.smith@company.com',
     metadata: {
-      riskScore: 45,
+      riskScore: 88,
+      aiEndpoints: ['https://api.anthropic.com/v1/messages'],
+      aiProvider: 'Anthropic Claude',
       riskFactors: [
-        'Accesses financial data',
-        'No data validation on sync operations'
+        'Sends complete financial spreadsheets to external AI service',
+        'Processes revenue, profit margins, and strategic financial data',
+        'Generated reports may contain inaccurate AI-derived insights',
+        'No encryption in transit to AI provider',
+        'Financial data retained by AI service with unknown policies'
       ],
       recommendations: [
-        'Add data validation before sync',
-        'Implement backup mechanism'
+        'Implement data masking for sensitive financial figures',
+        'Add encryption for all AI API communications',
+        'Configure zero data retention with AI provider',
+        'Enable real-time monitoring of financial data transfers',
+        'Require CFO approval for financial AI integrations'
+      ],
+      aiRiskIndicators: [
+        'Financial data exposure to third-party AI systems',
+        'Potential AI model training on proprietary financial information',
+        'Regulatory compliance risks with financial data processing'
       ]
     }
   },
   {
     id: '3',
-    name: 'Teams Meeting Recorder',
-    description: 'Automatically records and transcribes important meetings',
+    name: 'AI Meeting Intelligence System',
+    description: 'Multi-AI system using Whisper for transcription and GPT-4 for meeting summaries, processing confidential executive discussions',
     type: 'bot',
     platform: 'microsoft',
     status: 'active',
     riskLevel: 'critical',
     createdAt: '2024-08-10T09:15:00Z',
-    lastTriggered: '2024-08-27T10:30:00Z',
-    permissions: ['online_meetings', 'calendar.read', 'mail.send'],
+    lastTriggered: '2024-12-30T10:30:00Z',
+    permissions: ['online_meetings', 'calendar.read', 'mail.send', 'files.readwrite'],
     createdBy: 'admin@company.com',
     metadata: {
-      riskScore: 95,
+      riskScore: 96,
+      aiEndpoints: [
+        'https://api.openai.com/v1/audio/transcriptions',
+        'https://api.openai.com/v1/chat/completions'
+      ],
+      aiProvider: 'OpenAI Whisper + GPT-4',
       riskFactors: [
-        'Records and stores confidential meeting content',
-        'Has broad calendar access across organization',
-        'Can send emails on behalf of users',
-        'No encryption configured for stored recordings'
+        'Records and processes confidential C-suite meeting audio through AI',
+        'AI transcription and summarization of strategic business discussions',
+        'Meeting recordings stored on third-party AI infrastructure',
+        'No consent mechanism for meeting participants regarding AI processing',
+        'AI-generated summaries could misrepresent critical business decisions',
+        'Executive calendar patterns exposed to AI systems'
       ],
       recommendations: [
-        'Enable end-to-end encryption for recordings',
-        'Limit calendar access to specific meeting types',
-        'Implement automatic deletion of recordings after 90 days',
-        'Add user consent verification before recording'
+        'Implement explicit participant consent for AI processing',
+        'Use on-premises AI models for sensitive meeting processing',
+        'Enable automatic deletion of AI-processed meeting data after 30 days',
+        'Add executive override controls for AI meeting processing',
+        'Implement meeting classification (public/confidential) filtering'
+      ],
+      aiRiskIndicators: [
+        'C-suite confidential discussions processed by external AI',
+        'Strategic business intelligence exposed to AI providers',
+        'Meeting participant privacy violated through AI analysis'
       ]
     }
   },
   {
     id: '4',
-    name: 'Expense Report Processor',
-    description: 'Processes expense reports and integrates with accounting system',
+    name: 'AI Document Intelligence Pipeline',
+    description: 'Automated document processing using multiple AI services to extract and analyze data from contracts, HR documents, and legal files',
     type: 'workflow',
     platform: 'google',
-    status: 'inactive',
-    riskLevel: 'low',
+    status: 'active',
+    riskLevel: 'critical',
     createdAt: '2024-07-30T16:45:00Z',
-    lastTriggered: '2024-08-25T14:20:00Z',
-    permissions: ['drive.file', 'gmail.readonly'],
-    createdBy: 'finance@company.com',
+    lastTriggered: '2024-12-30T14:20:00Z',
+    permissions: ['drive.file', 'docs.readonly', 'gmail.send'],
+    createdBy: 'ai-ops@company.com',
     metadata: {
-      riskScore: 25,
+      riskScore: 94,
+      aiEndpoints: [
+        'https://api.openai.com/v1/chat/completions',
+        'https://api.anthropic.com/v1/messages',
+        'https://api.cohere.ai/v1/generate'
+      ],
+      aiProvider: 'Multi-AI: OpenAI + Anthropic + Cohere',
       riskFactors: [
-        'Currently inactive - minimal risk'
+        'Processes HR documents containing employee PII through multiple AI services',
+        'Legal contracts and agreements analyzed by external AI systems',
+        'Sensitive document content replicated across multiple AI providers',
+        'No data classification system for AI processing decisions',
+        'Cross-AI service data correlation creates amplified privacy risks'
       ],
       recommendations: [
-        'Reactivate with updated security controls',
-        'Review and update permissions before reactivation'
+        'Implement document classification before AI processing',
+        'Use single, privacy-focused AI provider instead of multiple services',
+        'Add PII detection and redaction before AI analysis',
+        'Enable document-level consent controls for AI processing',
+        'Implement audit trail for all AI-processed documents'
+      ],
+      aiRiskIndicators: [
+        'Employee PII exposed to multiple external AI systems',
+        'Legal document confidentiality compromised through AI analysis',
+        'Multi-provider AI processing increases data breach surface area'
       ]
     }
   },
   {
     id: '5',
-    name: 'Slack Alert Webhook',
-    description: 'Sends system alerts to operations channel',
-    type: 'webhook',
+    name: 'AI Content Generation Bot',
+    description: 'GPT-3.5 powered Slack bot that generates marketing content, social media posts, and internal communications using company data and brand guidelines',
+    type: 'bot',
     platform: 'slack',
     status: 'active',
-    riskLevel: 'medium',
+    riskLevel: 'high',
     createdAt: '2024-08-22T11:30:00Z',
-    lastTriggered: '2024-08-27T13:45:00Z',
-    permissions: ['incoming-webhook'],
-    createdBy: 'ops-team@company.com',
+    lastTriggered: '2024-12-30T13:45:00Z',
+    permissions: ['channels:read', 'chat:write', 'files:read', 'users:read'],
+    createdBy: 'marketing@company.com',
     metadata: {
-      riskScore: 35,
+      riskScore: 76,
+      aiEndpoints: ['https://api.openai.com/v1/chat/completions'],
+      aiProvider: 'OpenAI GPT-3.5',
       riskFactors: [
-        'Public webhook URL could be exposed',
-        'No rate limiting configured'
+        'Generates public-facing content using AI without human review process',
+        'Has access to internal marketing discussions and strategy documents',
+        'AI-generated content could contain factual errors or inappropriate messaging',
+        'Brand reputation risk from unvetted AI-generated communications',
+        'Potential copyright infringement in AI-generated content'
       ],
       recommendations: [
-        'Add authentication to webhook',
-        'Implement rate limiting',
-        'Monitor for unusual webhook usage'
+        'Implement mandatory human review for all AI-generated public content',
+        'Add content filtering to prevent inappropriate AI responses',
+        'Configure AI model parameters to reduce hallucination risks',
+        'Enable content approval workflows before publication',
+        'Add brand guidelines validation to AI content generation'
+      ],
+      aiRiskIndicators: [
+        'Unvetted AI content published to public channels',
+        'Company marketing strategy exposed to external AI service',
+        'Brand reputation risk from AI-generated communications'
       ]
     }
   }
@@ -394,27 +461,27 @@ app.get('/api/automations', (req, res) => {
   });
 });
 
-// Automation stats endpoint - for dashboard metrics
+// Automation stats endpoint - AI-focused dashboard metrics
 app.get('/api/automations/stats', (req, res) => {
   const stats = {
     totalAutomations: 5,
     byStatus: {
-      active: 4,
-      inactive: 1,
+      active: 5,
+      inactive: 0,
       error: 0,
       unknown: 0
     },
     byRiskLevel: {
-      low: 1,
-      medium: 2,
+      low: 0,
+      medium: 0,
       high: 1,
-      critical: 1
+      critical: 4
     },
     byType: {
-      bot: 2,
+      bot: 3,
       workflow: 1,
       integration: 1,
-      webhook: 1
+      webhook: 0
     },
     byPlatform: {
       slack: 2,
@@ -426,7 +493,18 @@ app.get('/api/automations/stats', (req, res) => {
       asana: 0,
       jira: 0
     },
-    averageRiskScore: 57
+    averageRiskScore: 89,
+    aiMetrics: {
+      totalAIIntegrations: 5,
+      aiProviders: {
+        'OpenAI': 4,
+        'Anthropic': 2,
+        'Cohere': 1
+      },
+      highRiskAIAutomations: 4,
+      automationsWithPIIAccess: 4,
+      automationsWithFinancialAccess: 1
+    }
   };
 
   res.json({
