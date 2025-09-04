@@ -26,7 +26,8 @@ export abstract class BaseRepository<T, CreateInput, UpdateInput, Filters = any>
   async findById(id: string): Promise<T | null> {
     const query = `SELECT * FROM ${this.tableName} WHERE ${this.primaryKey} = $1`;
     const result = await db.query<T>(query, [id]);
-    return result.rows.length > 0 ? result.rows[0] : null;
+    const row = result.rows[0];
+    return row ? row : null;
   }
 
   /**
@@ -42,7 +43,11 @@ export abstract class BaseRepository<T, CreateInput, UpdateInput, Filters = any>
     // Get total count
     const countQuery = `SELECT COUNT(*) as count FROM ${this.tableName}${whereClause}`;
     const countResult = await db.query<{ count: string }>(countQuery, params);
-    const total = parseInt(countResult.rows[0].count, 10);
+    const countRow = countResult.rows[0];
+    if (!countRow) {
+      throw new Error('Failed to get count from database');
+    }
+    const total = parseInt(countRow.count, 10);
 
     // Get paginated data
     const dataQuery = `SELECT * FROM ${this.tableName}${whereClause}${orderBy} LIMIT $${params.length + 1} OFFSET $${params.length + 2}`;
@@ -71,7 +76,8 @@ export abstract class BaseRepository<T, CreateInput, UpdateInput, Filters = any>
     const { whereClause, params } = this.buildWhereClause(filters);
     const query = `SELECT * FROM ${this.tableName}${whereClause} LIMIT 1`;
     const result = await db.query<T>(query, params);
-    return result.rows.length > 0 ? result.rows[0] : null;
+    const row = result.rows[0];
+    return row ? row : null;
   }
 
   /**
@@ -86,11 +92,12 @@ export abstract class BaseRepository<T, CreateInput, UpdateInput, Filters = any>
     `;
     const result = await db.query<T>(query, values);
     
-    if (result.rows.length === 0) {
+    const row = result.rows[0];
+    if (!row) {
       throw new Error(`Failed to create record in ${this.tableName}`);
     }
     
-    return result.rows[0];
+    return row;
   }
 
   /**
@@ -111,7 +118,8 @@ export abstract class BaseRepository<T, CreateInput, UpdateInput, Filters = any>
     `;
     
     const result = await db.query<T>(query, [...params, id]);
-    return result.rows.length > 0 ? result.rows[0] : null;
+    const row = result.rows[0];
+    return row ? row : null;
   }
 
   /**
@@ -139,7 +147,11 @@ export abstract class BaseRepository<T, CreateInput, UpdateInput, Filters = any>
     const { whereClause, params } = this.buildWhereClause(filters);
     const query = `SELECT COUNT(*) as count FROM ${this.tableName}${whereClause}`;
     const result = await db.query<{ count: string }>(query, params);
-    return parseInt(result.rows[0].count, 10);
+    const row = result.rows[0];
+    if (!row) {
+      throw new Error('Failed to get count from database');
+    }
+    return parseInt(row.count, 10);
   }
 
   /**

@@ -60,7 +60,8 @@ export class OrganizationRepository extends BaseRepository<
   async findBySlug(slug: string): Promise<Organization | null> {
     const query = 'SELECT * FROM organizations WHERE slug = $1';
     const result = await this.executeQuery<Organization>(query, [slug]);
-    return result.rows.length > 0 ? result.rows[0] : null;
+    const row = result.rows[0];
+    return row ? row : null;
   }
 
   /**
@@ -69,7 +70,8 @@ export class OrganizationRepository extends BaseRepository<
   async findByDomain(domain: string): Promise<Organization | null> {
     const query = 'SELECT * FROM organizations WHERE domain = $1';
     const result = await this.executeQuery<Organization>(query, [domain]);
-    return result.rows.length > 0 ? result.rows[0] : null;
+    const row = result.rows[0];
+    return row ? row : null;
   }
 
   /**
@@ -83,7 +85,8 @@ export class OrganizationRepository extends BaseRepository<
       RETURNING *
     `;
     const result = await this.executeQuery<Organization>(query, [JSON.stringify(settings), id]);
-    return result.rows.length > 0 ? result.rows[0] : null;
+    const row = result.rows[0];
+    return row ? row : null;
   }
 
   /**
@@ -119,6 +122,9 @@ export class OrganizationRepository extends BaseRepository<
     }>(query, [organizationId]);
 
     const row = result.rows[0];
+    if (!row) {
+      throw new Error('Failed to get organization statistics');
+    }
     return {
       total_connections: parseInt(row.total_connections, 10),
       active_connections: parseInt(row.active_connections, 10),

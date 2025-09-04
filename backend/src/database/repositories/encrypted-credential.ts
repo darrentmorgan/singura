@@ -112,7 +112,8 @@ export class EncryptedCredentialRepository extends BaseRepository<
       query,
       [platformConnectionId, credentialType]
     );
-    return result.rows.length > 0 ? result.rows[0] : null;
+    const row = result.rows[0];
+    return row ? row : null;
   }
 
   /**

@@ -430,7 +430,7 @@ export interface UpdatePlatformConnectionInput {
   status?: ConnectionStatus;
   permissions_granted?: string[];
   last_sync_at?: Date;
-  last_error?: string;
+  last_error?: string | null;
   expires_at?: Date;
   metadata?: Partial<ConnectionMetadata>;
   webhook_url?: string;

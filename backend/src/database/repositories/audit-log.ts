@@ -316,7 +316,11 @@ export class AuditLogRepository extends BaseRepository<
       ${whereClause} AND event_type IN (${eventTypePlaceholders})
     `;
     const countResult = await this.executeQuery<{ count: string }>(countQuery, allParams);
-    const total = parseInt(countResult.rows[0].count, 10);
+    const countRow = countResult.rows[0];
+    if (!countRow) {
+      throw new Error('Failed to get audit log count');
+    }
+    const total = parseInt(countRow.count, 10);
 
     // Data query
     const dataQuery = `
