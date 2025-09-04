@@ -196,7 +196,8 @@ export class EncryptionService {
       return plaintext;
     } catch (error) {
       // Log the error securely without exposing details
-      console.error('Decryption failed for key:', keyId, 'Error type:', error.constructor.name);
+      const errorType = error instanceof Error ? error.constructor.name : 'Unknown';
+      console.error('Decryption failed for key:', keyId, 'Error type:', errorType);
       throw new Error('Decryption operation failed');
     }
   }
@@ -212,6 +213,10 @@ export class EncryptionService {
     }
 
     const [iv, authTag, ciphertext] = parts;
+    
+    if (!iv || !authTag || !ciphertext) {
+      throw new Error('Invalid legacy encrypted value format - missing components');
+    }
     
     // Create legacy format compatible object
     const legacyData: EncryptedData = {

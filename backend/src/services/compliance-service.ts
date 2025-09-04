@@ -326,10 +326,12 @@ export class ComplianceService {
       report.status = 'completed';
 
       // Log compliance report generation
-      await securityAuditService.logSecurityEvent({
+      await auditService.logSecurityEvent({
+        type: 'compliance_report_generated',
+        category: 'admin',
         organizationId,
         eventType: 'compliance_report_generated',
-        severity: 'info',
+        severity: 'low',
         description: `${reportType.toUpperCase()} compliance report generated`,
         metadata: {
           reportId: report.id,
@@ -344,10 +346,12 @@ export class ComplianceService {
 
     } catch (error) {
       // Log error and update report status
-      await securityAuditService.logSecurityEvent({
+      await auditService.logSecurityEvent({
+        type: 'compliance_report_failed',
+        category: 'error',
         organizationId,
         eventType: 'compliance_report_failed',
-        severity: 'error',
+        severity: 'high',
         description: `Failed to generate ${reportType} compliance report`,
         metadata: {
           reportId,

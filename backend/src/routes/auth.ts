@@ -9,6 +9,7 @@ import { securityMiddleware } from '../security/middleware';
 import { auditService } from '../security/audit';
 import { oauthService } from '../services/oauth-service';
 import { PlatformType } from '../types/database';
+import { Platform } from '@saas-xray/shared-types';
 
 const router = Router();
 
@@ -26,7 +27,7 @@ router.post('/login',
     securityMiddleware.validationRules.email,
     securityMiddleware.validationRules.password
   ]),
-  async (req: Request, res: Response) => {
+  async (req: Request, res: Response): Promise<void> => {
     try {
       const { email, password } = req.body;
       
@@ -71,7 +72,7 @@ router.post('/login',
         await auditService.logAuthenticationEvent(
           'login_failure',
           'unknown',
-          undefined,
+          'unknown',
           req,
           { 
             email,
@@ -87,9 +88,8 @@ router.post('/login',
     } catch (error) {
       await auditService.logSecurityViolation(
         'authentication_error',
-        `Authentication system error: ${error instanceof Error ? error.message : 'Unknown error'}`,
-        undefined,
-        undefined,
+        'unknown',
+        'unknown',
         req,
         { error: error instanceof Error ? error.message : 'Unknown error' }
       );
@@ -137,7 +137,7 @@ router.post('/refresh',
       await auditService.logAuthenticationEvent(
         'token_refresh',
         'unknown',
-        undefined,
+        'unknown',
         req,
         { 
           error: error instanceof Error ? error.message : 'Unknown error',
@@ -160,7 +160,7 @@ router.post('/refresh',
  */
 router.post('/logout',
   securityMiddleware.requireAuthentication(),
-  async (req: Request, res: Response) => {
+  async (req: Request, res: Response): Promise<void> => {
     try {
       const user = req.user!;
       const { sessionId } = req.body;
@@ -200,7 +200,7 @@ router.post('/logout',
  */
 router.get('/sessions',
   securityMiddleware.requireAuthentication(),
-  async (req: Request, res: Response) => {
+  async (req: Request, res: Response): Promise<void> => {
     try {
       const user = req.user!;
       const sessions = jwtService.getUserSessions(user.userId);
@@ -228,22 +228,23 @@ router.get('/sessions',
  */
 router.get('/oauth/:platform/authorize',
   securityMiddleware.requireAuthentication(),
-  async (req: Request, res: Response) => {
+  async (req: Request, res: Response): Promise<void> => {
     try {
       const { platform } = req.params;
       const user = req.user!;
 
       // Validate platform
-      if (!['slack', 'google', 'microsoft'].includes(platform)) {
-        return res.status(400).json({
+      if (!platform || !['slack', 'google', 'microsoft'].includes(platform)) {
+        res.status(400).json({
           error: 'Unsupported platform',
           code: 'UNSUPPORTED_PLATFORM'
         });
+        return;
       }
 
       // Generate OAuth authorization URL
       const result = await oauthService.initiateOAuthFlow(
-        platform as PlatformType,
+        platform as Platform,
         user.userId,
         user.organizationId,
         req
@@ -270,17 +271,18 @@ router.get('/oauth/:platform/authorize',
  */
 router.get('/oauth/:platform/callback',
   securityMiddleware.requireAuthentication(),
-  async (req: Request, res: Response) => {
+  async (req: Request, res: Response): Promise<void> => {
     try {
       const { platform } = req.params;
       const { code, state } = req.query;
       const user = req.user!;
 
       if (!code || !state) {
-        return res.status(400).json({
+        res.status(400).json({
           error: 'Missing OAuth callback parameters',
           code: 'MISSING_OAUTH_PARAMS'
         });
+        return;
       }
 
       // Complete OAuth flow
@@ -313,10 +315,18 @@ router.get('/oauth/:platform/callback',
  */
 router.post('/oauth/connections/:connectionId/refresh',
   securityMiddleware.requireAuthentication(),
-  async (req: Request, res: Response) => {
+  async (req: Request, res: Response): Promise<void> => {
     try {
       const { connectionId } = req.params;
       const user = req.user!;
+
+      if (!connectionId) {
+        res.status(400).json({
+          error: 'Connection ID is required',
+          code: 'MISSING_CONNECTION_ID'
+        });
+        return;
+      }
 
       const result = await oauthService.refreshOAuthTokens(
         connectionId,
@@ -352,10 +362,18 @@ router.post('/oauth/connections/:connectionId/refresh',
  */
 router.delete('/oauth/connections/:connectionId',
   securityMiddleware.requireAuthentication(),
-  async (req: Request, res: Response) => {
+  async (req: Request, res: Response): Promise<void> => {
     try {
       const { connectionId } = req.params;
       const user = req.user!;
+
+      if (!connectionId) {
+        res.status(400).json({
+          error: 'Connection ID is required',
+          code: 'MISSING_CONNECTION_ID'
+        });
+        return;
+      }
 
       await oauthService.revokeOAuthTokens(connectionId, user.userId, req);
 
@@ -384,7 +402,7 @@ router.delete('/oauth/connections/:connectionId',
 router.get('/security/metrics',
   securityMiddleware.requireAuthentication(),
   securityMiddleware.requirePermissions(['admin']),
-  async (req: Request, res: Response) => {
+  async (req: Request, res: Response): Promise<void> => {
     try {
       const { timeframe = '24h' } = req.query;
       const user = req.user!;
@@ -414,7 +432,7 @@ router.get('/security/metrics',
 router.get('/security/compliance-report',
   securityMiddleware.requireAuthentication(),
   securityMiddleware.requirePermissions(['admin']),
-  async (req: Request, res: Response) => {
+  async (req: Request, res: Response): Promise<void> => {
     try {
       const { 
         reportType = 'soc2',
@@ -424,17 +442,16 @@ router.get('/security/compliance-report',
       const user = req.user!;
 
       if (!startDate || !endDate) {
-        return res.status(400).json({
+        res.status(400).json({
           error: 'Start date and end date are required',
           code: 'MISSING_DATE_RANGE'
         });
+        return;
       }
 
       const report = await auditService.generateComplianceReport(
-        reportType as 'soc2' | 'gdpr' | 'owasp',
-        new Date(startDate as string),
-        new Date(endDate as string),
-        user.organizationId
+        user.organizationId,
+        reportType as string
       );
 
       res.json({

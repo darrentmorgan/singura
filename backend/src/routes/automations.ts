@@ -38,15 +38,16 @@ const automationFiltersSchema = z.object({
  * GET /automations
  * Get discovered automations with filtering and pagination
  */
-router.get('/', authenticateToken, validateRequest({ query: automationFiltersSchema }), async (req: Request, res: Response) => {
+router.get('/', authenticateToken, validateRequest({ query: automationFiltersSchema }), async (req: Request, res: Response): Promise<void> => {
   try {
     const organizationId = req.user?.organizationId;
     if (!organizationId) {
-      return res.status(401).json({
+      res.status(401).json({
         success: false,
         error: 'ORGANIZATION_NOT_FOUND',
         message: 'Organization ID not found in token'
       });
+      return;
     }
 
     const { 
@@ -59,7 +60,7 @@ router.get('/', authenticateToken, validateRequest({ query: automationFiltersSch
       limit, 
       sort_by, 
       sort_order 
-    } = req.query as z.infer<typeof automationFiltersSchema>;
+    } = req.query as unknown as z.infer<typeof automationFiltersSchema>;
 
     // Build base query
     let query = `
@@ -239,15 +240,16 @@ router.get('/', authenticateToken, validateRequest({ query: automationFiltersSch
  * GET /automations/stats
  * Get automation statistics for the dashboard
  */
-router.get('/stats', authenticateToken, async (req: Request, res: Response) => {
+router.get('/stats', authenticateToken, async (req: Request, res: Response): Promise<void> => {
   try {
     const organizationId = req.user?.organizationId;
     if (!organizationId) {
-      return res.status(401).json({
+      res.status(401).json({
         success: false,
         error: 'ORGANIZATION_NOT_FOUND',
         message: 'Organization ID not found in token'
       });
+      return;
     }
 
     const query = `
@@ -329,17 +331,18 @@ router.get('/stats', authenticateToken, async (req: Request, res: Response) => {
  * GET /automations/:id
  * Get detailed information about a specific automation
  */
-router.get('/:id', authenticateToken, async (req: Request, res: Response) => {
+router.get('/:id', authenticateToken, async (req: Request, res: Response): Promise<void> => {
   try {
     const organizationId = req.user?.organizationId;
     const automationId = req.params.id;
 
     if (!organizationId) {
-      return res.status(401).json({
+      res.status(401).json({
         success: false,
         error: 'ORGANIZATION_NOT_FOUND',
         message: 'Organization ID not found in token'
       });
+      return;
     }
 
     const query = `
@@ -380,7 +383,7 @@ router.get('/:id', authenticateToken, async (req: Request, res: Response) => {
       id: automation.id,
       name: automation.name,
       description: automation.description,
-      type: automation.automation_type,
+      automation_type: automation.automation_type,
       platform: automation.platform_type,
       status: automation.status,
       riskLevel: automation.risk_level || 'medium',
@@ -427,17 +430,18 @@ router.get('/:id', authenticateToken, async (req: Request, res: Response) => {
  * POST /automations/:id/assess-risk
  * Trigger risk assessment for a specific automation
  */
-router.post('/:id/assess-risk', authenticateToken, async (req: Request, res: Response) => {
+router.post('/:id/assess-risk', authenticateToken, async (req: Request, res: Response): Promise<void> => {
   try {
     const organizationId = req.user?.organizationId;
     const automationId = req.params.id;
 
     if (!organizationId) {
-      return res.status(401).json({
+      res.status(401).json({
         success: false,
         error: 'ORGANIZATION_NOT_FOUND',
         message: 'Organization ID not found in token'
       });
+      return;
     }
 
     // Get the automation
@@ -464,7 +468,7 @@ router.post('/:id/assess-risk', authenticateToken, async (req: Request, res: Res
     const assessment = await riskService.assessAutomationRisk({
       id: automation.id,
       name: automation.name,
-      type: automation.automation_type,
+      automation_type: automation.automation_type,
       platform: automation.platform_type,
       status: automation.status,
       permissions: automation.permissions_required || [],

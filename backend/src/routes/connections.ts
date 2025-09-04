@@ -344,11 +344,14 @@ router.post('/connections/:connectionId/validate',
       }
 
       // Update connection status based on validation
-      const status = validationResult.isValid ? 'connected' : 'error';
+      const status: ConnectionStatus = validationResult.isValid ? 'connected' : 'error';
       const errorMessage = validationResult.isValid ? undefined : validationResult.errors.join(', ');
 
+      // Map API status to database status
+      const dbStatus = status === 'connected' ? 'active' : 'error';
+
       await platformConnectionRepository.update(connectionId!, {
-        status: status as ConnectionStatus,
+        status: dbStatus as any,
         last_error: errorMessage
       });
 

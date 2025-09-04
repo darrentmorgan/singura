@@ -440,6 +440,9 @@ export class JWTService {
     }
 
     const [, value, unit] = match;
+    if (!value || !unit) {
+      throw new Error(`Invalid time format: ${timeStr}`);
+    }
     const num = parseInt(value, 10);
 
     switch (unit) {
@@ -481,3 +484,16 @@ declare global {
 
 // Export singleton instance
 export const jwtService = new JWTService();
+
+/**
+ * Standalone JWT verification function for middleware compatibility
+ * @param token JWT token string
+ * @returns TokenPayload if valid, null if invalid
+ */
+export const verifyJWT = (token: string): TokenPayload | null => {
+  try {
+    return jwtService.validateToken(token, 'access');
+  } catch (error) {
+    return null;
+  }
+};

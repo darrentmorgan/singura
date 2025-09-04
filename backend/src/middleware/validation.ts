@@ -16,18 +16,19 @@ interface ValidationSchemas {
  * Middleware factory for request validation using Zod schemas
  */
 export const validateRequest = (schemas: ValidationSchemas) => {
-  return async (req: Request, res: Response, next: NextFunction) => {
+  return async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       // Validate request body
       if (schemas.body) {
         const bodyResult = schemas.body.safeParse(req.body);
         if (!bodyResult.success) {
-          return res.status(400).json({
+          res.status(400).json({
             success: false,
             error: 'VALIDATION_ERROR',
             message: 'Request body validation failed',
             details: bodyResult.error.format()
           });
+          return;
         }
         req.body = bodyResult.data;
       }
@@ -36,12 +37,13 @@ export const validateRequest = (schemas: ValidationSchemas) => {
       if (schemas.query) {
         const queryResult = schemas.query.safeParse(req.query);
         if (!queryResult.success) {
-          return res.status(400).json({
+          res.status(400).json({
             success: false,
             error: 'VALIDATION_ERROR',
             message: 'Query parameters validation failed',
             details: queryResult.error.format()
           });
+          return;
         }
         req.query = queryResult.data;
       }
@@ -50,12 +52,13 @@ export const validateRequest = (schemas: ValidationSchemas) => {
       if (schemas.params) {
         const paramsResult = schemas.params.safeParse(req.params);
         if (!paramsResult.success) {
-          return res.status(400).json({
+          res.status(400).json({
             success: false,
             error: 'VALIDATION_ERROR',
             message: 'Path parameters validation failed',
             details: paramsResult.error.format()
           });
+          return;
         }
         req.params = paramsResult.data;
       }
@@ -63,11 +66,12 @@ export const validateRequest = (schemas: ValidationSchemas) => {
       next();
     } catch (error) {
       console.error('Validation middleware error:', error);
-      return res.status(500).json({
+      res.status(500).json({
         success: false,
         error: 'VALIDATION_MIDDLEWARE_ERROR',
         message: 'An error occurred during request validation'
       });
+      return;
     }
   };
 };

@@ -148,7 +148,7 @@ export class SecurityMiddleware {
         preload: true
       },
       crossOriginEmbedderPolicy: { policy: 'credentialless' },
-      crossOriginOpenerPolicy: { policy: 'cross-origin' },
+      crossOriginOpenerPolicy: { policy: 'same-origin' },
       crossOriginResourcePolicy: { policy: 'cross-origin' },
       dnsPrefetchControl: { allow: false },
       frameguard: { action: 'deny' },
@@ -178,7 +178,7 @@ export class SecurityMiddleware {
       },
       handler: (req: Request, res: Response) => {
         this.metrics.rateLimitHits++;
-        this.recordSuspiciousActivity(req.ip, 'rate_limit_exceeded');
+        this.recordSuspiciousActivity(req.ip || 'unknown', 'rate_limit_exceeded');
         
         res.status(429).json({
           error: 'Too many requests',
@@ -204,7 +204,7 @@ export class SecurityMiddleware {
       legacyHeaders: false,
       keyGenerator: (req: Request) => `auth:${req.ip}`,
       handler: (req: Request, res: Response) => {
-        this.recordSuspiciousActivity(req.ip, 'auth_rate_limit_exceeded');
+        this.recordSuspiciousActivity(req.ip || 'unknown', 'auth_rate_limit_exceeded');
         
         res.status(429).json({
           error: 'Too many authentication attempts',
@@ -259,7 +259,7 @@ export class SecurityMiddleware {
    * Input validation and sanitization middleware
    */
   inputValidationMiddleware() {
-    return (req: Request, res: Response, next: NextFunction): void => {
+    return (req: Request, res: Response, next: NextFunction): void | Response => {
       // Validate common injection patterns
       const suspiciousPatterns = [
         /<script[^>]*>.*?<\/script>/gi,
@@ -287,7 +287,7 @@ export class SecurityMiddleware {
 
       // Check request body
       if (req.body && checkForInjection(req.body)) {
-        this.recordSuspiciousActivity(req.ip, 'injection_attempt');
+        this.recordSuspiciousActivity(req.ip || 'unknown', 'injection_attempt');
         return res.status(400).json({
           error: 'Invalid input detected',
           code: 'INVALID_INPUT'
@@ -296,7 +296,7 @@ export class SecurityMiddleware {
 
       // Check query parameters
       if (req.query && checkForInjection(req.query)) {
-        this.recordSuspiciousActivity(req.ip, 'injection_attempt');
+        this.recordSuspiciousActivity(req.ip || 'unknown', 'injection_attempt');
         return res.status(400).json({
           error: 'Invalid query parameters',
           code: 'INVALID_QUERY'
@@ -311,7 +311,7 @@ export class SecurityMiddleware {
    * CSRF protection middleware
    */
   csrfProtectionMiddleware() {
-    return (req: Request, res: Response, next: NextFunction): void => {
+    return (req: Request, res: Response, next: NextFunction): void | Response => {
       // Skip CSRF for GET, HEAD, OPTIONS
       if (['GET', 'HEAD', 'OPTIONS'].includes(req.method)) {
         return next();
@@ -334,7 +334,7 @@ export class SecurityMiddleware {
 
       // Validate CSRF token format
       if (!/^[a-f0-9]{64}$/.test(csrfToken)) {
-        this.recordSuspiciousActivity(req.ip, 'invalid_csrf_token');
+        this.recordSuspiciousActivity(req.ip || 'unknown', 'invalid_csrf_token');
         return res.status(403).json({
           error: 'Invalid CSRF token',
           code: 'CSRF_TOKEN_INVALID'
@@ -365,7 +365,7 @@ export class SecurityMiddleware {
   validateInput(validations: any[]) {
     return [
       ...validations,
-      (req: Request, res: Response, next: NextFunction) => {
+      (req: Request, res: Response, next: NextFunction): void | Response => {
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
           this.metrics.validationErrors++;
@@ -412,8 +412,8 @@ export class SecurityMiddleware {
    * IP blocking middleware for suspicious activity
    */
   ipBlockingMiddleware() {
-    return (req: Request, res: Response, next: NextFunction): void => {
-      const clientIP = req.ip;
+    return (req: Request, res: Response, next: NextFunction): void | Response => {
+      const clientIP = req.ip || 'unknown';
       const suspicious = this.suspiciousIPs.get(clientIP);
 
       if (suspicious && suspicious.count >= 10) {
@@ -491,7 +491,7 @@ export class SecurityMiddleware {
    * Emergency shutdown middleware (kill switch)
    */
   emergencyShutdownMiddleware() {
-    return (req: Request, res: Response, next: NextFunction): void => {
+    return (req: Request, res: Response, next: NextFunction): void | Response => {
       if (process.env.EMERGENCY_SHUTDOWN === 'true') {
         return res.status(503).json({
           error: 'Service temporarily unavailable',

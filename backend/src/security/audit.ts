@@ -8,6 +8,7 @@ import { CreateAuditLogInput, EventCategory, ActorType } from '../types/database
 
 export interface SecurityEvent {
   type: string;
+  eventType?: string; // For backwards compatibility
   category: EventCategory;
   severity: 'low' | 'medium' | 'high' | 'critical';
   description: string;
@@ -72,7 +73,116 @@ export class AuditService {
       metadata: details
     });
   }
+
+  /**
+   * Log OAuth event (alias for OAuth-specific events)
+   */
+  async logOAuthEvent(
+    type: string,
+    platform: string,
+    userId: string,
+    organizationId: string,
+    connectionId: string | undefined,
+    req: Request,
+    details?: Record<string, any>
+  ): Promise<void> {
+    await this.logSecurityEvent({
+      type,
+      category: 'auth',
+      severity: 'low',
+      description: `OAuth event: ${type} for ${platform}`,
+      userId,
+      organizationId,
+      connectionId,
+      ipAddress: req.ip,
+      userAgent: req.headers['user-agent'],
+      metadata: details
+    });
+  }
+
+  /**
+   * Log authentication event (alias for compatibility)
+   */
+  async logAuthenticationEvent(
+    event: string,
+    userId: string,
+    organizationId: string,
+    req: Request,
+    metadata?: Record<string, any>
+  ): Promise<void> {
+    await this.logSecurityEvent({
+      type: event,
+      category: 'auth',
+      severity: 'low',
+      description: `Authentication event: ${event}`,
+      userId,
+      organizationId,
+      ipAddress: req.ip,
+      userAgent: req.headers['user-agent'],
+      metadata
+    });
+  }
+
+  /**
+   * Log security violation
+   */
+  async logSecurityViolation(
+    violation: string,
+    userId: string,
+    organizationId: string,
+    req: Request,
+    metadata?: Record<string, any>
+  ): Promise<void> {
+    await this.logSecurityEvent({
+      type: violation,
+      category: 'admin',
+      severity: 'high',
+      description: `Security violation: ${violation}`,
+      userId,
+      organizationId,
+      ipAddress: req.ip,
+      userAgent: req.headers['user-agent'],
+      metadata
+    });
+  }
+
+  /**
+   * Get security metrics (placeholder)
+   */
+  async getSecurityMetrics(organizationId: string, timeRange: string = '24h'): Promise<Record<string, any>> {
+    // TODO: Implement actual metrics retrieval
+    return {
+      organizationId,
+      timeRange,
+      metrics: {
+        authEvents: 0,
+        connectionEvents: 0,
+        securityViolations: 0,
+        lastUpdated: new Date().toISOString()
+      }
+    };
+  }
+
+  /**
+   * Generate compliance report (placeholder)
+   */
+  async generateComplianceReport(organizationId: string, reportType: string = 'standard'): Promise<Record<string, any>> {
+    // TODO: Implement actual report generation
+    return {
+      organizationId,
+      reportType,
+      generatedAt: new Date().toISOString(),
+      report: {
+        summary: 'Placeholder compliance report',
+        events: [],
+        recommendations: []
+      }
+    };
+  }
 }
 
 // Export singleton instance
 export const auditService = new AuditService();
+
+// Export alias for backwards compatibility
+export const securityAuditService = auditService;
