@@ -27,7 +27,11 @@ const mockRequest = {
 } as any;
 
 describe('Security Audit Service', () => {
-  let testData: any;
+  let testData: {
+    organization: { id: string; name: string };
+    platformConnection: { id: string; platform_type: string };
+    encryptedCredentials: Array<Record<string, unknown>>;
+  };
 
   beforeAll(async () => {
     await testDb.beginTransaction();

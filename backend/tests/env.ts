@@ -5,7 +5,7 @@
 
 process.env.NODE_ENV = 'test';
 
-// Database configuration - Using PostgreSQL test database
+// Database configuration - Using PostgreSQL test database (Docker)
 process.env.DB_HOST = 'localhost';
 process.env.DB_PORT = '5433';
 process.env.DB_NAME = 'saas_xray_test';

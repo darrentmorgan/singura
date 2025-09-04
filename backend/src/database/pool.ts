@@ -6,6 +6,9 @@
 import { Pool, PoolClient, PoolConfig } from 'pg';
 import { DatabaseConnection, DatabaseQueryResult, TransactionCallback } from '../types/database';
 
+// Define QueryParameters locally since shared-types isn't available yet
+type QueryParameters = (string | number | boolean | Date | null | undefined)[];
+
 class DatabasePool {
   private pool: Pool;
   private isInitialized: boolean = false;
@@ -92,7 +95,7 @@ class DatabasePool {
     const client = await this.pool.connect();
     
     return {
-      query: async <T = any>(text: string, params?: any[]): Promise<DatabaseQueryResult<T>> => {
+      query: async <T>(text: string, params?: QueryParameters): Promise<DatabaseQueryResult<T>> => {
         const start = Date.now();
         try {
           const result = await client.query(text, params);
@@ -127,7 +130,7 @@ class DatabasePool {
   /**
    * Execute a query directly from the pool
    */
-  async query<T = any>(text: string, params?: any[]): Promise<DatabaseQueryResult<T>> {
+  async query<T>(text: string, params?: QueryParameters): Promise<DatabaseQueryResult<T>> {
     const client = await this.getClient();
     try {
       return await client.query<T>(text, params);

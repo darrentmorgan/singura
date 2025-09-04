@@ -583,6 +583,31 @@ When multiple solutions exist (via agents), prioritize:
 - **Development**: Docker Compose for local development
 - **CI/CD**: GitHub Actions for CI/CD
 
+### **🐳 CONTAINERIZED DATABASE INFRASTRUCTURE (CRITICAL)**
+
+**All databases run in Docker containers for development consistency:**
+
+- **PostgreSQL**: Docker container port mapping `5433:5432`
+- **Redis**: Docker container port mapping `6379:6379`
+- **Test Database**: `saas_xray_test` within PostgreSQL container
+- **Production Database**: `saas_xray` within PostgreSQL container
+
+**Environment Configuration:**
+```bash
+# Development (Docker containers)
+DATABASE_URL=postgresql://postgres:password@localhost:5433/saas_xray
+TEST_DATABASE_URL=postgresql://postgres:password@localhost:5433/saas_xray_test
+DB_PORT=5433
+
+# Container startup required for all development/testing
+docker compose up -d postgres redis
+```
+
+**Testing Requirements:**
+- All tests require Docker containers to be running
+- Database migrations must run against containerized databases
+- Test isolation achieved through `saas_xray_test` database
+
 ### System Architecture (TypeScript Enhanced)
 
 ```
@@ -598,8 +623,8 @@ When multiple solutions exist (via agents), prioritize:
          │                        │                        │
          ▼                        ▼                        ▼
 ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   Data Store    │    │   Queue System  │    │   Connector     │
-│                 │    │                 │    │   Layer         │
+│ 🐳 Data Store   │    │ 🐳 Queue System │    │   Connector     │
+│ (Containerized) │    │ (Containerized) │    │   Layer         │
 │ • PostgreSQL    │    │ • Redis/Bull    │    │                 │
 │ • Typed Queries │    │ • Typed Jobs    │    │ • OAuth 2.0     │
 │ • T | null      │    │ • Scheduling    │    │ • ExtendedToken │

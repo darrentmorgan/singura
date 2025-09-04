@@ -170,7 +170,11 @@ export class RiskService {
     ];
 
     const result = await db.query<RiskAssessment>(query, values);
-    return result.rows[0];
+    const assessment = result.rows[0];
+    if (!assessment) {
+      throw new Error('Failed to store risk assessment');
+    }
+    return assessment;
   }
 
   /**
@@ -538,8 +542,12 @@ export class RiskService {
       WHERE ra.organization_id = $1 AND da.is_active = true
     `;
 
-    const result = await db.query(query, [organizationId]);
-    return result.rows[0];
+    const result = await db.query<RiskStatistics>(query, [organizationId]);
+    const row = result.rows[0];
+    if (!row) {
+      throw new Error('Failed to get risk statistics');
+    }
+    return row;
   }
 
   /**
@@ -557,7 +565,7 @@ export class RiskService {
       LIMIT $2
     `;
 
-    const result = await db.query(query, [organizationId, limit]);
+    const result = await db.query<HighRiskAutomation>(query, [organizationId, limit]);
     return result.rows;
   }
 }

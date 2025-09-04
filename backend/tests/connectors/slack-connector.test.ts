@@ -6,9 +6,45 @@
 import { SlackConnector } from '../../src/connectors/slack';
 import { OAuthCredentials, AutomationEvent, PermissionCheck } from '../../src/connectors/types';
 
-// Mock the Slack Web API
-jest.mock('@slack/web-api', () => ({
-  WebClient: jest.fn().mockImplementation(() => ({
+// Create the mock Slack client object  
+const mockSlackClientInstance = {
+  auth: {
+    test: jest.fn(),
+  },
+  users: {
+    info: jest.fn(),
+    list: jest.fn(),
+  },
+  conversations: {
+    list: jest.fn(),
+  },
+  apps: {
+    list: jest.fn(),
+  },
+  admin: {
+    apps: {
+      approved: {
+        list: jest.fn(),
+      },
+    },
+    audit: {
+      logs: {
+        list: jest.fn(),
+      },
+    },
+  },
+  team: {
+    info: jest.fn(),
+  },
+  workflows: {
+    stepCompleted: jest.fn(),
+  },
+};
+
+// Mock the Slack Web API with proper hoisting
+jest.mock('@slack/web-api', () => {
+  // Define the client instance that will be shared
+  const sharedMockInstance = {
     auth: {
       test: jest.fn(),
     },
@@ -40,8 +76,14 @@ jest.mock('@slack/web-api', () => ({
     workflows: {
       stepCompleted: jest.fn(),
     },
-  })),
-}));
+  };
+
+  const MockWebClient = jest.fn().mockImplementation(() => sharedMockInstance);
+  
+  return {
+    WebClient: MockWebClient,
+  };
+});
 
 // Mock encrypted credential repository
 jest.mock('../../src/database/repositories/encrypted-credential', () => ({
@@ -176,8 +218,22 @@ describe('SlackConnector', () => {
 
   beforeEach(() => {
     slackConnector = new SlackConnector();
-    mockSlackClient = require('@slack/web-api').WebClient.mock.results[0].value;
-    jest.clearAllMocks();
+    // Get the mock client instance from the WebClient constructor
+    const { WebClient } = require('@slack/web-api');
+    mockSlackClient = mockSlackClientInstance;
+    
+    // Clear mock calls but keep implementations
+    Object.values(mockSlackClientInstance.auth).forEach((fn: any) => fn.mockClear?.());
+    Object.values(mockSlackClientInstance.users).forEach((fn: any) => fn.mockClear?.());
+    Object.values(mockSlackClientInstance.conversations).forEach((fn: any) => fn.mockClear?.());
+    Object.values(mockSlackClientInstance.apps).forEach((fn: any) => fn.mockClear?.());
+    Object.values(mockSlackClientInstance.team).forEach((fn: any) => fn.mockClear?.());
+    if (mockSlackClientInstance.workflows) {
+      Object.values(mockSlackClientInstance.workflows).forEach((fn: any) => fn.mockClear?.());
+    }
+    if (mockSlackClientInstance.admin?.audit?.logs) {
+      Object.values(mockSlackClientInstance.admin.audit.logs).forEach((fn: any) => fn.mockClear?.());
+    }
   });
 
   describe('Authentication', () => {
@@ -188,6 +244,11 @@ describe('SlackConnector', () => {
       mockSlackClient.team.info.mockResolvedValue(mockSlackResponses.teamInfo);
 
       const result = await slackConnector.authenticate(mockCredentials);
+      
+      // Debug log to see what went wrong
+      if (!result.success) {
+        console.log('Auth failed with:', result.error, result.errorCode);
+      }
 
       expect(result.success).toBe(true);
       expect(result.platformUserId).toBe('U123456789');

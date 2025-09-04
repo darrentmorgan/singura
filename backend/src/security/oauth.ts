@@ -4,10 +4,11 @@
  * Complies with RFC 6749, RFC 6750, OWASP OAuth security guidelines
  */
 
-import crypto from 'crypto';
+import * as crypto from 'crypto';
 import { URL } from 'url';
 import { Request, Response } from 'express';
 import axios from 'axios';
+import { isObject, isString } from '@saas-xray/shared-types';
 
 export interface OAuthConfig {
   clientId: string;
@@ -416,12 +417,12 @@ export class OAuthSecurityService {
   /**
    * Validate token response from OAuth provider
    */
-  private validateTokenResponse(data: any): TokenResponse {
-    if (!data || typeof data !== 'object') {
+  private validateTokenResponse(data: unknown): TokenResponse {
+    if (!isObject(data)) {
       throw new Error('Invalid token response format');
     }
 
-    const { access_token, token_type, expires_in } = data;
+    const { access_token, token_type, expires_in } = data as Record<string, unknown>;
 
     if (!access_token || typeof access_token !== 'string') {
       throw new Error('Missing or invalid access token');
@@ -446,10 +447,10 @@ export class OAuthSecurityService {
 
     return {
       access_token,
-      refresh_token: data.refresh_token,
+      refresh_token: data.refresh_token as string | undefined,
       token_type,
-      expires_in: expires_in || 3600,
-      scope: data.scope
+      expires_in: (typeof expires_in === 'number' ? expires_in : 3600),
+      scope: data.scope as string | undefined
     };
   }
 

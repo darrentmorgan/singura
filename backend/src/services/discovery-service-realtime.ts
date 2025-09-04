@@ -9,6 +9,7 @@ import {
   publishAutomationEvent, 
   publishConnectionEvent 
 } from './realtime-service';
+import { DiscoveryResult } from '../connectors/types';
 
 /**
  * Enhanced Discovery Service with Real-time Updates
@@ -36,7 +37,7 @@ export class RealTimeDiscoveryService {
       const connections = await (this.baseService as any).getPlatformConnections(config);
       
       let completedConnections = 0;
-      const results: any[] = [];
+      const results: DiscoveryResult[] = [];
       const errors: string[] = [];
 
       // Process each connection with progress updates

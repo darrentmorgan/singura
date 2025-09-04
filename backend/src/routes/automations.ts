@@ -19,6 +19,69 @@ import {
   PlatformType 
 } from '../types/database';
 
+// Database query result interfaces for type safety
+interface AutomationQueryResult {
+  id: string;
+  name: string;
+  description: string | null;
+  automation_type: string;
+  platform_type: string;
+  status: string;
+  risk_level: string | null;
+  first_discovered_at: Date;
+  last_triggered_at: Date | null;
+  permissions_required: string[] | null;
+  owner_info: { name?: string; email?: string } | null;
+  platform_metadata: Record<string, unknown> | null;
+  trigger_type: string | null;
+  actions: string[] | null;
+  risk_score: number | null;
+  risk_factors: string[] | null;
+  recommendations: string[] | null;
+  data_access_patterns: string[] | null;
+}
+
+interface AutomationStatsQueryResult {
+  total_automations: string;
+  active_count: string;
+  inactive_count: string;
+  error_count: string;
+  low_risk_count: string;
+  medium_risk_count: string;
+  high_risk_count: string;
+  critical_risk_count: string;
+  bot_count: string;
+  workflow_count: string;
+  integration_count: string;
+  webhook_count: string;
+  slack_count: string;
+  google_count: string;
+  microsoft_count: string;
+  avg_risk_score: string;
+}
+
+interface AutomationDetailQueryResult extends AutomationQueryResult {
+  external_id: string;
+  created_at: Date;
+  updated_at: Date;
+  created_by: string | null;
+  updated_by: string | null;
+  discovery_run_id: string;
+  connection_name: string | null;
+  permission_risk_score: number | null;
+  data_access_risk_score: number | null;
+  activity_risk_score: number | null;
+  ownership_risk_score: number | null;
+  compliance_issues: string[] | null;
+  security_concerns: string[] | null;
+  assessed_at: Date | null;
+}
+
+interface CountQueryResult {
+  total: string;
+}
+import { QueryParameters } from '@saas-xray/shared-types';
+
 const router = Router();
 
 // Validation schemas
@@ -97,7 +160,7 @@ router.get('/', authenticateToken, validateRequest({ query: automationFiltersSch
       WHERE da.organization_id = $1
     `;
 
-    const queryParams: any[] = [organizationId];
+    const queryParams: QueryParameters = [organizationId];
     let paramIndex = 2;
 
     // Add filters
@@ -151,7 +214,7 @@ router.get('/', authenticateToken, validateRequest({ query: automationFiltersSch
       LEFT JOIN risk_assessments ra ON da.id = ra.automation_id
       WHERE da.organization_id = $1
     `;
-    const countParams: any[] = [organizationId];
+    const countParams: QueryParameters = [organizationId];
     let countParamIndex = 2;
 
     // Apply same filters for count
@@ -185,12 +248,13 @@ router.get('/', authenticateToken, validateRequest({ query: automationFiltersSch
       countParamIndex++;
     }
 
-    const countResult = await db.query(countQuery, countParams);
-    const total = parseInt(countResult.rows[0].total);
+    const countResult = await db.query(countQuery, countParams) as { rows: CountQueryResult[] };
+    const total = parseInt(countResult.rows[0]?.total || '0');
     const totalPages = Math.ceil(total / limit);
 
     // Transform results to match frontend expectations
-    const automations = result.rows.map(row => ({
+    const typedResult = result as { rows: AutomationQueryResult[] };
+    const automations = typedResult.rows.map(row => ({
       id: row.id,
       name: row.name,
       description: row.description,
@@ -276,8 +340,17 @@ router.get('/stats', authenticateToken, async (req: Request, res: Response): Pro
       WHERE da.organization_id = $1
     `;
 
-    const result = await db.query(query, [organizationId]);
+    const result = await db.query(query, [organizationId]) as { rows: AutomationStatsQueryResult[] };
     const stats = result.rows[0];
+
+    if (!stats) {
+      res.status(404).json({
+        success: false,
+        error: 'STATS_NOT_FOUND',
+        message: 'No automation statistics found for this organization'
+      });
+      return;
+    }
 
     const response = {
       totalAutomations: parseInt(stats.total_automations),
@@ -367,17 +440,18 @@ router.get('/:id', authenticateToken, async (req: Request, res: Response): Promi
       WHERE da.id = $1 AND da.organization_id = $2
     `;
 
-    const result = await db.query(query, [automationId, organizationId]);
+    const result = await db.query(query, [automationId, organizationId]) as { rows: AutomationDetailQueryResult[] };
 
     if (result.rows.length === 0) {
-      return res.status(404).json({
+      res.status(404).json({
         success: false,
         error: 'AUTOMATION_NOT_FOUND',
         message: 'Automation not found'
       });
+      return;
     }
 
-    const automation = result.rows[0];
+    const automation = result.rows[0]!; // Safe because we checked rows.length above
 
     const response = {
       id: automation.id,
@@ -452,32 +526,48 @@ router.post('/:id/assess-risk', authenticateToken, async (req: Request, res: Res
       WHERE da.id = $1 AND da.organization_id = $2
     `;
 
-    const automationResult = await db.query(automationQuery, [automationId, organizationId]);
+    const automationResult = await db.query(automationQuery, [automationId, organizationId]) as { rows: AutomationQueryResult[] };
 
     if (automationResult.rows.length === 0) {
-      return res.status(404).json({
+      res.status(404).json({
         success: false,
         error: 'AUTOMATION_NOT_FOUND',
         message: 'Automation not found'
       });
+      return;
     }
 
-    const automation = automationResult.rows[0];
+    const automation = automationResult.rows[0]!; // Safe because we checked rows.length above
+
+    // Create a proper DiscoveredAutomation object for risk assessment
+    const automationForAssessment: DiscoveredAutomation = {
+      id: automation.id,
+      organization_id: organizationId,
+      platform_connection_id: '', // Will be set by risk service if needed
+      discovery_run_id: '', // Will be set by risk service if needed
+      external_id: automation.id,
+      name: automation.name,
+      description: automation.description,
+      automation_type: automation.automation_type as AutomationType,
+      status: automation.status as AutomationStatus,
+      trigger_type: automation.trigger_type,
+      actions: automation.actions || [],
+      permissions_required: automation.permissions_required || [],
+      data_access_patterns: automation.data_access_patterns || [],
+      owner_info: automation.owner_info || { name: '', email: '' },
+      last_modified_at: null,
+      last_triggered_at: automation.last_triggered_at,
+      execution_frequency: null,
+      platform_metadata: automation.platform_metadata || {},
+      first_discovered_at: automation.first_discovered_at,
+      last_seen_at: new Date(),
+      is_active: automation.status === 'active',
+      created_at: new Date(),
+      updated_at: new Date()
+    };
 
     // Run risk assessment
-    const assessment = await riskService.assessAutomationRisk({
-      id: automation.id,
-      name: automation.name,
-      automation_type: automation.automation_type,
-      platform: automation.platform_type,
-      status: automation.status,
-      permissions: automation.permissions_required || [],
-      actions: automation.actions || [],
-      dataAccessPatterns: automation.data_access_patterns || [],
-      ownerInfo: automation.owner_info || {},
-      lastTriggered: automation.last_triggered_at,
-      metadata: automation.platform_metadata || {}
-    });
+    const assessment = await riskService.assessAutomationRisk(automationForAssessment);
 
     res.json({
       success: true,

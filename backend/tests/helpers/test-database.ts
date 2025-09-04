@@ -5,10 +5,17 @@
 
 import { Pool, PoolClient } from 'pg';
 import { db } from '../../src/database/pool';
+import { DatabaseConnection } from '../../src/types/database';
+import {
+  OrganizationRecord,
+  ConnectionRecord,
+  UUID
+} from '@saas-xray/shared-types';
+import { MockDataGenerator } from './mock-data';
 
 export class TestDatabase {
   private static instance: TestDatabase;
-  private transactionClient: PoolClient | null = null;
+  private transactionClient: DatabaseConnection | null = null;
 
   private constructor() {}
 
@@ -22,12 +29,13 @@ export class TestDatabase {
   /**
    * Start a transaction for test isolation
    */
-  async beginTransaction(): Promise<PoolClient> {
+  async beginTransaction(): Promise<DatabaseConnection> {
     if (this.transactionClient) {
       throw new Error('Transaction already active');
     }
 
-    this.transactionClient = await db.connect();
+    const client = await db.getClient();
+    this.transactionClient = client;
     await this.transactionClient.query('BEGIN');
     return this.transactionClient;
   }
@@ -61,28 +69,30 @@ export class TestDatabase {
   /**
    * Create test fixtures
    */
-  async createFixtures() {
-    const fixtures = {
+  async createFixtures(): Promise<TestFixtures> {
+    const fixtures: TestFixtures = {
       organization: null as any,
       platformConnection: null as any,
-      encryptedCredentials: [] as any[]
+      encryptedCredentials: []
     };
 
-    // Create test organization
+    // Create test organization with unique values
+    const uniqueId = Date.now() + '-' + Math.random().toString(36).substr(2, 9);
     const orgResult = await this.query(`
-      INSERT INTO organizations (name, domain, slug, plan_tier, max_connections, settings)
+      INSERT INTO organizations (name, domain, slug, plan_tier, max_connections, settings, is_active)
       VALUES (
-        'Test Organization',
-        'test.example.com',
-        'test-org-' || extract(epoch from now()) || '-' || floor(random() * 1000),
+        'Test Organization ' || $1,
+        'test-' || $1 || '.example.com',
+        'test-org-' || $1,
         'enterprise',
         100,
-        '{"test": true}'::jsonb
+        '{"test": true}'::jsonb,
+        true
       ) RETURNING *
-    `);
-    fixtures.organization = orgResult.rows[0];
+    `, [uniqueId]);
+    fixtures.organization = orgResult.rows[0] as OrganizationRecord;
 
-    // Create test platform connection
+    // Create test platform connection  
     const connResult = await this.query(`
       INSERT INTO platform_connections (
         organization_id, platform_type, platform_user_id, platform_workspace_id,
@@ -95,22 +105,18 @@ export class TestDatabase {
         now() + interval '1 hour'
       ) RETURNING *
     `, [fixtures.organization.id]);
-    fixtures.platformConnection = connResult.rows[0];
+    fixtures.platformConnection = connResult.rows[0] as ConnectionRecord;
+
+    // Note: No users table in current schema - authentication is mocked in tests
 
     // Create test encrypted credentials
-    const credentialTypes = ['access_token', 'refresh_token'];
+    const credentialTypes = ['access_token', 'refresh_token'] as const;
     for (const type of credentialTypes) {
-      const credResult = await this.query(`
-        INSERT INTO encrypted_credentials (
-          platform_connection_id, credential_type, encrypted_value,
-          encryption_key_id, expires_at, metadata
-        ) VALUES (
-          $1, $2, 'encrypted:test:' || $2 || ':' || $1,
-          'test-key-id', now() + interval '1 hour',
-          '{"test": true}'::jsonb
-        ) RETURNING *
-      `, [fixtures.platformConnection.id, type]);
-      fixtures.encryptedCredentials.push(credResult.rows[0]);
+      const mockCredential = MockDataGenerator.createMockEncryptedCredential(
+        fixtures.platformConnection.id,
+        type
+      );
+      fixtures.encryptedCredentials.push(mockCredential);
     }
 
     return fixtures;
@@ -201,6 +207,16 @@ export class TestDatabase {
 
     return result.rows;
   }
+}
+
+// Export singleton instance
+/**
+ * Test fixtures type definition
+ */
+export interface TestFixtures {
+  organization: OrganizationRecord;
+  platformConnection: ConnectionRecord;
+  encryptedCredentials: Record<string, unknown>[];
 }
 
 // Export singleton instance

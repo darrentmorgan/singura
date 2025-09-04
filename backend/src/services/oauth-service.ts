@@ -12,7 +12,7 @@ import {
   PlatformConnection,
   Platform 
 } from '@saas-xray/shared-types';
-import { oauthSecurityService, OAuthConfig } from '../security/oauth';
+import { oauthSecurityService, OAuthConfig, TokenResponse } from '../security/oauth';
 import { encryptionService, EncryptedData } from '../security/encryption';
 import { securityAuditService } from '../security/audit';
 import { platformConnectionRepository } from '../database/repositories/platform-connection';
@@ -36,6 +36,23 @@ export interface TokenRefreshResult {
     expiresAt: Date;
   };
   error?: string;
+}
+
+/**
+ * Enhanced TokenResponse with index signature for compatibility
+ */
+interface ExtendedTokenResponse extends TokenResponse {
+  [key: string]: unknown;
+}
+
+/**
+ * Platform user info interface for type safety
+ */
+interface PlatformUserInfo {
+  id: string;
+  name?: string;
+  email?: string;
+  [key: string]: unknown;
 }
 
 /**
@@ -130,12 +147,12 @@ export class OAuthService {
         organizationId,
         platform,
         platformUserInfo,
-        tokens,
+        tokens as ExtendedTokenResponse,
         config.scopes
       );
 
       // Store encrypted credentials
-      await this.storeOAuthTokens(connection.id, tokens);
+      await this.storeOAuthTokens(connection.id, tokens as ExtendedTokenResponse);
 
       // Log successful OAuth completion
       await securityAuditService.logOAuthEvent(
@@ -213,7 +230,7 @@ export class OAuthService {
       const expiresAt = new Date(Date.now() + newTokens.expires_in * 1000);
 
       // Store new tokens
-      await this.updateOAuthTokens(connectionId, newTokens, expiresAt);
+      await this.updateOAuthTokens(connectionId, newTokens as ExtendedTokenResponse, expiresAt);
 
       // Update connection status and expiration
       await platformConnectionRepository.update(connectionId, {
@@ -229,7 +246,7 @@ export class OAuthService {
         userId,
         connection.organization_id,
         connectionId,
-        req,
+        req || ({} as Request),
         {
           newExpiresAt: expiresAt,
           tokenType: newTokens.token_type
@@ -260,7 +277,7 @@ export class OAuthService {
           userId,
           connection.organization_id,
           connectionId,
-          req,
+          req || ({} as Request),
           { 
             error: error instanceof Error ? error.message : 'Unknown error',
             action: 'token_refresh'
@@ -308,7 +325,7 @@ export class OAuthService {
       const config = oauthSecurityService.getPlatformConfig(connection.platform_type);
 
       // Revoke tokens with platform
-      await oauthSecurityService.revokeTokens(config, accessToken, refreshToken);
+      await oauthSecurityService.revokeTokens(config, accessToken, refreshToken || undefined);
 
       // Delete stored credentials
       await encryptedCredentialRepository.deleteByConnection(connectionId);
@@ -326,7 +343,7 @@ export class OAuthService {
         userId,
         connection.organization_id,
         connectionId,
-        req,
+        req || ({} as Request),
         { action: 'token_revocation' }
       );
     } catch (error) {
@@ -339,7 +356,7 @@ export class OAuthService {
           userId,
           connection.organization_id,
           connectionId,
-          req,
+          req || ({} as Request),
           { 
             error: error instanceof Error ? error.message : 'Unknown error',
             action: 'token_revocation'
@@ -401,7 +418,7 @@ export class OAuthService {
   /**
    * Fetch platform user information
    */
-  private async fetchPlatformUserInfo(platform: PlatformType, accessToken: string): Promise<Record<string, unknown>> {
+  private async fetchPlatformUserInfo(platform: PlatformType, accessToken: string): Promise<PlatformUserInfo> {
     const config = oauthSecurityService.getPlatformConfig(platform);
     
     if (!config.userInfoUrl) {
@@ -428,31 +445,37 @@ export class OAuthService {
   /**
    * Normalize user info across platforms
    */
-  private normalizePlatformUserInfo(platform: PlatformType, userInfo: Record<string, unknown>): Record<string, unknown> {
+  private normalizePlatformUserInfo(platform: PlatformType, userInfo: Record<string, unknown>): PlatformUserInfo {
     switch (platform) {
       case 'google':
         return {
-          id: userInfo.id || userInfo.sub,
-          name: userInfo.name,
-          email: userInfo.email,
+          id: String(userInfo.id || userInfo.sub || 'unknown'),
+          name: String(userInfo.name || 'Unknown User'),
+          email: String(userInfo.email || ''),
           domain: userInfo.hd // Google Workspace domain
         };
       case 'microsoft':
         return {
-          id: userInfo.id || userInfo.sub,
-          name: userInfo.displayName || userInfo.name,
-          email: userInfo.mail || userInfo.userPrincipalName,
+          id: String(userInfo.id || userInfo.sub || 'unknown'),
+          name: String(userInfo.displayName || userInfo.name || 'Unknown User'),
+          email: String(userInfo.mail || userInfo.userPrincipalName || ''),
           tenantId: userInfo.tid
         };
       case 'slack':
+        const slackUser = (userInfo.user as Record<string, unknown>) || {};
+        const slackTeam = (userInfo.team as Record<string, unknown>) || {};
         return {
-          id: userInfo.user?.id || 'unknown',
-          name: userInfo.user?.name || 'Unknown',
-          teamId: userInfo.team?.id,
-          teamName: userInfo.team?.name
+          id: String(slackUser.id || 'unknown'),
+          name: String(slackUser.name || 'Unknown User'),
+          teamId: slackTeam.id,
+          teamName: slackTeam.name
         };
       default:
-        return userInfo;
+        return {
+          id: String(userInfo.id || 'unknown'),
+          name: String(userInfo.name || 'Unknown User'),
+          ...userInfo
+        };
     }
   }
 
@@ -462,8 +485,8 @@ export class OAuthService {
   private async createPlatformConnection(
     organizationId: string,
     platform: PlatformType,
-    platformUserInfo: Record<string, unknown>,
-    tokens: Record<string, unknown>,
+    platformUserInfo: PlatformUserInfo,
+    tokens: ExtendedTokenResponse,
     scopes: string[]
   ): Promise<{ id: string; display_name: string; platform_type: PlatformType; organization_id: string }> {
     // Check for existing connection
@@ -482,20 +505,25 @@ export class OAuthService {
       display_name: this.createDisplayName(platform, platformUserInfo),
       status: 'active' as ConnectionStatus,
       permissions_granted: scopes,
-      expires_at: tokens.expires_in ? new Date(Date.now() + tokens.expires_in * 1000) : null,
+      expires_at: tokens.expires_in && typeof tokens.expires_in === 'number' ? new Date(Date.now() + tokens.expires_in * 1000) : undefined,
       metadata: this.createConnectionMetadata(platform, platformUserInfo, tokens),
-      last_error: null
+      last_error: undefined
     };
 
     if (existingConnection) {
       // Update existing connection
-      return await platformConnectionRepository.update(existingConnection.id, connectionData);
+      const updated = await platformConnectionRepository.update(existingConnection.id, connectionData);
+      if (!updated) {
+        throw new Error('Failed to update platform connection');
+      }
+      return updated;
     } else {
       // Create new connection
       return await platformConnectionRepository.create({
         organization_id: organizationId,
         platform_type: platform,
-        ...connectionData
+        ...connectionData,
+        platform_workspace_id: connectionData.platform_workspace_id ?? undefined
       });
     }
   }
@@ -503,18 +531,18 @@ export class OAuthService {
   /**
    * Store OAuth tokens securely
    */
-  private async storeOAuthTokens(connectionId: string, tokens: Record<string, unknown>): Promise<void> {
+  private async storeOAuthTokens(connectionId: string, tokens: ExtendedTokenResponse): Promise<void> {
     // Store access token
     const accessTokenData: EncryptedData = encryptionService.encrypt(tokens.access_token);
     await encryptedCredentialRepository.replaceCredential(
       connectionId,
       'access_token',
       JSON.stringify(accessTokenData),
-      tokens.expires_in ? new Date(Date.now() + tokens.expires_in * 1000) : undefined
+      tokens.expires_in && typeof tokens.expires_in === 'number' ? new Date(Date.now() + tokens.expires_in * 1000) : undefined
     );
 
     // Store refresh token if available
-    if (tokens.refresh_token) {
+    if (tokens.refresh_token && typeof tokens.refresh_token === 'string') {
       const refreshTokenData: EncryptedData = encryptionService.encrypt(tokens.refresh_token);
       await encryptedCredentialRepository.replaceCredential(
         connectionId,
@@ -529,7 +557,7 @@ export class OAuthService {
    */
   private async updateOAuthTokens(
     connectionId: string,
-    tokens: Record<string, unknown>,
+    tokens: ExtendedTokenResponse,
     expiresAt: Date
   ): Promise<void> {
     // Update access token
@@ -542,7 +570,7 @@ export class OAuthService {
     );
 
     // Update refresh token if provided (token rotation)
-    if (tokens.refresh_token) {
+    if (tokens.refresh_token && typeof tokens.refresh_token === 'string') {
       const refreshTokenData: EncryptedData = encryptionService.encrypt(tokens.refresh_token);
       await encryptedCredentialRepository.replaceCredential(
         connectionId,
@@ -555,14 +583,14 @@ export class OAuthService {
   /**
    * Extract workspace ID from platform user info
    */
-  private extractWorkspaceId(platform: PlatformType, userInfo: Record<string, unknown>): string | null {
+  private extractWorkspaceId(platform: PlatformType, userInfo: PlatformUserInfo): string | null {
     switch (platform) {
       case 'slack':
-        return userInfo.teamId || null;
+        return (userInfo.teamId as string) || null;
       case 'google':
-        return userInfo.domain || null;
+        return (userInfo.domain as string) || null;
       case 'microsoft':
-        return userInfo.tenantId || null;
+        return (userInfo.tenantId as string) || null;
       default:
         return null;
     }
@@ -571,7 +599,7 @@ export class OAuthService {
   /**
    * Create display name for connection
    */
-  private createDisplayName(platform: PlatformType, userInfo: Record<string, unknown>): string {
+  private createDisplayName(platform: PlatformType, userInfo: PlatformUserInfo): string {
     const platformName = platform.charAt(0).toUpperCase() + platform.slice(1);
     const userName = userInfo.name || userInfo.email || 'Unknown User';
     
@@ -583,14 +611,14 @@ export class OAuthService {
   /**
    * Get workspace name from platform user info
    */
-  private getWorkspaceName(platform: PlatformType, userInfo: Record<string, unknown>): string | null {
+  private getWorkspaceName(platform: PlatformType, userInfo: PlatformUserInfo): string | null {
     switch (platform) {
       case 'slack':
-        return userInfo.teamName || null;
+        return (userInfo.teamName as string) || null;
       case 'google':
-        return userInfo.domain || null;
+        return (userInfo.domain as string) || null;
       case 'microsoft':
-        return userInfo.tenantId || null;
+        return (userInfo.tenantId as string) || null;
       default:
         return null;
     }
@@ -599,7 +627,7 @@ export class OAuthService {
   /**
    * Create connection metadata
    */
-  private createConnectionMetadata(platform: PlatformType, userInfo: Record<string, unknown>, tokens: Record<string, unknown>): Record<string, unknown> {
+  private createConnectionMetadata(platform: PlatformType, userInfo: PlatformUserInfo, tokens: ExtendedTokenResponse): Record<string, unknown> {
     const baseMetadata = {
       tokenType: tokens.token_type,
       scope: tokens.scope,

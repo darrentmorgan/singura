@@ -8,6 +8,21 @@ import Redis from 'ioredis';
 import { discoveryService } from '../services/discovery-service';
 import { riskService } from '../services/risk-service';
 import { DiscoveryJobConfig, DiscoveryJobResult } from '../services/discovery-service';
+import { DiscoveredAutomation } from '../types/database';
+import {
+  DiscoveryJobData,
+  RiskAssessmentJobData,
+  NotificationJobData,
+  NotificationData,
+  AutomationDiscoveryResult,
+  RiskAssessmentJobResult,
+  NotificationJobResult,
+  NotificationChannelResult,
+  QueueHealthDetails,
+  QueueStats,
+  HighRiskAutomation,
+  JobError
+} from '@saas-xray/shared-types';
 
 // Redis connection configuration
 const redisConfig = {
@@ -22,6 +37,35 @@ const redisConfig = {
 
 // Create Redis connection
 export const redis = new Redis(redisConfig);
+
+// Type adapter to convert AutomationDiscoveryResult to DiscoveredAutomation
+function adaptAutomationForRiskAssessment(automation: AutomationDiscoveryResult, organizationId: string): DiscoveredAutomation {
+  return {
+    id: automation.id,
+    organization_id: organizationId,
+    platform_connection_id: '', // Will be filled from database when needed
+    discovery_run_id: '', // Will be filled from database when needed
+    external_id: automation.id, // Use the same ID as external ID for now
+    name: automation.name,
+    description: null,
+    automation_type: automation.type as any, // Type assertion needed here
+    status: automation.status as any, // Type assertion needed here
+    trigger_type: null,
+    actions: [],
+    permissions_required: automation.permissions || [],
+    data_access_patterns: [],
+    owner_info: { name: '', email: '' },
+    last_modified_at: null,
+    last_triggered_at: automation.lastSeen,
+    execution_frequency: null,
+    platform_metadata: {},
+    first_discovered_at: automation.lastSeen,
+    last_seen_at: automation.lastSeen,
+    is_active: automation.status === 'active',
+    created_at: new Date(),
+    updated_at: new Date()
+  };
+}
 
 // Job queue configurations
 const queueConfig = {
@@ -47,29 +91,12 @@ export const discoveryQueue = new Bull('automation-discovery', queueConfig);
 export const riskAssessmentQueue = new Bull('risk-assessment', queueConfig);
 export const notificationQueue = new Bull('notifications', queueConfig);
 
-// Job Data Types
-export interface DiscoveryJobData extends DiscoveryJobConfig {
-  jobId: string;
-  scheduledBy?: string;
-  priority?: number;
-}
-
-export interface RiskAssessmentJobData {
-  jobId: string;
-  organizationId: string;
-  automationIds?: string[];
-  discoveryRunId?: string;
-  scheduledBy?: string;
-}
-
-export interface NotificationJobData {
-  jobId: string;
-  type: 'discovery_complete' | 'high_risk_detected' | 'compliance_violation' | 'connection_failed';
-  organizationId: string;
-  data: any;
-  channels: ('email' | 'slack' | 'webhook')[];
-  priority?: 'low' | 'medium' | 'high' | 'critical';
-}
+// Re-export job data types from shared-types
+export {
+  DiscoveryJobData,
+  RiskAssessmentJobData,
+  NotificationJobData
+} from '@saas-xray/shared-types';
 
 /**
  * Job Queue Manager - Orchestrates all background jobs
@@ -127,9 +154,14 @@ export class JobQueueManager {
             type: 'discovery_complete',
             organizationId: config.organizationId,
             data: {
+              type: 'discovery_complete' as const,
               totalAutomations: result.totalAutomations,
               newAutomations: result.newAutomations,
-              errors: result.errors,
+              errors: result.errors.map(error => ({
+                code: 'DISCOVERY_ERROR',
+                message: error,
+                timestamp: new Date()
+              })),
               duration: result.duration
             },
             channels: ['email'], // Would be configurable per organization
@@ -151,6 +183,7 @@ export class JobQueueManager {
           type: 'connection_failed',
           organizationId: config.organizationId,
           data: {
+            type: 'connection_failed' as const,
             error: error instanceof Error ? error.message : 'Unknown error',
             jobId
           },
@@ -172,7 +205,7 @@ export class JobQueueManager {
         await job.progress(10);
 
         // Get automations to assess
-        let automations: any[] = [];
+        let automations: AutomationDiscoveryResult[] = [];
         if (automationIds) {
           // Assess specific automations
           // This would fetch from database
@@ -185,17 +218,22 @@ export class JobQueueManager {
         await job.progress(30);
 
         let assessedCount = 0;
-        const highRiskAutomations: any[] = [];
+        const highRiskAutomations: HighRiskAutomation[] = [];
 
         for (const automation of automations) {
           try {
-            const riskResult = await riskService.assessAutomationRisk(automation);
+            const adaptedAutomation = adaptAutomationForRiskAssessment(automation, organizationId);
+            const riskResult = await riskService.assessAutomationRisk(adaptedAutomation);
             await riskService.storeRiskAssessment(automation.id, organizationId, riskResult);
             
             if (riskResult.overallRisk === 'high' || riskResult.overallRisk === 'critical') {
               highRiskAutomations.push({
-                automation,
-                risk: riskResult
+                id: automation.id,
+                name: automation.name,
+                platform: automation.platform,
+                riskScore: riskResult.riskScore,
+                riskLevel: riskResult.overallRisk as 'high' | 'critical',
+                primaryRiskFactors: riskResult.riskFactors.slice(0, 3).map(f => f.description)
               });
             }
 
@@ -214,8 +252,10 @@ export class JobQueueManager {
             type: 'high_risk_detected',
             organizationId,
             data: {
+              type: 'high_risk_detected',
               count: highRiskAutomations.length,
-              automations: highRiskAutomations.slice(0, 10) // Limit to top 10
+              automations: highRiskAutomations.slice(0, 10), // Limit to top 10
+              threshold: 70 // Risk score threshold for high risk classification
             },
             channels: ['email', 'slack'],
             priority: 'high'
@@ -249,7 +289,7 @@ export class JobQueueManager {
         await job.progress(20);
 
         // Send notifications based on channels
-        const results: any[] = [];
+        const results: NotificationChannelResult[] = [];
 
         for (const channel of channels) {
           try {
@@ -265,10 +305,24 @@ export class JobQueueManager {
                 result = await this.sendWebhookNotification(type, organizationId, data);
                 break;
             }
-            results.push({ channel, success: true, result });
+            results.push({ 
+              channel, 
+              success: true, 
+              result: {
+                deliveredAt: new Date(),
+                messageId: result?.messageId,
+                metadata: result?.metadata
+              },
+              timestamp: new Date()
+            });
           } catch (error) {
             console.error(`Failed to send ${channel} notification:`, error);
-            results.push({ channel, success: false, error: error instanceof Error ? error.message : 'Unknown error' });
+            results.push({ 
+              channel, 
+              success: false, 
+              error: error instanceof Error ? error.message : 'Unknown error',
+              timestamp: new Date()
+            });
           }
 
           await job.progress(20 + (results.length / channels.length) * 80);
@@ -404,18 +458,18 @@ export class JobQueueManager {
   /**
    * Get queue statistics
    */
-  async getQueueStats() {
+  async getQueueStats(): Promise<QueueStats[]> {
     const [discoveryStats, riskStats, notificationStats] = await Promise.all([
       this.getQueueStatistics(discoveryQueue),
       this.getQueueStatistics(riskAssessmentQueue),  
       this.getQueueStatistics(notificationQueue)
     ]);
 
-    return {
-      discovery: discoveryStats,
-      riskAssessment: riskStats,
-      notifications: notificationStats
-    };
+    return [
+      { name: 'discovery', ...discoveryStats },
+      { name: 'riskAssessment', ...riskStats },
+      { name: 'notifications', ...notificationStats }
+    ];
   }
 
   /**
@@ -435,35 +489,63 @@ export class JobQueueManager {
       active: active.length,
       completed: completed.length,
       failed: failed.length,
-      delayed: delayed.length
+      delayed: delayed.length,
+      paused: await queue.isPaused()
     };
   }
 
   /**
    * Send email notification (placeholder)
    */
-  private async sendEmailNotification(type: string, organizationId: string, data: any): Promise<any> {
+  private async sendEmailNotification(
+    type: string, 
+    organizationId: string, 
+    data: NotificationData
+  ): Promise<{ sent: boolean; type: string; messageId?: string; metadata?: Record<string, unknown> }> {
     // This would integrate with email service (SendGrid, SES, etc.)
     console.log(`Sending email notification: ${type} for organization ${organizationId}`);
-    return { sent: true, type: 'email' };
+    return { 
+      sent: true, 
+      type: 'email',
+      messageId: `email-${Date.now()}`,
+      metadata: { type, organizationId }
+    };
   }
 
   /**
    * Send Slack notification (placeholder)
    */
-  private async sendSlackNotification(type: string, organizationId: string, data: any): Promise<any> {
+  private async sendSlackNotification(
+    type: string, 
+    organizationId: string, 
+    data: NotificationData
+  ): Promise<{ sent: boolean; type: string; messageId?: string; metadata?: Record<string, unknown> }> {
     // This would integrate with Slack API
     console.log(`Sending Slack notification: ${type} for organization ${organizationId}`);
-    return { sent: true, type: 'slack' };
+    return { 
+      sent: true, 
+      type: 'slack',
+      messageId: `slack-${Date.now()}`,
+      metadata: { type, organizationId }
+    };
   }
 
   /**
    * Send webhook notification (placeholder)
    */
-  private async sendWebhookNotification(type: string, organizationId: string, data: any): Promise<any> {
+  private async sendWebhookNotification(
+    type: string, 
+    organizationId: string, 
+    data: NotificationData
+  ): Promise<{ sent: boolean; type: string; messageId?: string; metadata?: Record<string, unknown> }> {
     // This would send HTTP webhook
     console.log(`Sending webhook notification: ${type} for organization ${organizationId}`);
-    return { sent: true, type: 'webhook' };
+    return { 
+      sent: true, 
+      type: 'webhook',
+      messageId: `webhook-${Date.now()}`,
+      metadata: { type, organizationId }
+    };
   }
 
   /**
@@ -484,16 +566,26 @@ export class JobQueueManager {
 export const jobQueue = JobQueueManager.getInstance();
 
 // Health check function
-export async function healthCheck(): Promise<{ status: 'healthy' | 'unhealthy', details: any }> {
+export async function healthCheck(): Promise<{ status: 'healthy' | 'unhealthy', details: QueueHealthDetails | { error: string } }> {
   try {
     await redis.ping();
     const stats = await jobQueue.getQueueStats();
     
+    // Calculate totals from queue stats
+    const totalActiveJobs = stats.reduce((sum, queue) => sum + queue.active, 0);
+    const totalWaitingJobs = stats.reduce((sum, queue) => sum + queue.waiting, 0);
+    const totalCompletedJobs = stats.reduce((sum, queue) => sum + queue.completed, 0);
+    const totalFailedJobs = stats.reduce((sum, queue) => sum + queue.failed, 0);
+
     return {
       status: 'healthy',
       details: {
         redis: 'connected',
-        queues: stats
+        queues: stats,
+        totalActiveJobs,
+        totalWaitingJobs,
+        totalCompletedJobs,
+        totalFailedJobs
       }
     };
   } catch (error) {

@@ -4,8 +4,8 @@
  * Complies with RFC 7519, OWASP JWT security guidelines, and SOC 2 requirements
  */
 
-import jwt from 'jsonwebtoken';
-import crypto from 'crypto';
+import * as jwt from 'jsonwebtoken';
+import * as crypto from 'crypto';
 import { Request, Response, NextFunction } from 'express';
 
 export interface JWTConfig {
@@ -66,6 +66,7 @@ export class JWTService {
   private readonly activeSessions = new Map<string, {
     userId: string;
     organizationId: string;
+    permissions: string[];
     createdAt: Date;
     lastAccessed: Date;
     ipAddress: string;
@@ -191,6 +192,7 @@ export class JWTService {
       this.activeSessions.set(sessionId, {
         userId,
         organizationId,
+        permissions,
         createdAt: new Date(),
         lastAccessed: new Date(),
         ipAddress: ipAddress || 'unknown',
@@ -264,11 +266,17 @@ export class JWTService {
   refreshAccessToken(refreshToken: string, ipAddress?: string, userAgent?: string): TokenPair {
     const payload = this.validateToken(refreshToken, 'refresh');
     
+    // Get permissions from the active session
+    const session = this.activeSessions.get(payload.sessionId);
+    if (!session) {
+      throw new Error('Session not found or expired');
+    }
+
     // Generate new token pair (refresh token rotation)
     return this.generateTokens(
       payload.sub,
       payload.organizationId,
-      payload.permissions,
+      session.permissions,
       ipAddress,
       userAgent
     );

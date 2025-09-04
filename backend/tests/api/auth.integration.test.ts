@@ -5,15 +5,42 @@
 
 import request from 'supertest';
 import express, { Express } from 'express';
+
+// Mock the dependencies BEFORE importing
+jest.mock('../../src/services/oauth-service');
+jest.mock('../../src/security/audit');
+jest.mock('../../src/security/jwt');
+jest.mock('../../src/security/middleware', () => ({
+  securityMiddleware: {
+    authRateLimitingMiddleware: () => (req, res, next) => next(),
+    requestLoggingMiddleware: () => (req, res, next) => next(),
+    inputValidationMiddleware: () => (req, res, next) => next(),
+    validateFields: () => (req, res, next) => next(),
+    validationRules: {
+      email: jest.fn(),
+      password: jest.fn()
+    }
+  }
+}));
+
+// Now import the modules
 import { jwtService } from '../../src/security/jwt';
 import authRoutes from '../../src/routes/auth';
 import { testDb } from '../helpers/test-database';
 import { MockDataGenerator } from '../helpers/mock-data';
 import { oauthService } from '../../src/services/oauth-service';
+import { auditService } from '../../src/security/audit';
 
-// Mock dependencies
-jest.mock('../../src/services/oauth-service');
-jest.mock('../../src/security/audit');
+// Setup service mocks
+(jwtService.generateTokens as jest.Mock).mockReturnValue({
+  accessToken: 'mock.access.token',
+  refreshToken: 'mock.refresh.token',
+  expiresIn: 900,
+  tokenType: 'Bearer'
+});
+
+(auditService.logAuthenticationEvent as jest.Mock).mockResolvedValue(undefined);
+(auditService.logSecurityViolation as jest.Mock).mockResolvedValue(undefined);
 
 describe('Authentication API Integration', () => {
   let app: Express;
@@ -586,7 +613,7 @@ describe('Authentication API Integration', () => {
       it('should revoke OAuth connection', async () => {
         const connectionId = 'test-connection-id';
 
-        (oauthService.revokeOAuthTokens as jest.Mock).mockResolvedValue();
+        (oauthService.revokeOAuthTokens as jest.Mock).mockResolvedValue(undefined);
 
         const response = await request(app)
           .delete(`/auth/oauth/connections/${connectionId}`)

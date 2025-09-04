@@ -3,10 +3,20 @@
  * Provides real-time updates for dashboard, discovery status, and notifications
  */
 
-import { Server as SocketServer } from 'socket.io';
+import { Server as SocketServer, Socket } from 'socket.io';
 import { Server } from 'http';
 import { verify } from 'jsonwebtoken';
 import { redis } from '../jobs/queue';
+import {
+  AuthenticatedSocket,
+  SocketAuthPayload,
+  SocketEvent,
+  DiscoveryEventData,
+  AutomationEventData,
+  ConnectionEventData,
+  RiskEventData,
+  SystemEventData
+} from '@saas-xray/shared-types';
 
 // Event types for type safety
 export interface RealTimeEvents {
@@ -126,16 +136,16 @@ export interface RealTimeEvents {
 /**
  * Socket.io authentication middleware
  */
-function authenticateSocket(socket: any, next: any) {
+function authenticateSocket(socket: Socket, next: (err?: Error) => void) {
   try {
     const token = socket.handshake.auth.token;
     if (!token) {
       return next(new Error('Authentication token required'));
     }
 
-    const decoded = verify(token, process.env.JWT_SECRET!) as any;
-    socket.userId = decoded.userId;
-    socket.organizationId = decoded.organizationId;
+    const decoded = verify(token, process.env.JWT_SECRET!) as SocketAuthPayload;
+    (socket as AuthenticatedSocket).userId = decoded.userId;
+    (socket as AuthenticatedSocket).organizationId = decoded.organizationId;
     
     console.log(`Socket authenticated: user ${decoded.userId}, org ${decoded.organizationId}`);
     next();
@@ -179,7 +189,7 @@ export class RealTimeService {
     this.io.use((socket, next) => {
       // Simple rate limiting - could be enhanced with Redis
       const userConnections = Array.from(this.io.sockets.sockets.values())
-        .filter(s => (s as any).userId === (socket as any).userId).length;
+        .filter(s => (s as AuthenticatedSocket).userId === (socket as AuthenticatedSocket).userId).length;
 
       if (userConnections > 5) {
         return next(new Error('Too many connections from this user'));
@@ -565,4 +575,4 @@ export const publishSystemEvent = (type: string, data: any) =>
   RealTimeService.publishEvent('system:events', { type, ...data });
 
 // Export types for use in other files
-export type { RealTimeEvents };
+// RealTimeEvents interface already exported above

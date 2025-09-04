@@ -103,14 +103,17 @@ export interface ConnectionRecord {
   id: UUID;
   organization_id: string;
   platform_type: string;
-  platform_user_id?: string;
-  platform_username?: string;
-  access_token_encrypted: string;
-  refresh_token_encrypted?: string;
-  token_expires_at?: Date;
-  scopes?: string[];
-  is_active: boolean;
+  platform_user_id: string;
+  platform_workspace_id?: string;
+  display_name: string;
+  status: string;
+  permissions_granted?: Record<string, unknown>;
   last_sync_at?: Date;
+  last_error?: string;
+  expires_at?: Date;
+  metadata?: Record<string, unknown>;
+  webhook_url?: string;
+  webhook_secret_id?: string;
   created_at: Date;
   updated_at: Date;
 }
@@ -122,9 +125,11 @@ export interface ConnectionFilters {
   organization_id?: string;
   platform_type?: string | string[];
   platform_user_id?: string;
-  is_active?: boolean;
-  token_expires_at?: FilterOperators;
+  platform_workspace_id?: string;
+  display_name?: FilterOperators;
+  status?: string | string[];
   last_sync_at?: FilterOperators;
+  expires_at?: FilterOperators;
   created_at?: FilterOperators;
 }
 
@@ -231,7 +236,9 @@ export interface OrganizationRecord {
   id: UUID;
   name: string;
   domain?: string;
-  plan_type?: string;
+  slug: string;
+  plan_tier?: string;
+  max_connections?: number;
   settings?: Record<string, unknown>;
   is_active: boolean;
   created_at: Date;
@@ -244,7 +251,9 @@ export interface OrganizationRecord {
 export interface OrganizationFilters {
   name?: FilterOperators;
   domain?: string;
-  plan_type?: string | string[];
+  slug?: FilterOperators;
+  plan_tier?: string | string[];
+  max_connections?: FilterOperators;
   is_active?: boolean;
   created_at?: FilterOperators;
 }

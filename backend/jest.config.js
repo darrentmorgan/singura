@@ -9,11 +9,7 @@ module.exports = {
   ],
   transform: {
     '^.+\\.ts$': ['ts-jest', {
-      tsconfig: {
-        strict: false,
-        noImplicitAny: false,
-        strictNullChecks: false
-      }
+      tsconfig: 'tsconfig.test.json'
     }]
   },
   transformIgnorePatterns: [

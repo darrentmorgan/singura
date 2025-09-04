@@ -175,7 +175,7 @@ const mockStats = {
  * GET /automations
  * Get discovered automations with filtering and pagination
  */
-router.get('/', async (req: Request, res: Response) => {
+router.get('/', async (req: Request, res: Response): Promise<void> => {
   try {
     const { 
       platform, 
@@ -260,7 +260,7 @@ router.get('/', async (req: Request, res: Response) => {
  * GET /automations/stats
  * Get automation statistics for the dashboard
  */
-router.get('/stats', async (req: Request, res: Response) => {
+router.get('/stats', async (req: Request, res: Response): Promise<void> => {
   try {
     res.json({
       success: true,
@@ -280,27 +280,28 @@ router.get('/stats', async (req: Request, res: Response) => {
  * GET /automations/:id
  * Get detailed information about a specific automation
  */
-router.get('/:id', async (req: Request, res: Response) => {
+router.get('/:id', async (req: Request, res: Response): Promise<void> => {
   try {
     const automationId = req.params.id;
     const automation = mockAutomations.find(a => a.id === automationId);
 
     if (!automation) {
-      return res.status(404).json({
+      res.status(404).json({
         success: false,
         error: 'AUTOMATION_NOT_FOUND',
         message: 'Automation not found'
       });
+      return;
     }
 
-    return res.json({
+    res.json({
       success: true,
       data: automation
     });
 
   } catch (error) {
     console.error('Failed to get automation details:', error);
-    return res.status(500).json({
+    res.status(500).json({
       success: false,
       error: 'FETCH_AUTOMATION_FAILED',
       message: 'Failed to retrieve automation details'
@@ -312,17 +313,18 @@ router.get('/:id', async (req: Request, res: Response) => {
  * POST /automations/:id/assess-risk
  * Trigger risk assessment for a specific automation
  */
-router.post('/:id/assess-risk', async (req: Request, res: Response) => {
+router.post('/:id/assess-risk', async (req: Request, res: Response): Promise<void> => {
   try {
     const automationId = req.params.id;
     const automation = mockAutomations.find(a => a.id === automationId);
 
     if (!automation) {
-      return res.status(404).json({
+      res.status(404).json({
         success: false,
         error: 'AUTOMATION_NOT_FOUND',
         message: 'Automation not found'
       });
+      return;
     }
 
     // Simulate risk assessment
@@ -340,14 +342,14 @@ router.post('/:id/assess-risk', async (req: Request, res: Response) => {
       assessorType: 'system'
     };
 
-    return res.json({
+    res.json({
       success: true,
       assessment
     });
 
   } catch (error) {
     console.error('Failed to assess automation risk:', error);
-    return res.status(500).json({
+    res.status(500).json({
       success: false,
       error: 'RISK_ASSESSMENT_FAILED',
       message: 'Failed to assess automation risk'

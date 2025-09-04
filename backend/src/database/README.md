@@ -128,7 +128,7 @@ migrations/
 Required environment variables:
 
 ```env
-DATABASE_URL=postgresql://postgres:password@localhost:5432/saas_xray
+DATABASE_URL=postgresql://postgres:password@localhost:5433/saas_xray
 ENCRYPTION_KEY=your-32-character-encryption-key-here
 DB_POOL_MIN=2
 DB_POOL_MAX=20

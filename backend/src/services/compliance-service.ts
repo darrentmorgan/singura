@@ -838,7 +838,7 @@ export class ComplianceService {
       if (!acc[finding.category]) {
         acc[finding.category] = [];
       }
-      acc[finding.category].push(finding);
+      acc[finding.category]!.push(finding);
       return acc;
     }, {} as Record<string, ComplianceFinding[]>);
 

@@ -4,29 +4,37 @@
  */
 
 import crypto from 'crypto';
-import { Platform, ConnectionStatus } from '@saas-xray/shared-types';
+import {
+  Platform,
+  ConnectionStatus,
+  OrganizationRecord,
+  ConnectionRecord,
+  AuditLogRecord,
+  UUID,
+  TokenInfo,
+  OAuthConfiguration,
+  PlatformConnection
+} from '@saas-xray/shared-types';
 
-// For now, using these types until shared-types is fully migrated
-type PlatformType = Platform;
 type CredentialType = 'access_token' | 'refresh_token' | 'api_key' | 'webhook_secret';
 
 export class MockDataGenerator {
   /**
    * Generate mock organization data
    */
-  static createMockOrganization(overrides: Partial<any> = {}) {
+  static createMockOrganization(overrides: Partial<OrganizationRecord> = {}): OrganizationRecord {
     const baseId = crypto.randomUUID();
     const timestamp = new Date();
 
     return {
-      id: baseId,
+      id: baseId as UUID,
       name: `Test Organization ${Math.floor(Math.random() * 1000)}`,
       domain: `test-${baseId.slice(0, 8)}.example.com`,
       slug: `test-org-${baseId.slice(0, 8)}`,
-      settings: { test: true, mockData: true },
-      is_active: true,
       plan_tier: 'enterprise',
       max_connections: 100,
+      settings: { test: true, mockData: true },
+      is_active: true,
       created_at: timestamp,
       updated_at: timestamp,
       ...overrides
@@ -36,28 +44,31 @@ export class MockDataGenerator {
   /**
    * Generate mock platform connection data
    */
-  static createMockPlatformConnection(organizationId: string, overrides: Partial<any> = {}) {
+  static createMockPlatformConnection(
+    organizationId: string, 
+    overrides: Partial<ConnectionRecord> = {}
+  ): ConnectionRecord {
     const connectionId = crypto.randomUUID();
     const timestamp = new Date();
     
-    const platforms: PlatformType[] = ['slack', 'google', 'microsoft'];
+    const platforms: Platform[] = ['slack', 'google', 'microsoft'];
     const platform = platforms[Math.floor(Math.random() * platforms.length)] || 'slack';
 
     return {
-      id: connectionId,
+      id: connectionId as UUID,
       organization_id: organizationId,
       platform_type: platform,
       platform_user_id: `${platform}-user-${Math.floor(Math.random() * 10000)}`,
-      platform_workspace_id: platform === 'slack' ? `T${Math.floor(Math.random() * 1000000000)}` : null,
+      platform_workspace_id: platform === 'slack' ? `T${Math.floor(Math.random() * 1000000000)}` : undefined,
       display_name: `Test ${platform.charAt(0).toUpperCase() + platform.slice(1)} Connection`,
-      status: 'connected' as ConnectionStatus,
-      permissions_granted: this.getMockPermissions(platform),
+      status: 'active',
+      permissions_granted: { scopes: this.getMockPermissions(platform) },
       last_sync_at: new Date(Date.now() - Math.random() * 86400000), // Random time in last 24h
-      last_error: null,
+      last_error: undefined,
       expires_at: new Date(Date.now() + 3600000), // 1 hour from now
       metadata: this.getMockMetadata(platform),
       webhook_url: `https://hooks.saas-xray.com/webhook/${connectionId}`,
-      webhook_secret_id: null,
+      webhook_secret_id: undefined,
       created_at: timestamp,
       updated_at: timestamp,
       ...overrides
@@ -70,8 +81,8 @@ export class MockDataGenerator {
   static createMockEncryptedCredential(
     platformConnectionId: string, 
     credentialType: CredentialType,
-    overrides: Partial<any> = {}
-  ) {
+    overrides: Partial<Record<string, unknown>> = {}
+  ): Record<string, unknown> {
     const credentialId = crypto.randomUUID();
     const timestamp = new Date();
 
@@ -101,8 +112,8 @@ export class MockDataGenerator {
   static createMockAuditLog(
     organizationId: string,
     platformConnectionId?: string,
-    overrides: Partial<any> = {}
-  ) {
+    overrides: Partial<AuditLogRecord> = {}
+  ): AuditLogRecord {
     const auditId = crypto.randomUUID();
     const eventTypes = [
       'platform_connection_created',
@@ -118,16 +129,13 @@ export class MockDataGenerator {
     const category = this.getCategoryForEvent(eventType);
 
     return {
-      id: auditId,
+      id: auditId as UUID,
       organization_id: organizationId,
-      platform_connection_id: platformConnectionId || null,
-      event_type: eventType,
-      event_category: category,
-      actor_id: `user-${Math.floor(Math.random() * 1000)}`,
-      actor_type: 'user',
+      user_id: `user-${Math.floor(Math.random() * 1000)}`,
+      action: eventType,
       resource_type: 'platform_connection',
       resource_id: platformConnectionId || crypto.randomUUID(),
-      event_data: {
+      details: {
         test: true,
         mockData: true,
         timestamp: new Date().toISOString(),
@@ -143,7 +151,7 @@ export class MockDataGenerator {
   /**
    * Generate mock OAuth state
    */
-  static createMockOAuthState(userId: string, platform: PlatformType) {
+  static createMockOAuthState(userId: string, platform: Platform): Record<string, unknown> {
     return {
       state: crypto.randomBytes(32).toString('hex'),
       userId,
@@ -181,7 +189,7 @@ export class MockDataGenerator {
   /**
    * Generate mock platform-specific permissions
    */
-  private static getMockPermissions(platform: PlatformType): string[] {
+  private static getMockPermissions(platform: Platform): string[] {
     const permissionMap = {
       slack: ['channels:read', 'users:read', 'chat:write', 'files:read'],
       google: ['https://www.googleapis.com/auth/drive.readonly', 'https://www.googleapis.com/auth/gmail.readonly'],
@@ -197,7 +205,7 @@ export class MockDataGenerator {
   /**
    * Generate mock platform-specific metadata
    */
-  private static getMockMetadata(platform: PlatformType): Record<string, any> {
+  private static getMockMetadata(platform: Platform): Record<string, unknown> {
     const metadataMap = {
       slack: {
         team_name: 'Test Team',

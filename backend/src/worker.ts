@@ -30,7 +30,9 @@ async function startWorker() {
     }
     
     console.log('✅ Health check passed - Redis and queues are healthy');
-    console.log('📊 Queue stats:', health.details.queues);
+    if ('queues' in health.details) {
+      console.log('📊 Queue stats:', health.details.queues);
+    }
     
     // The job processors are already set up in the JobQueueManager constructor
     console.log('🔧 Job processors initialized and ready');

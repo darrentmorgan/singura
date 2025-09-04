@@ -9,8 +9,8 @@ import { Request, Response, NextFunction } from 'express';
 import rateLimit from 'express-rate-limit';
 import helmet from 'helmet';
 import cors from 'cors';
-import { body, validationResult, ValidationError } from 'express-validator';
-import crypto from 'crypto';
+import { body, validationResult, ValidationError, ValidationChain } from 'express-validator';
+import * as crypto from 'crypto';
 import { jwtService } from './jwt';
 
 export interface SecurityConfig {
@@ -230,7 +230,7 @@ export class SecurityMiddleware {
       const startTime = Date.now();
       const originalSend = res.send;
       
-      res.send = function(body: any) {
+      res.send = function(body: unknown) {
         const responseTime = Date.now() - startTime;
         const logData = {
           requestId: req.requestId,
@@ -275,7 +275,7 @@ export class SecurityMiddleware {
         /<object/gi
       ];
 
-      const checkForInjection = (value: any): boolean => {
+      const checkForInjection = (value: unknown): boolean => {
         if (typeof value === 'string') {
           return suspiciousPatterns.some(pattern => pattern.test(value));
         }
@@ -362,7 +362,28 @@ export class SecurityMiddleware {
   /**
    * Validation middleware factory
    */
-  validateInput(validations: any[]) {
+  validateInput(validations: Array<{ field: string; rules: string[]; message?: string }>) {
+    return [
+      ...validations,
+      (req: Request, res: Response, next: NextFunction): void | Response => {
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+          this.metrics.validationErrors++;
+          return res.status(400).json({
+            error: 'Validation failed',
+            code: 'VALIDATION_ERROR',
+            details: errors.array()
+          });
+        }
+        next();
+      }
+    ];
+  }
+
+  /**
+   * Validation middleware for ValidationChain objects (express-validator)
+   */
+  validateFields(validations: ValidationChain[]) {
     return [
       ...validations,
       (req: Request, res: Response, next: NextFunction): void | Response => {

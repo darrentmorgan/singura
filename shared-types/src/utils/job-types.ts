@@ -21,6 +21,7 @@ export interface DiscoveryJobData extends BaseJobData {
   platforms?: string[];
   forceFullScan?: boolean;
   includeInactive?: boolean;
+  riskAssessment?: boolean;
 }
 
 /**
@@ -52,12 +53,13 @@ export type NotificationData =
 
 export interface DiscoveryCompleteData {
   type: 'discovery_complete';
-  discoveryRunId: string;
+  discoveryRunId?: string;
   totalAutomations: number;
   newAutomations: number;
-  platformsScanned: string[];
+  platformsScanned?: string[];
   duration: number;
-  timestamp: Date;
+  timestamp?: Date;
+  errors?: JobError[];
 }
 
 export interface HighRiskDetectedData {
@@ -78,11 +80,13 @@ export interface ComplianceViolationData {
 
 export interface ConnectionFailedData {
   type: 'connection_failed';
-  connectionId: string;
-  platform: string;
-  errorMessage: string;
-  retryCount: number;
+  connectionId?: string;
+  platform?: string;
+  error?: string;
+  errorMessage?: string;
+  retryCount?: number;
   nextRetryAt?: Date;
+  jobId?: string;
 }
 
 /**

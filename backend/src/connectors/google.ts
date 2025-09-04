@@ -583,7 +583,7 @@ export class GoogleConnector implements PlatformConnector {
   /**
    * Assess risk level for Apps Script projects
    */
-  private assessAppsScriptRisk(project: any): { score: number; level: 'low' | 'medium' | 'high'; riskFactors: string[] } {
+  private assessAppsScriptRisk(project: { permissions: string[]; isPublic?: boolean; hasBindings?: boolean; triggers: string[]; functions: string[]; updateTime: string }): { score: number; level: 'low' | 'medium' | 'high'; riskFactors: string[] } {
     let riskScore = 0;
     const riskFactors: string[] = [];
     
@@ -651,7 +651,7 @@ export class GoogleConnector implements PlatformConnector {
   /**
    * Assess risk level for service accounts
    */
-  private assessServiceAccountRisk(serviceAccount: any): { score: number; level: 'low' | 'medium' | 'high' } {
+  private assessServiceAccountRisk(serviceAccount: { roles: string[]; keyCount: number; isActive?: boolean; lastUsed: string; name: string }): { score: number; level: 'low' | 'medium' | 'high' } {
     let riskScore = 0;
     
     // Risk factors for service accounts

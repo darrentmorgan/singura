@@ -280,7 +280,7 @@ describe('BaseRepository', () => {
 
     describe('buildPaginationClause', () => {
       it('should use default pagination values', () => {
-        const result = repository.testBuildPaginationClause();
+        const result = repository.testBuildPaginationClause({});
         
         expect(result.limit).toBe(20);
         expect(result.offset).toBe(0);

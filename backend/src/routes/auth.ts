@@ -4,6 +4,7 @@
  */
 
 import { Router, Request, Response } from 'express';
+import { body } from 'express-validator';
 import { jwtService } from '../security/jwt';
 import { securityMiddleware } from '../security/middleware';
 import { auditService } from '../security/audit';
@@ -23,7 +24,7 @@ router.use(securityMiddleware.inputValidationMiddleware());
  * User authentication with JWT token generation
  */
 router.post('/login',
-  securityMiddleware.validateInput([
+  securityMiddleware.validateFields([
     securityMiddleware.validationRules.email,
     securityMiddleware.validationRules.password
   ]),
@@ -107,19 +108,22 @@ router.post('/login',
  * Refresh JWT access token using refresh token
  */
 router.post('/refresh',
-  securityMiddleware.validateInput([
+  securityMiddleware.validateFields([
     // Validate refresh token format
-    securityMiddleware.validationRules.uuid.withMessage('Valid refresh token required')
+    body('refreshToken')
+      .isUUID()
+      .withMessage('Valid refresh token required')
   ]),
-  async (req: Request, res: Response): Promise<Response> => {
+  async (req: Request, res: Response): Promise<void> => {
     try {
       const { refreshToken } = req.body;
 
       if (!refreshToken) {
-        return res.status(400).json({
+        res.status(400).json({
           error: 'Refresh token required',
           code: 'REFRESH_TOKEN_MISSING'
         });
+        return;
       }
 
       // Refresh the access token
@@ -129,10 +133,11 @@ router.post('/refresh',
         req.get('User-Agent')
       );
 
-      return res.json({
+      res.json({
         success: true,
         tokens: newTokens
       });
+      return;
     } catch (error) {
       await auditService.logAuthenticationEvent(
         'token_refresh',
@@ -145,11 +150,12 @@ router.post('/refresh',
         }
       );
 
-      return res.status(401).json({
+      res.status(401).json({
         error: 'Token refresh failed',
         code: 'REFRESH_FAILED',
         message: error instanceof Error ? error.message : 'Unknown error'
       });
+      return;
     }
   }
 );

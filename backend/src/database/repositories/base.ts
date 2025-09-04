@@ -10,8 +10,60 @@ import {
   PaginationOptions,
   ValidationError 
 } from '../../types/database';
+// Define types locally since shared-types package isn't available yet
+type QueryParameters = (string | number | boolean | Date | null | undefined)[];
 
-export abstract class BaseRepository<T, CreateInput, UpdateInput, Filters = any> {
+export type DatabaseFilter<T> = {
+  [K in keyof T]?: T[K] extends string 
+    ? string | string[] 
+    : T[K] extends number 
+    ? number | number[] 
+    : T[K] extends Date 
+    ? Date | { from?: Date; to?: Date }
+    : T[K] extends boolean
+    ? boolean
+    : unknown;
+};
+
+export interface InsertClause {
+  columns: string;
+  values: QueryParameters;
+  placeholders: string;
+}
+
+export interface UpdateClause {
+  setClause: string;
+  params: QueryParameters;
+}
+
+export interface WhereClause {
+  whereClause: string;
+  params: QueryParameters;
+}
+
+export interface PaginationClause {
+  limit: number;
+  offset: number;
+  orderBy: string;
+}
+
+// Type guard utilities
+export function isObject(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+export function isArray(value: unknown): value is unknown[] {
+  return Array.isArray(value);
+}
+
+export function safeCastOrThrow<T>(value: unknown, typeName: string): T {
+  if (value === null || value === undefined) {
+    throw new Error(`Expected ${typeName}, got ${value}`);
+  }
+  return value as T;
+}
+
+export abstract class BaseRepository<T, CreateInput extends Record<string, unknown>, UpdateInput extends Record<string, unknown>, Filters = DatabaseFilter<T>> {
   protected tableName: string;
   protected primaryKey: string = 'id';
 
@@ -157,70 +209,92 @@ export abstract class BaseRepository<T, CreateInput, UpdateInput, Filters = any>
   /**
    * Execute a raw query
    */
-  protected async executeQuery<R = any>(query: string, params?: any[]): Promise<DatabaseQueryResult<R>> {
+  protected async executeQuery<R>(query: string, params?: QueryParameters): Promise<DatabaseQueryResult<R>> {
     return db.query<R>(query, params);
   }
 
   /**
    * Build WHERE clause from filters
    */
-  protected buildWhereClause(filters?: Filters): { whereClause: string; params: any[] } {
-    if (!filters || Object.keys(filters).length === 0) {
+  protected buildWhereClause(filters?: Filters): WhereClause {
+    if (!filters || Object.keys(filters as Record<string, unknown>).length === 0) {
       return { whereClause: '', params: [] };
     }
 
     const conditions: string[] = [];
-    const params: any[] = [];
+    const params: QueryParameters = [];
     let paramIndex = 1;
 
-    Object.entries(filters).forEach(([key, value]) => {
+    Object.entries(filters as Record<string, unknown>).forEach(([key, value]) => {
       if (value !== undefined && value !== null) {
         // Handle array values (IN clause)
-        if (Array.isArray(value)) {
+        if (isArray(value)) {
           if (value.length > 0) {
             const placeholders = value.map(() => `$${paramIndex++}`).join(', ');
             conditions.push(`${key} IN (${placeholders})`);
-            params.push(...value);
+            params.push(...value.filter((v): v is string | number | boolean | Date => 
+              typeof v === 'string' || typeof v === 'number' || typeof v === 'boolean' || v instanceof Date
+            ));
           }
         }
         // Handle object values with operators
-        else if (typeof value === 'object' && value !== null) {
+        else if (isObject(value)) {
           Object.entries(value).forEach(([operator, operatorValue]) => {
+            if (operatorValue === undefined || operatorValue === null) return;
+            
             switch (operator) {
               case 'gt':
                 conditions.push(`${key} > $${paramIndex++}`);
-                params.push(operatorValue);
+                params.push(operatorValue as string | number | boolean | Date);
                 break;
               case 'gte':
                 conditions.push(`${key} >= $${paramIndex++}`);
-                params.push(operatorValue);
+                params.push(operatorValue as string | number | boolean | Date);
                 break;
               case 'lt':
                 conditions.push(`${key} < $${paramIndex++}`);
-                params.push(operatorValue);
+                params.push(operatorValue as string | number | boolean | Date);
                 break;
               case 'lte':
                 conditions.push(`${key} <= $${paramIndex++}`);
-                params.push(operatorValue);
+                params.push(operatorValue as string | number | boolean | Date);
                 break;
               case 'like':
                 conditions.push(`${key} ILIKE $${paramIndex++}`);
-                params.push(`%${operatorValue}%`);
+                params.push(`%${String(operatorValue)}%`);
                 break;
               case 'not':
                 conditions.push(`${key} != $${paramIndex++}`);
-                params.push(operatorValue);
+                params.push(operatorValue as string | number | boolean | Date);
+                break;
+              case 'in':
+                if (isArray(operatorValue) && operatorValue.length > 0) {
+                  const placeholders = operatorValue.map(() => `$${paramIndex++}`).join(', ');
+                  conditions.push(`${key} IN (${placeholders})`);
+                  params.push(...operatorValue.filter((v): v is string | number | boolean | Date => 
+                    typeof v === 'string' || typeof v === 'number' || typeof v === 'boolean' || v instanceof Date
+                  ));
+                }
+                break;
+              case 'between':
+                if (isArray(operatorValue) && operatorValue.length === 2) {
+                  conditions.push(`${key} BETWEEN $${paramIndex++} AND $${paramIndex++}`);
+                  params.push(
+                    operatorValue[0] as string | number | boolean | Date,
+                    operatorValue[1] as string | number | boolean | Date
+                  );
+                }
                 break;
               default:
                 conditions.push(`${key} = $${paramIndex++}`);
-                params.push(operatorValue);
+                params.push(operatorValue as string | number | boolean | Date);
             }
           });
         }
         // Handle simple equality
         else {
           conditions.push(`${key} = $${paramIndex++}`);
-          params.push(value);
+          params.push(value as string | number | boolean | Date);
         }
       }
     });
@@ -232,11 +306,7 @@ export abstract class BaseRepository<T, CreateInput, UpdateInput, Filters = any>
   /**
    * Build pagination clause
    */
-  protected buildPaginationClause(pagination?: PaginationOptions): {
-    limit: number;
-    offset: number;
-    orderBy: string;
-  } {
+  protected buildPaginationClause(pagination?: PaginationOptions): PaginationClause {
     const limit = Math.min(pagination?.limit || 20, 100); // Max 100 items per page
     const page = Math.max(pagination?.page || 1, 1);
     const offset = (page - 1) * limit;
@@ -251,17 +321,17 @@ export abstract class BaseRepository<T, CreateInput, UpdateInput, Filters = any>
   /**
    * Build INSERT clause from data
    */
-  protected buildInsertClause(data: CreateInput | UpdateInput): {
-    columns: string;
-    values: any[];
-    placeholders: string;
-  } {
-    const entries = Object.entries(data as Record<string, any>).filter(
+  protected buildInsertClause(data: CreateInput | UpdateInput): InsertClause {
+    const dataRecord = data as Record<string, unknown>;
+    
+    const entries = Object.entries(dataRecord).filter(
       ([_, value]) => value !== undefined
     );
 
     const columns = entries.map(([key]) => key).join(', ');
-    const values = entries.map(([_, value]) => value);
+    const values: QueryParameters = entries.map(([_, value]) => 
+      value as string | number | boolean | Date | null
+    );
     const placeholders = entries.map((_, index) => `$${index + 1}`).join(', ');
 
     return { columns, values, placeholders };
@@ -270,11 +340,10 @@ export abstract class BaseRepository<T, CreateInput, UpdateInput, Filters = any>
   /**
    * Build UPDATE SET clause from data
    */
-  protected buildUpdateClause(data: UpdateInput): {
-    setClause: string;
-    params: any[];
-  } {
-    const entries = Object.entries(data as Record<string, any>).filter(
+  protected buildUpdateClause(data: UpdateInput): UpdateClause {
+    const dataRecord = data as Record<string, unknown>;
+    
+    const entries = Object.entries(dataRecord).filter(
       ([_, value]) => value !== undefined
     );
 
@@ -286,7 +355,9 @@ export abstract class BaseRepository<T, CreateInput, UpdateInput, Filters = any>
       .map(([key], index) => `${key} = $${index + 1}`)
       .join(', ');
     
-    const params = entries.map(([_, value]) => value);
+    const params: QueryParameters = entries.map(([_, value]) => 
+      value as string | number | boolean | Date | null
+    );
 
     return { setClause, params };
   }
@@ -294,7 +365,7 @@ export abstract class BaseRepository<T, CreateInput, UpdateInput, Filters = any>
   /**
    * Validate required fields
    */
-  protected validateRequiredFields(data: any, requiredFields: string[]): ValidationError[] {
+  protected validateRequiredFields<D extends Record<string, unknown>>(data: D, requiredFields: string[]): ValidationError[] {
     const errors: ValidationError[] = [];
 
     requiredFields.forEach(field => {
@@ -316,9 +387,14 @@ export abstract class BaseRepository<T, CreateInput, UpdateInput, Filters = any>
   protected sanitizeInput<TInput>(data: TInput): Partial<TInput> {
     const sanitized: Partial<TInput> = {};
     
-    Object.entries(data as Record<string, any>).forEach(([key, value]) => {
+    if (!isObject(data)) {
+      throw new Error('Data to sanitize must be an object');
+    }
+    const dataRecord = data;
+    
+    Object.entries(dataRecord).forEach(([key, value]) => {
       if (value !== undefined) {
-        (sanitized as any)[key] = value;
+        (sanitized as Record<string, unknown>)[key] = value;
       }
     });
 

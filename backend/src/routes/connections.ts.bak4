@@ -40,7 +40,7 @@ router.use(securityMiddleware.requestLoggingMiddleware());
  * List all platform connections for the authenticated user's organization
  */
 router.get('/connections',
-  securityMiddleware.validateFields([
+  securityMiddleware.validateInput([
     query('platform').optional().isIn(['slack', 'google', 'microsoft', 'hubspot', 'salesforce', 'notion', 'asana', 'jira'])
       .withMessage('Invalid platform filter'),
     query('status').optional().isIn(['active', 'inactive', 'error', 'expired', 'pending'])
@@ -114,7 +114,7 @@ router.get('/connections',
  * Get details for a specific platform connection
  */
 router.get('/connections/:connectionId',
-  securityMiddleware.validateFields([
+  securityMiddleware.validateInput([
     param('connectionId').isUUID().withMessage('Invalid connection ID')
   ]),
   async (req: Request, res: Response): Promise<void> => {
@@ -150,7 +150,6 @@ router.get('/connections/:connectionId',
           error: 'Access denied',
           code: 'ACCESS_DENIED'
         });
-        return;
       }
 
       // Remove sensitive credential data from response
@@ -198,7 +197,7 @@ router.get('/connections/:connectionId',
  * Refresh OAuth tokens for a connection
  */
 router.post('/connections/:connectionId/refresh',
-  securityMiddleware.validateFields([
+  securityMiddleware.validateInput([
     param('connectionId').isUUID().withMessage('Invalid connection ID')
   ]),
   async (req: Request, res: Response): Promise<void> => {
@@ -214,7 +213,6 @@ router.post('/connections/:connectionId/refresh',
           error: 'Connection not found',
           code: 'CONNECTION_NOT_FOUND'
         });
-        return;
       }
 
       if (connection.organization_id !== user.organizationId) {
@@ -222,7 +220,6 @@ router.post('/connections/:connectionId/refresh',
           error: 'Access denied',
           code: 'ACCESS_DENIED'
         });
-        return;
       }
 
       // Refresh the tokens
@@ -257,7 +254,7 @@ router.post('/connections/:connectionId/refresh',
  * Disconnect and revoke a platform connection
  */
 router.delete('/connections/:connectionId',
-  securityMiddleware.validateFields([
+  securityMiddleware.validateInput([
     param('connectionId').isUUID().withMessage('Invalid connection ID')
   ]),
   async (req: Request, res: Response): Promise<void> => {
@@ -273,7 +270,6 @@ router.delete('/connections/:connectionId',
           error: 'Connection not found',
           code: 'CONNECTION_NOT_FOUND'
         });
-        return;
       }
 
       if (connection.organization_id !== user.organizationId) {
@@ -281,7 +277,6 @@ router.delete('/connections/:connectionId',
           error: 'Access denied',
           code: 'ACCESS_DENIED'
         });
-        return;
       }
 
       // Revoke OAuth tokens
@@ -307,7 +302,7 @@ router.delete('/connections/:connectionId',
  * Validate connection permissions and health
  */
 router.post('/connections/:connectionId/validate',
-  securityMiddleware.validateFields([
+  securityMiddleware.validateInput([
     param('connectionId').isUUID().withMessage('Invalid connection ID')
   ]),
   async (req: Request, res: Response): Promise<void> => {
@@ -323,7 +318,6 @@ router.post('/connections/:connectionId/validate',
           error: 'Connection not found',
           code: 'CONNECTION_NOT_FOUND'
         });
-        return;
       }
 
       if (connection.organization_id !== user.organizationId) {
@@ -331,7 +325,6 @@ router.post('/connections/:connectionId/validate',
           error: 'Access denied',
           code: 'ACCESS_DENIED'
         });
-        return;
       }
 
       // Get access token for validation
@@ -399,7 +392,7 @@ router.post('/connections/:connectionId/validate',
  * Discover automations for a platform connection
  */
 router.post('/connections/:connectionId/discover',
-  securityMiddleware.validateFields([
+  securityMiddleware.validateInput([
     param('connectionId').isUUID().withMessage('Invalid connection ID')
   ]),
   async (req: Request, res: Response): Promise<void> => {
@@ -415,7 +408,6 @@ router.post('/connections/:connectionId/discover',
           error: 'Connection not found',
           code: 'CONNECTION_NOT_FOUND'
         });
-        return;
       }
 
       if (connection.organization_id !== user.organizationId) {
@@ -423,7 +415,6 @@ router.post('/connections/:connectionId/discover',
           error: 'Access denied',
           code: 'ACCESS_DENIED'
         });
-        return;
       }
 
       const startTime = Date.now();

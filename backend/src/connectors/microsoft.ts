@@ -42,8 +42,20 @@ export interface AzureAppRegistration {
   publisherDomain?: string;
   homepage?: string;
   createdDateTime: string;
-  keyCredentials?: any[];
-  passwordCredentials?: any[];
+  keyCredentials?: Array<{
+    keyId: string;
+    usage: string;
+    type: string;
+    startDateTime?: string;
+    endDateTime?: string;
+  }>;
+  passwordCredentials?: Array<{
+    keyId: string;
+    displayName?: string;
+    hint?: string;
+    startDateTime?: string;
+    endDateTime?: string;
+  }>;
 }
 
 export interface TeamsApp {
@@ -175,14 +187,24 @@ export class MicrosoftConnector implements PlatformConnector {
         return [];
       }
 
-      return response.value.map((audit: any) => ({
-        id: audit.id,
-        timestamp: new Date(audit.activityDateTime),
-        actorId: audit.initiatedBy?.user?.userPrincipalName || audit.initiatedBy?.app?.displayName || 'system',
-        actorType: audit.initiatedBy?.user ? 'user' : 'service_account',
-        actionType: audit.activityDisplayName,
-        resourceType: audit.targetResources?.[0]?.type || 'unknown',
-        resourceId: audit.targetResources?.[0]?.id || '',
+      return response.value.map((audit: any) => {
+        // Type guard for audit object
+        const activityDateTime = audit.activityDateTime && typeof audit.activityDateTime === 'string' 
+          ? audit.activityDateTime 
+          : new Date().toISOString();
+        
+        const initiatedBy = audit.initiatedBy || {};
+        const targetResources = Array.isArray(audit.targetResources) ? audit.targetResources : [];
+        const firstTarget = targetResources[0] || {};
+        
+        return {
+        id: audit.id || 'unknown',
+        timestamp: new Date(activityDateTime),
+        actorId: (initiatedBy.user?.userPrincipalName || initiatedBy.app?.displayName || 'system') as string,
+        actorType: initiatedBy.user ? 'user' : 'service_account' as const,
+        actionType: (audit.activityDisplayName || 'unknown') as string,
+        resourceType: (firstTarget.type || 'unknown') as string,
+        resourceId: (firstTarget.id || '') as string,
         details: {
           category: audit.category,
           correlationId: audit.correlationId,
@@ -193,7 +215,8 @@ export class MicrosoftConnector implements PlatformConnector {
         },
         ipAddress: undefined, // Not always available
         userAgent: undefined // Not available in Microsoft audit logs
-      }));
+      };
+      });
     } catch (error) {
       console.error('Error fetching Microsoft 365 audit logs:', error);
       // Return empty array if audit logs aren't available
@@ -377,10 +400,13 @@ export class MicrosoftConnector implements PlatformConnector {
             
             // Filter for lists that might be automation-related
             if (lists.value) {
-              const workflowLists = lists.value.filter((list: any) => 
-                list.displayName?.toLowerCase().includes('workflow') ||
-                list.displayName?.toLowerCase().includes('automation')
-              );
+              const workflowLists = lists.value.filter((list: any) => {
+                const displayName = list.displayName;
+                return displayName && 
+                  typeof displayName === 'string' && 
+                  (displayName.toLowerCase().includes('workflow') ||
+                   displayName.toLowerCase().includes('automation'));
+              });
 
               for (const list of workflowLists) {
                 automations.push({
@@ -505,7 +531,7 @@ export class MicrosoftConnector implements PlatformConnector {
    */
   private extractTenantId(user: any): string | null {
     // Try to extract tenant ID from user principal name or other fields
-    if (user.userPrincipalName) {
+    if (user.userPrincipalName && typeof user.userPrincipalName === 'string') {
       const domain = user.userPrincipalName.split('@')[1];
       return domain || null;
     }

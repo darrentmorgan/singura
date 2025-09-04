@@ -12,6 +12,7 @@ import {
   PaginatedResult,
   PaginationOptions
 } from '../../types/database';
+import { QueryParameters } from '@saas-xray/shared-types';
 
 export class AuditLogRepository extends BaseRepository<
   AuditLog,
@@ -50,7 +51,7 @@ export class AuditLogRepository extends BaseRepository<
   async logSystemEvent(
     eventType: string,
     eventCategory: EventCategory,
-    eventData?: Record<string, any>,
+    eventData?: Record<string, unknown>,
     organizationId?: string,
     platformConnectionId?: string
   ): Promise<AuditLog> {
@@ -71,7 +72,7 @@ export class AuditLogRepository extends BaseRepository<
     userId: string,
     eventType: string,
     eventCategory: EventCategory,
-    eventData?: Record<string, any>,
+    eventData?: Record<string, unknown>,
     organizationId?: string,
     platformConnectionId?: string,
     ipAddress?: string,
@@ -168,7 +169,7 @@ export class AuditLogRepository extends BaseRepository<
       SELECT * FROM audit_logs
       WHERE 1=1
     `;
-    const params: any[] = [];
+    const params: QueryParameters = [];
     let paramIndex = 1;
 
     if (organizationId) {
@@ -241,8 +242,8 @@ export class AuditLogRepository extends BaseRepository<
       event_date: string;
     }>(query, params);
 
-    const by_category: Record<EventCategory, number> = {} as any;
-    const by_actor_type: Record<ActorType, number> = {} as any;
+    const by_category = {} as Record<EventCategory, number>;
+    const by_actor_type = {} as Record<ActorType, number>;
     const by_event_type: Record<string, number> = {};
     const daily_counts: Record<string, number> = {};
 

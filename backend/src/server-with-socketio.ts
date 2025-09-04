@@ -122,11 +122,11 @@ app.use('*', (req, res) => {
 });
 
 // Global error handler
-app.use((err: any, req: Request, res: Response, next: NextFunction) => {
+app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
   console.error('Unhandled error:', err);
   
   // Don't leak error details in production
-  const message = NODE_ENV === 'development' ? err.message : 'Internal server error';
+  const message = NODE_ENV === 'development' ? err.message || 'Internal server error' : 'Internal server error';
   const stack = NODE_ENV === 'development' ? err.stack : undefined;
   
   res.status(500).json({

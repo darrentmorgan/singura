@@ -11,6 +11,7 @@ import { platformConnectionRepository } from '../database/repositories/platform-
 import { encryptedCredentialRepository } from '../database/repositories/encrypted-credential';
 import { DiscoveryRun, DiscoveredAutomation, PlatformType, DiscoveryStatus, PlatformConnection } from '../types/database';
 import { db } from '../database/pool';
+import { ConnectionRecord } from '@saas-xray/shared-types';
 
 export interface DiscoveryJobConfig {
   organizationId: string;
@@ -151,7 +152,7 @@ export class DiscoveryService {
    * Discover automations for a single platform connection
    */
   async discoverPlatformAutomations(
-    connection: any,
+    connection: PlatformConnection,
     config: DiscoveryJobConfig
   ): Promise<DiscoveryResult> {
     const startTime = Date.now();
@@ -160,7 +161,7 @@ export class DiscoveryService {
 
     try {
       // Get the appropriate connector
-      const connector = this.connectors.get(connection.platform_type);
+      const connector = this.connectors.get(connection.platform_type as PlatformType);
       if (!connector) {
         throw new Error(`No connector available for platform: ${connection.platform_type}`);
       }
@@ -355,7 +356,16 @@ export class DiscoveryService {
       WHERE id = $1
     `;
 
-    const values = [discoveryRunId, ...Object.values(updates)];
+    const values: (string | number | boolean | Date | null | undefined)[] = [
+      discoveryRunId, 
+      ...Object.values(updates).map(value => {
+        if (value === null || value === undefined) return value;
+        if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') return value;
+        if (value instanceof Date) return value;
+        // For complex objects, serialize to JSON string
+        return JSON.stringify(value);
+      })
+    ];
     await db.query(query, values);
   }
 
@@ -406,7 +416,7 @@ export class DiscoveryService {
           RETURNING *
         `;
 
-        const values = [
+        const values: (string | number | boolean | Date | null)[] = [
           organizationId,
           platformConnectionId,
           discoveryRunId,
@@ -430,7 +440,10 @@ export class DiscoveryService {
         ];
 
         const result = await db.query<DiscoveredAutomation>(query, values);
-        storedAutomations.push(result.rows[0]);
+        const storedAutomation = result.rows[0];
+        if (storedAutomation) {
+          storedAutomations.push(storedAutomation);
+        }
 
       } catch (error) {
         console.error(`Failed to store automation ${automation.id}:`, error);
@@ -472,7 +485,7 @@ export class DiscoveryService {
   /**
    * Calculate a simple risk score for a platform
    */
-  private calculatePlatformRiskScore(automations: AutomationEvent[], permissionCheck: any): number {
+  private calculatePlatformRiskScore(automations: AutomationEvent[], permissionCheck: { missingPermissions: string[]; errors: string[] }): number {
     let riskScore = 0;
     
     // Base risk from number of automations
@@ -518,8 +531,12 @@ export class DiscoveryService {
         AND started_at > NOW() - INTERVAL '${days} days'
     `;
 
-    const result = await db.query(query, [organizationId]);
-    return result.rows[0];
+    const result = await db.query<DiscoveryStats>(query, [organizationId]);
+    const row = result.rows[0];
+    if (!row) {
+      throw new Error('Failed to get discovery stats');
+    }
+    return row;
   }
 }
 

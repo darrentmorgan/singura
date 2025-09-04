@@ -7,12 +7,24 @@
 // ENUMS
 // ============================================================================
 
-// Import shared types for consistency
-import type { 
-  OrganizationSettings, 
-  ConnectionMetadata as SharedConnectionMetadata,
-  AutomationRisk 
-} from '@saas-xray/shared-types';
+// Define types locally since shared-types package isn't available yet
+export interface OrganizationSettings {
+  default_timezone?: string;
+  notification_preferences?: {
+    email?: boolean;
+    slack?: boolean;
+    webhook?: boolean;
+  };
+  security_settings?: {
+    require_2fa?: boolean;
+    allowed_domains?: string[];
+    session_timeout_minutes?: number;
+  };
+  compliance_frameworks?: string[];
+  data_retention_days?: number;
+}
+
+// AutomationRisk interface moved after RiskLevel definition
 
 export type PlatformType = 
   | 'slack'
@@ -66,6 +78,13 @@ export type RiskLevel =
   | 'medium'
   | 'high'
   | 'critical';
+
+export interface AutomationRisk {
+  score: number;
+  level: RiskLevel;
+  factors: string[];
+  recommendations: string[];
+}
 
 export type DiscoveryStatus = 
   | 'pending'
@@ -121,6 +140,7 @@ export interface AuditEventData {
     sessionId?: string;
     requestId?: string;
   };
+  correlation_id?: string;
   metadata?: Record<string, string | number | boolean>;
 }
 
@@ -142,6 +162,11 @@ export interface DiscoveryMetadata {
 }
 
 export interface AutomationOwnerInfo {
+  id?: string;
+  name?: string;
+  type?: string;
+  external?: boolean;
+  last_active?: Date | string;
   userId?: string;
   userName?: string;
   email?: string;
@@ -394,7 +419,7 @@ export interface ComplianceMapping {
 // INPUT/CREATE INTERFACES
 // ============================================================================
 
-export interface CreateOrganizationInput {
+export interface CreateOrganizationInput extends Record<string, unknown> {
   name: string;
   domain?: string;
   slug: string;
@@ -403,7 +428,7 @@ export interface CreateOrganizationInput {
   max_connections?: number;
 }
 
-export interface UpdateOrganizationInput {
+export interface UpdateOrganizationInput extends Record<string, unknown> {
   name?: string;
   domain?: string;
   settings?: Partial<OrganizationSettings>;
@@ -412,7 +437,7 @@ export interface UpdateOrganizationInput {
   max_connections?: number;
 }
 
-export interface CreatePlatformConnectionInput {
+export interface CreatePlatformConnectionInput extends Record<string, unknown> {
   organization_id: string;
   platform_type: PlatformType;
   platform_user_id: string;
@@ -425,7 +450,7 @@ export interface CreatePlatformConnectionInput {
   webhook_url?: string;
 }
 
-export interface UpdatePlatformConnectionInput {
+export interface UpdatePlatformConnectionInput extends Record<string, unknown> {
   display_name?: string;
   status?: ConnectionStatus;
   permissions_granted?: string[];
@@ -436,7 +461,7 @@ export interface UpdatePlatformConnectionInput {
   webhook_url?: string;
 }
 
-export interface CreateEncryptedCredentialInput {
+export interface CreateEncryptedCredentialInput extends Record<string, unknown> {
   platform_connection_id: string;
   credential_type: CredentialType;
   encrypted_value: string;
@@ -445,7 +470,7 @@ export interface CreateEncryptedCredentialInput {
   metadata?: Partial<CredentialMetadata>;
 }
 
-export interface CreateAuditLogInput {
+export interface CreateAuditLogInput extends Record<string, unknown> {
   organization_id?: string;
   platform_connection_id?: string;
   event_type: string;
@@ -632,4 +657,4 @@ export interface TransactionCallback<T> {
 // EXPORT ALL TYPES FOR CONVENIENCE
 // ============================================================================
 
-export * from './database';
+// Types are already exported above, no need to re-export from self
