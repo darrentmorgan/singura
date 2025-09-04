@@ -42,15 +42,25 @@ Most enterprises have **20-50 unauthorized AI integrations** already running in 
 ## 🚀 Quick Start
 
 ### Prerequisites
-- Node.js 18+
+- Node.js 20+
+- TypeScript 5.3+
 - PostgreSQL 14+
 - Docker (optional)
+- npm or pnpm package manager
 
 ### 1. Clone and Install
 ```bash
 git clone https://github.com/your-org/saas-xray.git
 cd saas-xray
-npm install
+
+# Install shared types first (required for type safety)
+cd shared-types && npm install && npm run build
+
+# Install and build backend
+cd ../backend && npm install && npm run build
+
+# Install frontend
+cd ../frontend && npm install
 ```
 
 ### 2. Configure Environment
@@ -65,14 +75,32 @@ npm run db:migrate
 ```
 
 ### 4. Start Development (MVP Demo Mode)
-```bash
-# Backend API with AI-enhanced mock data (port 3001)
-cd backend
-USE_MOCK_DATA=true ENABLE_DATA_TOGGLE=true node test-data-toggle.js
 
-# Frontend Dashboard (port 3000)
-cd frontend
+**Full-Stack TypeScript Development:**
+```bash
+# 1. Build shared types (always do this first)
+cd shared-types
+npm run build
+
+# 2. Backend API with AI-enhanced mock data (port 3001)
+cd ../backend
+USE_MOCK_DATA=true ENABLE_DATA_TOGGLE=true npm run dev
+
+# 3. Frontend Dashboard (port 3000)
+cd ../frontend
 VITE_API_URL=http://localhost:3001/api npm run dev
+```
+
+**Development Workflow:**
+```bash
+# Watch mode for shared types (run in separate terminal)
+cd shared-types && npm run dev
+
+# Type checking across the project
+npm run verify:types
+
+# Run all tests with type safety
+npm run test:ci
 ```
 
 ### 5. Access Demo Dashboard
@@ -99,6 +127,7 @@ VITE_API_URL=http://localhost:3001/api npm run dev
 
 ## 🏗️ Architecture
 
+### System Overview
 ```
 ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
 │   Slack API     │    │ Google Workspace│    │ Microsoft Graph │
@@ -109,7 +138,7 @@ VITE_API_URL=http://localhost:3001/api npm run dev
                                  │
           ┌─────────────────────▼─────────────────────┐
           │          Connector Layer                  │
-          │     (OAuth, Webhooks, Polling)           │
+          │   (OAuth, Webhooks, Type-Safe APIs)      │
           └─────────────────────┬─────────────────────┘
                                 │
           ┌─────────────────────▼─────────────────────┐
@@ -119,8 +148,33 @@ VITE_API_URL=http://localhost:3001/api npm run dev
                                 │
           ┌─────────────────────▼─────────────────────┐
           │        Dashboard & API                    │
-          │     (React Frontend, REST API)           │
+          │   (React + TypeScript, REST API)         │
           └───────────────────────────────────────────┘
+```
+
+### TypeScript-First Architecture
+
+**Type Safety Across the Stack:**
+```
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│  Frontend (TS)  │    │  Backend (TS)   │    │ Database Layer  │
+│                 │    │                 │    │                 │
+│ • React + TS    │◄───► • Express + TS  │◄───► • Type-safe     │
+│ • Zustand       │    │ • Repository    │    │   Repositories  │
+│ • Type Guards   │    │   Pattern       │    │ • Migration TS  │
+└─────────────────┘    └─────────────────┘    └─────────────────┘
+         ▲                        ▲                        ▲
+         │                        │                        │
+         └────────────────────────┼────────────────────────┘
+                                  │
+                 ┌─────────────────▼─────────────────┐
+                 │      @saas-xray/shared-types      │
+                 │                                   │
+                 │ • API Contracts                   │
+                 │ • Database Models                 │
+                 │ • OAuth Types                     │
+                 │ • Validation Schemas              │
+                 └───────────────────────────────────┘
 ```
 
 ## 📊 Sample Dashboard
@@ -192,6 +246,128 @@ Today    ●───●───●────●──────●──�
 ## 🤝 Contributing
 
 We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details.
+
+## 🏗️ Project Structure
+
+```
+saas-xray/
+├── shared-types/              # 🎯 Shared TypeScript definitions
+│   ├── src/
+│   │   ├── api/              # API request/response types
+│   │   ├── database/         # Database model interfaces
+│   │   ├── oauth/            # OAuth flow types
+│   │   ├── automation/       # Automation detection types
+│   │   ├── validation/       # Runtime validation schemas
+│   │   └── index.ts          # Central type exports
+│   ├── package.json
+│   └── tsconfig.json
+├── backend/                   # Node.js + TypeScript API
+│   ├── src/
+│   │   ├── types/            # Backend-specific types
+│   │   ├── services/         # Business logic with types
+│   │   ├── repositories/     # Type-safe database access
+│   │   ├── routes/           # Express routes with validation
+│   │   ├── middleware/       # Type-safe middleware
+│   │   └── database/         # Migration and connection
+│   ├── tests/                # Comprehensive test suite
+│   ├── package.json          # Includes @saas-xray/shared-types
+│   └── tsconfig.json
+├── frontend/                  # React + TypeScript SPA
+│   ├── src/
+│   │   ├── types/            # Frontend-specific types
+│   │   ├── components/       # Typed React components
+│   │   ├── hooks/            # Custom TypeScript hooks
+│   │   ├── services/         # API client with types
+│   │   └── stores/           # Zustand stores with types
+│   ├── package.json          # Includes @saas-xray/shared-types
+│   └── tsconfig.json
+├── docs/                      # Project documentation
+├── docker-compose.yml
+└── README.md
+```
+
+## 🛠️ Development Tools & Scripts
+
+### Type Safety Commands
+```bash
+# Verify types across entire project
+npm run verify:types          # Quick type check
+npm run verify:types-strict   # Strict mode checking
+npm run verify:compile        # Full compilation test
+
+# Shared types development
+cd shared-types
+npm run build                 # Build type definitions
+npm run dev                   # Watch mode for development
+npm run type-check            # Validate types only
+
+# Backend development
+cd backend
+npm run dev                   # Development server
+npm run build                 # Production build
+npm run test:unit            # Unit tests
+npm run test:integration     # API integration tests
+npm run test:security        # Security-focused tests
+npm run verify:types         # Backend type verification
+```
+
+### Build Order Requirements
+```bash
+# CRITICAL: Always build in this order
+1. shared-types (npm run build)
+2. backend (npm run build)
+3. frontend (npm run build)
+```
+
+## 🔒 Type Safety Standards
+
+### Mandatory TypeScript Configuration
+- **100% TypeScript coverage** for new code
+- **Zero `any` types** - use `unknown` with type guards
+- **Explicit return types** for all functions
+- **Strict compilation** with no warnings
+- **Runtime validation** for external data
+
+### Shared Types Integration
+```typescript
+// ✅ CORRECT: Using shared types
+import { 
+  CreateAutomationRequest, 
+  AutomationResponse,
+  OAuthCredentials 
+} from '@saas-xray/shared-types';
+
+// Backend route with proper typing
+app.post('/api/automations', 
+  async (req: Request<{}, AutomationResponse, CreateAutomationRequest>, res) => {
+    // Type-safe implementation
+  }
+);
+
+// Frontend component with shared types
+interface AutomationCardProps {
+  automation: AutomationResponse;
+  onUpdate: (id: string) => void;
+}
+```
+
+## 🧪 Testing Strategy
+
+### Comprehensive Test Coverage
+- **Unit Tests**: Service layer, utilities, type guards
+- **Integration Tests**: API endpoints with type validation
+- **E2E Tests**: Complete OAuth flows with real types
+- **Security Tests**: OAuth token handling, input validation
+- **Type Tests**: Compilation tests for type safety
+
+### Test Commands
+```bash
+# Run all tests with coverage
+npm run test:ci               # Full CI test suite
+npm run test:coverage         # Coverage reporting
+npm run test:security         # Security-focused tests
+npm run test:oauth            # OAuth flow testing
+```
 
 ## 📝 License
 

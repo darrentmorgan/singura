@@ -32,6 +32,7 @@ If the request contains ANY of these keywords or concepts, **IMMEDIATELY** invok
 
 - **🚀 Agent-First Development** – Complex tasks require specialized virtual agents, not general responses.
 - **🔒 Type-First Development** – All new code MUST be fully typed with TypeScript, no exceptions.
+- **🔄 Shared-Types Architecture** – All API contracts use centralized type definitions via @saas-xray/shared-types.
 - **🧪 Test-First Development** – All new features MUST have comprehensive tests before merge.
 - **Security-First Approach** – Every OAuth integration and data handling decision prioritizes security.
 - **Iterative delivery over massive releases** – Ship small, working slices of functionality from database to UI.
@@ -171,10 +172,12 @@ graph TD
 - No `any` types allowed - use `unknown` and type guards
 - All third-party libraries MUST have type definitions
 
-**RULE 2: SHARED TYPES BETWEEN FRONTEND/BACKEND**
-- API request/response types MUST be shared via `/shared-types` package
+**RULE 2: SHARED TYPES ARCHITECTURE (CENTRALIZED)**
+- API request/response types MUST be shared via `@saas-xray/shared-types` package
 - Database models MUST have corresponding TypeScript interfaces
 - OAuth flows MUST use strongly-typed credentials and responses
+- ALL imports from shared-types MUST follow: `import { Type } from '@saas-xray/shared-types'`
+- Shared-types package MUST be built before frontend/backend compilation
 
 **RULE 3: RUNTIME TYPE VALIDATION**
 - Type guards MUST be used for external data (API responses, user input)
@@ -207,46 +210,114 @@ function createUser(request: any) {
 }
 ```
 
-### **Required Type Coverage (ENFORCED)**
-- **100% of new code** must be properly typed
+### **Required Type Coverage (ENFORCED - POST-MIGRATION STATUS)**
+
+**Current Migration Status (85% Complete):**
+- ✅ **Shared-types package**: 9,000+ lines of centralized type definitions
+- ✅ **Error reduction**: From 199+ TypeScript errors to 78 remaining
+- ✅ **Repository standardization**: All repositories use T | null pattern
+- ✅ **OAuth security**: Enhanced with ExtendedTokenResponse pattern
+- 🔄 **Remaining work**: 78 TypeScript errors to resolve for 100% completion
+
+**Type Coverage Requirements:**
+- **100% of new code** must be properly typed with shared-types imports
 - **Zero @ts-ignore** statements in new code
-- **All API endpoints** must have typed request/response interfaces
-- **All React components** must have typed props interfaces
-- **All database operations** must use typed models
+- **All API endpoints** must use shared-types request/response interfaces
+- **All React components** must have typed props from shared-types
+- **All database operations** must use typed models with T | null pattern
+- **All shared-types imports** must be explicit and documented
 
-### **Type Architecture Patterns (MANDATORY)**
+### **🏗️ SHARED-TYPES ARCHITECTURE (POST-MIGRATION)**
 
-**1. Discriminated Unions for State Management:**
+**Critical Architecture Change**: All type definitions now centralized in `@saas-xray/shared-types` package.
+
+**Package Structure:**
 ```typescript
-type APIResult<T> = 
-  | { status: 'success'; data: T }
-  | { status: 'error'; error: string }
-  | { status: 'loading' };
+// @saas-xray/shared-types/src/index.ts
+export * from './api';
+export * from './database';
+export * from './oauth';
+export * from './common';
 ```
 
-**2. Generic Repository Pattern:**
+**Build Order Requirements:**
+1. `@saas-xray/shared-types` MUST build first
+2. Backend can then import and compile
+3. Frontend imports compiled shared-types
+4. All CI/CD pipelines MUST respect this order
+
+**Import Patterns (MANDATORY):**
 ```typescript
-interface Repository<T> {
-  create(data: Omit<T, 'id'>): Promise<T>;
-  findById(id: string): Promise<T | null>;
-  update(id: string, data: Partial<T>): Promise<T>;
+// ✅ CORRECT: Import from shared-types package
+import { 
+  CreateUserRequest, 
+  CreateUserResponse, 
+  User,
+  OAuthCredentials 
+} from '@saas-xray/shared-types';
+
+// ❌ INCORRECT: Local type definitions for API contracts
+interface CreateUserRequest {
+  // This will be rejected in PR review
+}
+```
+
+### **Type Architecture Patterns (UPDATED)**
+
+**1. Standardized Repository Pattern (T | null):**
+```typescript
+// All repositories now use consistent T | null return pattern
+interface Repository<T, CreateInput = Omit<T, 'id'>, UpdateInput = Partial<T>> {
+  create(data: CreateInput): Promise<T>;
+  findById(id: string): Promise<T | null>;  // Standardized null handling
+  update(id: string, data: UpdateInput): Promise<T | null>;
   delete(id: string): Promise<boolean>;
 }
+
+// Real implementation example:
+class UserRepository implements Repository<User, CreateUserInput, UpdateUserInput> {
+  async findById(id: string): Promise<User | null> {
+    const result = await this.db.query('SELECT * FROM users WHERE id = $1', [id]);
+    return result.rows[0] || null;  // Explicit null handling
+  }
+}
 ```
 
-**3. OAuth Flow Types:**
+**2. Enhanced OAuth Security Types:**
 ```typescript
-interface OAuthCredentials {
-  accessToken: string;
+// Extended token response with security enhancements
+interface ExtendedTokenResponse extends OAuthCredentials {
+  tokenType: string;
+  expiresIn: number;
+  scope: string;
   refreshToken?: string;
-  expiresAt: Date;
-  scope: string[];
-  platform: 'slack' | 'google' | 'microsoft';
+  userId?: string;
+  teamId?: string;
+  enterpriseId?: string;
 }
 
+// Type-safe OAuth flow with proper error handling
 type OAuthFlowResult = 
-  | { success: true; credentials: OAuthCredentials }
-  | { success: false; error: string; code: string };
+  | { success: true; credentials: ExtendedTokenResponse }
+  | { success: false; error: string; code: string; statusCode: number };
+```
+
+**3. Database Query Parameter Types:**
+```typescript
+// All database operations now have typed parameters
+interface QueryBuilder {
+  select<T>(table: string, conditions?: Partial<T>): Promise<T[]>;
+  insert<T>(table: string, data: Omit<T, 'id' | 'createdAt' | 'updatedAt'>): Promise<T>;
+  update<T>(table: string, id: string, data: Partial<T>): Promise<T | null>;
+}
+```
+
+**4. API Result Discriminated Unions:**
+```typescript
+type APIResult<T> = 
+  | { status: 'success'; data: T; timestamp: Date }
+  | { status: 'error'; error: string; code: string; timestamp: Date }
+  | { status: 'loading'; progress?: number };
 ```
 
 ---
@@ -366,18 +437,24 @@ export const TEST_OAUTH_CREDENTIALS: OAuthCredentials = {
 
 ### **CI/CD Integration (AUTOMATIC ENFORCEMENT)**
 
-**Pre-commit Hooks:**
-- TypeScript type checking (`tsc --noEmit`)
-- ESLint with TypeScript rules
-- Test execution for changed files
-- Coverage threshold validation
+**Pre-commit Hooks (Updated for Shared Types):**
+- Shared-types package build verification
+- TypeScript type checking (`tsc --noEmit`) across all packages
+- ESLint with TypeScript rules and shared-types import validation
+- Test execution for changed files with type coverage
+- Coverage threshold validation (80% minimum)
+- Shared-types dependency validation
 
-**PR Requirements (AUTOMATED CHECKS):**
-- All tests passing
-- Coverage meets minimum thresholds
-- TypeScript compilation successful
+**PR Requirements (AUTOMATED CHECKS - Enhanced):**
+- All tests passing (including shared-types integration tests)
+- Coverage meets minimum thresholds (80% for new code)
+- TypeScript compilation successful across all packages
+- Shared-types build successful and imported correctly
 - No console.log statements in production code
 - API documentation updated for endpoint changes
+- Type coverage report shows improvement or maintenance
+- No @ts-ignore statements in new code
+- All shared-types imports follow established patterns
 
 ### **Quality Gates (CANNOT BE BYPASSED)**
 
@@ -400,23 +477,28 @@ export const TEST_OAUTH_CREDENTIALS: OAuthCredentials = {
 
 ## Technical Standards
 
-### Architecture
+### Architecture (TypeScript Enhanced)
 
 - **Agent-First Approach** – Complex technical decisions made by specialized agents
-- **Security-First Design** – OAuth flows, credential management, and audit logging prioritized
-- Composition over inheritance for both UI components and service classes
-- Interfaces/contracts over direct calls – Use API specs and type definitions
-- Explicit data flow – Document request/response shapes in OpenAPI/Swagger
-- TDD when possible – Unit tests + integration tests + security tests for each feature slice
+- **Shared-Types Architecture** – All API contracts centralized in @saas-xray/shared-types package
+- **Repository Pattern Standardization** – All data access uses T | null return pattern
+- **Security-First Design** – OAuth flows with ExtendedTokenResponse and proper type safety
+- **Composition over inheritance** – For both UI components and service classes with proper typing
+- **Interfaces/contracts over direct calls** – Use shared-types API specs and type definitions
+- **Explicit data flow** – Document request/response shapes with shared-types in OpenAPI/Swagger
+- **TDD when possible** – Unit tests + integration tests + security tests + type coverage for each feature slice
 
 ### Code Quality (Agent-Enforced)
 
-**Every commit must:**
-- Pass linting, type checks, and formatting
-- Pass all unit, integration, E2E, and security tests
-- Include tests for new logic, both UI and API
-- Validate OAuth flows and permission handling
-- Include audit logging for security events
+**Every commit must (TypeScript Enhanced):**
+- Pass shared-types build and compilation
+- Pass linting, type checks, and formatting across all packages
+- Pass all unit, integration, E2E, security, and type coverage tests
+- Include tests for new logic with proper shared-types usage
+- Validate OAuth flows with ExtendedTokenResponse pattern
+- Include audit logging for security events with typed audit trails
+- Maintain or improve TypeScript error count (currently 78 remaining)
+- Use proper shared-types imports and T | null repository patterns
 
 ### Security Standards (MANDATORY)
 
@@ -488,10 +570,12 @@ When multiple solutions exist (via agents), prioritize:
 
 **Backend**:
 - **Runtime**: Node.js 20+ with Express.js
-- **Language**: TypeScript for type safety
-- **Database**: PostgreSQL 16 for primary storage
+- **Language**: TypeScript with shared-types architecture
+- **Types**: @saas-xray/shared-types for API contracts and data models
+- **Database**: PostgreSQL 16 with typed queries (T | null pattern)
 - **Cache**: Redis for caching and job queues
 - **Jobs**: Bull for background job processing
+- **Repository**: Standardized Repository<T, CreateInput, UpdateInput> pattern
 
 **Infrastructure**:
 - **Containers**: Docker containers with multi-stage builds
@@ -499,16 +583,16 @@ When multiple solutions exist (via agents), prioritize:
 - **Development**: Docker Compose for local development
 - **CI/CD**: GitHub Actions for CI/CD
 
-### System Architecture
+### System Architecture (TypeScript Enhanced)
 
 ```
 ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
 │   Frontend      │    │   Backend API   │    │   Detection     │
 │   Dashboard     │    │   Gateway       │    │   Engine        │
 │                 │    │                 │    │                 │
-│ • React SPA     │◄───► • Node.js       │◄───► • Pattern ML    │
-│ • Real-time UI  │    │ • Express.js    │    │ • Correlation   │
-│ • Risk Metrics  │    │ • REST + WS     │    │ • Risk Scoring  │
+│ • React + TS    │◄───► • Node.js + TS  │◄───► • Pattern ML    │
+│ • Shared Types  │    │ • Shared Types  │    │ • Correlation   │
+│ • Real-time UI  │    │ • REST + WS     │    │ • Risk Scoring  │
 └─────────────────┘    └─────────────────┘    └─────────────────┘
          │                        │                        │
          │                        │                        │
@@ -517,9 +601,21 @@ When multiple solutions exist (via agents), prioritize:
 │   Data Store    │    │   Queue System  │    │   Connector     │
 │                 │    │                 │    │   Layer         │
 │ • PostgreSQL    │    │ • Redis/Bull    │    │                 │
-│ • Time Series   │    │ • Job Queue     │    │ • OAuth 2.0     │
-│ • Audit Logs    │    │ • Scheduling    │    │ • Webhook Mgmt  │
+│ • Typed Queries │    │ • Typed Jobs    │    │ • OAuth 2.0     │
+│ • T | null      │    │ • Scheduling    │    │ • ExtendedToken │
 └─────────────────┘    └─────────────────┘    └─────────────────┘
+         ▲                        ▲                        ▲
+         │                        │                        │
+         └────────────────────────┼────────────────────────┘
+                                  │
+                  ┌─────────────────────────────┐
+                  │     @saas-xray/shared-types │
+                  │                             │
+                  │ • API Contracts (9,000+ loc)│
+                  │ • Database Models           │
+                  │ • OAuth Security Types      │
+                  │ • Repository Interfaces     │
+                  └─────────────────────────────┘
 ```
 
 ---
@@ -545,15 +641,32 @@ When multiple solutions exist (via agents), prioritize:
 - Monitor permission usage and scope
 - Set up alerts for permission changes
 
-### Connector Interface Pattern
+### Connector Interface Pattern (Enhanced with Shared Types)
 
 ```typescript
+// Now imports from shared-types package
+import { 
+  OAuthCredentials, 
+  ExtendedTokenResponse,
+  ConnectionResult,
+  AutomationEvent,
+  AuditLogEntry,
+  PermissionCheck 
+} from '@saas-xray/shared-types';
+
 interface PlatformConnector {
   platform: 'slack' | 'google' | 'microsoft';
   authenticate(credentials: OAuthCredentials): Promise<ConnectionResult>;
+  refreshToken(refreshToken: string): Promise<ExtendedTokenResponse | null>;
   discoverAutomations(): Promise<AutomationEvent[]>;
   getAuditLogs(since: Date): Promise<AuditLogEntry[]>;
   validatePermissions(): Promise<PermissionCheck>;
+}
+
+// Repository pattern with T | null standardization
+interface ConnectorRepository extends Repository<PlatformConnector> {
+  findByPlatform(platform: string): Promise<PlatformConnector | null>;
+  findActiveConnections(): Promise<PlatformConnector[]>;
 }
 ```
 
@@ -646,21 +759,31 @@ interface PlatformConnector {
 
 ---
 
-## **🎯 Success Metrics**
+## **🎯 Success Metrics (TypeScript Migration Enhanced)**
+
+**Migration Achievement Status:**
+- ✅ **85% TypeScript Migration Complete** - 60% error reduction achieved (199+ → 78 errors)
+- ✅ **Shared-Types Architecture** - 9,000+ lines of centralized type definitions
+- ✅ **Repository Standardization** - All repositories use T | null pattern
+- ✅ **OAuth Security Enhancement** - ExtendedTokenResponse pattern implemented
+- 🔄 **Production Ready Target** - 78 remaining TypeScript errors to resolve
 
 **You are succeeding when:**
 - 90%+ of complex requests are dispatched to agents
-- Users receive comprehensive, expert solutions
-- SaaS X-Ray patterns and context are properly leveraged
-- OAuth security requirements are always met
-- Code quality remains high through agent oversight
+- Users receive comprehensive, expert solutions with proper TypeScript context
+- SaaS X-Ray patterns and shared-types architecture are properly leveraged
+- OAuth security requirements use ExtendedTokenResponse pattern
+- Code quality remains high through agent oversight and type safety
+- TypeScript error count continues to decrease toward zero
+- All new code uses shared-types imports and T | null patterns
 
 **You are failing when:**
-- You attempt complex solutions yourself
-- Users get partial or incomplete technical responses
-- SaaS X-Ray context is ignored or misapplied
-- Security requirements are overlooked
-- Code changes lack proper analysis or testing
+- You attempt complex solutions yourself without considering shared-types
+- Users get partial or incomplete technical responses lacking type safety context
+- SaaS X-Ray context is ignored or shared-types architecture misapplied
+- Security requirements are overlooked or implemented without proper typing
+- Code changes lack proper analysis, testing, or TypeScript coverage
+- TypeScript error count increases or shared-types patterns are bypassed
 
 ---
 
