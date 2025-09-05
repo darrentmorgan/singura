@@ -18,7 +18,7 @@ const NODE_ENV = process.env.NODE_ENV || 'development';
 
 // Basic middleware
 app.use(cors({
-  origin: process.env.CORS_ORIGIN || ['http://localhost:3000', 'http://localhost:3003'],
+  origin: process.env.CORS_ORIGIN || ['http://localhost:4200', 'http://localhost:3000', 'http://localhost:3002', 'http://localhost:3003'],
   credentials: true
 }));
 
@@ -43,7 +43,7 @@ app.post('/api/auth/login', (req: Request, res: Response) => {
   const { email, password } = req.body;
   
   // Simple mock authentication
-  if (email === 'admin@example.com' && password === 'SecurePass123!') {
+  if (email === 'admin@example.com' && password === 'SecurePass123') {
     res.json({
       success: true,
       user: {

@@ -42,8 +42,10 @@
     "frontend"
   ],
   "devDependencies": {
-    "concurrently": "^8.2.2",
     "@playwright/test": "^1.55.0",
+    "@typescript-eslint/eslint-plugin": "^6.21.0",
+    "@typescript-eslint/parser": "^6.21.0",
+    "concurrently": "^8.2.2",
     "dotenv": "^16.3.1"
   },
   "engines": {
