@@ -6,7 +6,7 @@
 import { SlackConnector } from '../../src/connectors/slack';
 import { OAuthCredentials, AutomationEvent, PermissionCheck } from '../../src/connectors/types';
 
-// Create the mock Slack client object  
+// Create the shared mock instance that can be accessed from tests
 const mockSlackClientInstance = {
   auth: {
     test: jest.fn(),
@@ -41,44 +41,9 @@ const mockSlackClientInstance = {
   },
 };
 
-// Mock the Slack Web API with proper hoisting
+// Mock the Slack Web API
 jest.mock('@slack/web-api', () => {
-  // Define the client instance that will be shared
-  const sharedMockInstance = {
-    auth: {
-      test: jest.fn(),
-    },
-    users: {
-      info: jest.fn(),
-      list: jest.fn(),
-    },
-    conversations: {
-      list: jest.fn(),
-    },
-    apps: {
-      list: jest.fn(),
-    },
-    admin: {
-      apps: {
-        approved: {
-          list: jest.fn(),
-        },
-      },
-      audit: {
-        logs: {
-          list: jest.fn(),
-        },
-      },
-    },
-    team: {
-      info: jest.fn(),
-    },
-    workflows: {
-      stepCompleted: jest.fn(),
-    },
-  };
-
-  const MockWebClient = jest.fn().mockImplementation(() => sharedMockInstance);
+  const MockWebClient = jest.fn().mockImplementation(() => mockSlackClientInstance);
   
   return {
     WebClient: MockWebClient,

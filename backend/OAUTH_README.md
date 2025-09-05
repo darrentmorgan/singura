@@ -169,7 +169,7 @@ Authorization: Bearer <access_token>
 
 ```bash
 # Database
-DATABASE_URL=postgresql://user:pass@localhost:5432/saas_xray
+DATABASE_URL=postgresql://user:pass@localhost:5433/saas_xray
 
 # JWT & Encryption
 JWT_SECRET=your-super-secret-jwt-key-minimum-32-chars

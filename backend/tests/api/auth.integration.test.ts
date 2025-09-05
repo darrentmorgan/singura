@@ -15,6 +15,15 @@ jest.mock('../../src/security/middleware', () => ({
     authRateLimitingMiddleware: () => (req, res, next) => next(),
     requestLoggingMiddleware: () => (req, res, next) => next(),
     inputValidationMiddleware: () => (req, res, next) => next(),
+    requireAuthentication: () => (req, res, next) => {
+      // Mock authenticated user for testing
+      req.user = { userId: 'test-user', organizationId: 'test-org', permissions: [] };
+      next();
+    },
+    requirePermissions: () => (req, res, next) => {
+      // Mock permission check - always allow for testing
+      next();
+    },
     validateFields: () => (req, res, next) => next(),
     validationRules: {
       email: jest.fn(),

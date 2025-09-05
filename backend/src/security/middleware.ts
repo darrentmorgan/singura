@@ -8,7 +8,7 @@
 import { Request, Response, NextFunction } from 'express';
 import rateLimit from 'express-rate-limit';
 import helmet from 'helmet';
-import cors from 'cors';
+import * as cors from 'cors';
 import { body, validationResult, ValidationError, ValidationChain } from 'express-validator';
 import * as crypto from 'crypto';
 import { jwtService } from './jwt';
@@ -103,8 +103,8 @@ export class SecurityMiddleware {
    * Configure CORS with secure defaults
    */
   corsMiddleware() {
-    return cors({
-      origin: (origin, callback) => {
+    return cors.default({
+      origin: (origin: string | undefined, callback: (err: Error | null, allowed?: boolean) => void) => {
         // Allow requests with no origin (mobile apps, etc.)
         if (!origin) {
           return callback(null, true);
@@ -498,7 +498,7 @@ export class SecurityMiddleware {
     const oneDayAgo = Date.now() - 24 * 60 * 60 * 1000;
     let cleanedCount = 0;
 
-    for (const [ip, data] of this.suspiciousIPs.entries()) {
+    for (const [ip, data] of Array.from(this.suspiciousIPs.entries())) {
       if (data.lastSeen.getTime() < oneDayAgo && data.count < 5) {
         this.suspiciousIPs.delete(ip);
         cleanedCount++;

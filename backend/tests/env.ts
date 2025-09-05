@@ -13,16 +13,9 @@ process.env.DB_USER = 'postgres';
 process.env.DB_PASSWORD = 'password';
 process.env.TEST_DATABASE_URL = 'postgresql://postgres:password@localhost:5433/saas_xray_test';
 
-// JWT configuration for testing
-process.env.JWT_PRIVATE_KEY = `-----BEGIN PRIVATE KEY-----
-MIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQC5f8QqKpnUj9yE
-test_private_key_content_would_be_here_in_production
------END PRIVATE KEY-----`;
-
-process.env.JWT_PUBLIC_KEY = `-----BEGIN PUBLIC KEY-----
-MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAuX/EKiqZ1I/chE
-test_public_key_content_would_be_here_in_production
------END PUBLIC KEY-----`;
+// JWT configuration for testing - use simple secret for HMAC
+process.env.JWT_SECRET = 'test-jwt-secret-with-sufficient-entropy-for-hmac-sha256-algorithm';
+process.env.JWT_ALGORITHM = 'HS256';
 
 // Encryption configuration
 process.env.MASTER_ENCRYPTION_KEY = 'test_master_encryption_key_with_sufficient_length_for_aes_256_gcm_encryption';

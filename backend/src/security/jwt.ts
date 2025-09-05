@@ -316,7 +316,7 @@ export class JWTService {
   revokeUserSessions(userId: string): number {
     let revokedCount = 0;
     
-    for (const [sessionId, session] of this.activeSessions.entries()) {
+    for (const [sessionId, session] of Array.from(this.activeSessions.entries())) {
       if (session.userId === userId) {
         this.activeSessions.delete(sessionId);
         revokedCount++;
@@ -338,7 +338,7 @@ export class JWTService {
       userAgent: string;
     }> = [];
 
-    for (const [sessionId, session] of this.activeSessions.entries()) {
+    for (const [sessionId, session] of Array.from(this.activeSessions.entries())) {
       if (session.userId === userId) {
         sessions.push({
           sessionId,
@@ -470,7 +470,7 @@ export class JWTService {
     const maxAge = this.parseTimeToSeconds(this.config.refreshTokenTTL) * 1000;
     let cleanedCount = 0;
 
-    for (const [sessionId, session] of this.activeSessions.entries()) {
+    for (const [sessionId, session] of Array.from(this.activeSessions.entries())) {
       if (now - session.createdAt.getTime() > maxAge) {
         this.activeSessions.delete(sessionId);
         cleanedCount++;

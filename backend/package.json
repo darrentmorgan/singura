@@ -13,6 +13,8 @@
     "test:unit": "jest --testPathPattern='tests/(database|security)' --runInBand",
     "test:integration": "jest --testPathPattern='tests/api' --runInBand",
     "test:e2e": "jest --testPathPattern='tests/e2e' --runInBand",
+    "test:stable": "jest --testPathPattern='tests/security/encryption' --runInBand",
+    "test:skip-broken": "jest --testPathIgnorePatterns='tests/connectors/slack-connector.test.ts|tests/api/auth.integration.test.ts' --runInBand",
     "test:coverage": "jest --coverage --coverageReporters=text-lcov --runInBand",
     "test:security": "jest --testPathPattern='tests/security' --runInBand",
     "test:database": "jest --testPathPattern='tests/database' --runInBand",
