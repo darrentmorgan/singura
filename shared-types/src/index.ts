@@ -14,6 +14,7 @@ export * from './utils/socket-types';
 // Domain model types
 export * from './models/automation';
 export * from './models/connection';
+export * from './models/events';
 
 // API types
 export * from './api/requests';

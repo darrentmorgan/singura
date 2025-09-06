@@ -36,10 +36,10 @@
     "verify:all": "npm run verify:types && npm run lint && npm test"
   },
   "dependencies": {
-    "@saas-xray/shared-types": "file:../shared-types",
     "@azure/msal-node": "^2.6.0",
     "@microsoft/microsoft-graph-client": "^3.0.7",
-    "@slack/web-api": "^6.10.0",
+    "@saas-xray/shared-types": "file:../shared-types",
+    "@slack/web-api": "^6.13.0",
     "axios": "^1.6.2",
     "bcryptjs": "^2.4.3",
     "bull": "^4.12.2",
