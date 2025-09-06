@@ -36,11 +36,13 @@ services:
       DATABASE_URL: postgresql://postgres:password@postgres:5432/saas_xray
       REDIS_URL: redis://redis:6379
       NODE_ENV: development
-      PORT: 3001
+      PORT: 4201
+      FRONTEND_URL: http://localhost:4200
+      CORS_ORIGIN: http://localhost:4200
       JWT_SECRET: dev-jwt-secret-key
       ENCRYPTION_KEY: dev-encryption-key-32-characters
     ports:
-      - "3001:3001"
+      - "4201:4201"
     depends_on:
       postgres:
         condition: service_healthy
@@ -56,10 +58,11 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
     environment:
-      VITE_API_URL: http://localhost:3001/api
+      VITE_API_URL: http://localhost:4201/api
+      VITE_WS_URL: ws://localhost:4201
       VITE_APP_NAME: SaaS X-Ray
     ports:
-      - "3000:3000"
+      - "4200:4200"
     depends_on:
       - backend
     volumes:
@@ -75,6 +78,8 @@ services:
       DATABASE_URL: postgresql://postgres:password@postgres:5432/saas_xray
       REDIS_URL: redis://redis:6379
       NODE_ENV: development
+      FRONTEND_URL: http://localhost:4200
+      CORS_ORIGIN: http://localhost:4200
       JWT_SECRET: dev-jwt-secret-key
       ENCRYPTION_KEY: dev-encryption-key-32-characters
     depends_on:

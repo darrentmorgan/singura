@@ -65,16 +65,25 @@ export class SecurityMiddleware {
    * Load security configuration from environment
    */
   private loadSecurityConfig(): SecurityConfig {
-    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
-    const apiUrl = process.env.API_URL || 'http://localhost:3001';
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:4200';
+    const corsOrigin = process.env.CORS_ORIGIN || frontendUrl;
+    const apiUrl = process.env.API_URL || 'http://localhost:4201';
     
     return {
       cors: {
         origins: [
           frontendUrl,
+          corsOrigin,
           'https://app.saas-xray.com',
           'https://saas-xray.com',
-          ...(process.env.NODE_ENV === 'development' ? ['http://localhost:3000', 'http://127.0.0.1:3000'] : [])
+          ...(process.env.NODE_ENV === 'development' ? [
+            'http://localhost:4200', 
+            'http://localhost:4201',
+            'http://localhost:3000', 
+            'http://127.0.0.1:4200',
+            'http://127.0.0.1:4201',
+            'http://127.0.0.1:3000'
+          ] : [])
         ].filter(Boolean),
         credentials: true,
         maxAge: 86400 // 24 hours

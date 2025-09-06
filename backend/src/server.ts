@@ -83,7 +83,8 @@ const server = app.listen(PORT, () => {
   console.log(`🚀 SaaS X-Ray Backend Server running on port ${PORT}`);
   console.log(`📊 Environment: ${NODE_ENV}`);
   console.log(`🔒 Security middleware active`);
-  console.log(`🌐 CORS origins: ${process.env.FRONTEND_URL || 'http://localhost:3000'}`);
+  console.log(`🌐 Frontend URL: ${process.env.FRONTEND_URL || 'http://localhost:4200'}`);
+  console.log(`🌐 CORS Origin: ${process.env.CORS_ORIGIN || process.env.FRONTEND_URL || 'http://localhost:4200'}`);
   
   if (NODE_ENV === 'development') {
     console.log(`📖 API Documentation: http://localhost:${PORT}/api/docs`);
