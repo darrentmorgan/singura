@@ -5,7 +5,7 @@
 
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import { User, LoginRequest, LoginResponse } from '@/types/api';
+import { User, LoginRequest, LoginResponse } from '@saas-xray/shared-types';
 import { authApi } from '@/services/api';
 
 interface AuthState {
@@ -50,12 +50,12 @@ export const useAuthStore = create<AuthStore>()(
         try {
           const response = await authApi.login(credentials);
           
-          if (response.success && response.accessToken && response.user) {
+          if (response.accessToken && response.user) {
             set({
               user: response.user,
               accessToken: response.accessToken,
               refreshToken: response.refreshToken,
-              tokenType: response.tokenType || 'Bearer',
+              tokenType: 'Bearer', // shared-types doesn't include tokenType
               isAuthenticated: true,
               isLoading: false,
               error: null,

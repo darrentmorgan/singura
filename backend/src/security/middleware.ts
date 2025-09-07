@@ -208,7 +208,7 @@ export class SecurityMiddleware {
   authRateLimitingMiddleware() {
     return rateLimit({
       windowMs: 15 * 60 * 1000, // 15 minutes
-      max: 5, // Very strict for auth endpoints
+      max: process.env.NODE_ENV === 'test' ? 50 : 5, // Relaxed for development testing
       standardHeaders: true,
       legacyHeaders: false,
       keyGenerator: (req: Request) => `auth:${req.ip}`,

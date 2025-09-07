@@ -8,7 +8,9 @@ import {
   LoginRequest, 
   LoginResponse, 
   RefreshTokenRequest, 
-  RefreshTokenResponse, 
+  RefreshTokenResponse
+} from '@saas-xray/shared-types';
+import { 
   PlatformConnection,
   ConnectionsListResponse,
   ConnectionStatsResponse,

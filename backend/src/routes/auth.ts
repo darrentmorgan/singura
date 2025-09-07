@@ -59,14 +59,57 @@ router.post('/login',
           { email }
         );
 
+        // Calculate expiration date from expiresIn seconds
+        const expiresAt = new Date(Date.now() + (tokens.expiresIn * 1000));
+        
+        // Return response in shared-types LoginResponse format
         res.json({
-          success: true,
-          tokens,
+          accessToken: tokens.accessToken,
+          refreshToken: tokens.refreshToken,
+          expiresAt,
           user: {
             id: userId,
             organizationId,
-            permissions
-          }
+            email,
+            name: 'Admin User', // Mock name for development
+            role: 'admin',
+            status: 'active',
+            createdAt: new Date(),
+            updatedAt: new Date(),
+            lastLoginAt: new Date(),
+            preferences: {
+              theme: 'light',
+              notifications: {
+                email: true,
+                push: false,
+                sms: false
+              },
+              timezone: 'UTC'
+            }
+          },
+          organization: {
+            id: organizationId,
+            name: 'Demo Organization',
+            domain: 'demo.saas-xray.com',
+            tier: 'enterprise',
+            status: 'active',
+            createdAt: new Date(),
+            updatedAt: new Date(),
+            settings: {
+              retentionPeriod: 90,
+              complianceFramework: 'SOC2',
+              securityLevel: 'high'
+            },
+            features: {
+              auditLogs: true,
+              realTimeAlerts: true,
+              customReports: true,
+              apiAccess: true,
+              sso: false,
+              multipleConnections: true
+            }
+          },
+          permissions
         });
       } else {
         // Log failed authentication
