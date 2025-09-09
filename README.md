@@ -82,13 +82,13 @@ npm run db:migrate
 cd shared-types
 npm run build
 
-# 2. Backend API with AI-enhanced mock data (port 3001)
+# 2. Backend API with AI-enhanced mock data (port 4201)
 cd ../backend
 USE_MOCK_DATA=true ENABLE_DATA_TOGGLE=true npm run dev
 
-# 3. Frontend Dashboard (port 3000)
+# 3. Frontend Dashboard (port 4200)
 cd ../frontend
-VITE_API_URL=http://localhost:3001/api npm run dev
+VITE_API_URL=http://localhost:4201/api npm run dev
 ```
 
 **Development Workflow:**
@@ -104,8 +104,8 @@ npm run test:ci
 ```
 
 ### 5. Access Demo Dashboard
-1. Visit http://localhost:3000
-2. Login with: admin@example.com / SecurePass123
+1. Visit http://localhost:4200
+2. Login with: admin@example.com / SecurePass123!
 3. Click "Discover" on Google Workspace to see 5 AI automations with critical security risks
 
 ## 📱 Supported Platforms
