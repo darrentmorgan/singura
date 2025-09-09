@@ -25,6 +25,7 @@ import { useAutomations, useAutomationsStats, useAutomationsActions } from '@/st
 import { useAuthUser } from '@/stores/auth';
 import { useUIActions } from '@/stores/ui';
 import { cn } from '@/lib/utils';
+import { PDFGenerator } from '@/components/reports/PDFGenerator';
 
 // Platform icons
 const platformIcons = {
@@ -368,19 +369,12 @@ export const DashboardPage: React.FC = () => {
             </div>
           </Button>
 
-          <Button 
-            variant="outline" 
+          <PDFGenerator
+            automations={automations}
+            reportType="security_summary"
+            organizationName={user?.organizationName || 'Your Organization'}
             className="justify-start h-auto p-4 border-gray-300 hover:bg-gray-50 dark:border-gray-600 dark:hover:bg-gray-800"
-            onClick={() => showError('Reports coming soon')}
-          >
-            <div className="flex items-center space-x-3">
-              <Shield className="h-6 w-6 text-primary" />
-              <div className="text-left">
-                <p className="font-medium">Security Report</p>
-                <p className="text-xs text-muted-foreground">Generate compliance report</p>
-              </div>
-            </div>
-          </Button>
+          />
         </div>
       </div>
     </div>

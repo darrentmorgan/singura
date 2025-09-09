@@ -12,13 +12,26 @@ import { getDataProvider, isDataToggleEnabled } from './services/data-provider';
 // Load environment variables
 dotenv.config();
 
+// In-memory connection store (for demo purposes)
+const connections: Array<{
+  id: string;
+  organization_id: string;
+  platform_type: string;
+  display_name: string;
+  status: string;
+  created_at: string;
+  updated_at: string;
+  last_sync_at?: string;
+  permissions: string[];
+}> = [];
+
 const app = express();
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT || 4201;
 const NODE_ENV = process.env.NODE_ENV || 'development';
 
 // Basic middleware
 app.use(cors({
-  origin: process.env.CORS_ORIGIN || ['http://localhost:4200', 'http://localhost:3000', 'http://localhost:3002', 'http://localhost:3003'],
+  origin: process.env.CORS_ORIGIN || ['http://localhost:4200', 'http://localhost:4201', 'http://localhost:4202', 'http://localhost:4203'],
   credentials: true
 }));
 
@@ -65,53 +78,136 @@ app.post('/api/auth/login', (req: Request, res: Response) => {
 
 // Mock Slack OAuth endpoints
 app.get('/api/auth/oauth/slack/authorize', (req: Request, res: Response) => {
-  // Mock OAuth URL
-  const authUrl = `https://slack.com/oauth/v2/authorize?client_id=mock&scope=channels:read,users:read&redirect_uri=${encodeURIComponent('http://localhost:3001/api/auth/callback/slack')}&state=mock-state`;
-  
-  res.json({
-    success: true,
-    authorizationUrl: authUrl,
-    state: 'mock-state'
-  });
-});
+  try {
+    // Dynamic OAuth URL with environment variables
+    const port = process.env.PORT || 4201;
+    const clientId = process.env.SLACK_CLIENT_ID;
+    const redirectUri = process.env.SLACK_REDIRECT_URI || `http://localhost:${port}/api/auth/callback/slack`;
 
-app.get('/api/auth/callback/slack', (req: Request, res: Response) => {
-  const { code, state } = req.query;
-  
-  if (code && state === 'mock-state') {
+    if (!clientId) {
+      console.error('Slack OAuth: Missing SLACK_CLIENT_ID environment variable');
+      return res.status(500).json({
+        success: false,
+        error: 'OAuth configuration error: Missing client ID',
+        details: 'Please set the SLACK_CLIENT_ID environment variable'
+      });
+    }
+
+    if (!redirectUri) {
+      console.error('Slack OAuth: Unable to determine redirect URI');
+      return res.status(500).json({
+        success: false,
+        error: 'OAuth configuration error: Missing redirect URI',
+        details: 'Please set the SLACK_REDIRECT_URI environment variable or configure PORT'
+      });
+    }
+    
+    const authUrl = `https://slack.com/oauth/v2/authorize?client_id=${clientId}&scope=channels:read,users:read&redirect_uri=${encodeURIComponent(redirectUri)}&state=mock-state`;
+    
+    console.log('Slack OAuth Authorization Request:', {
+      clientId: clientId.substring(0, 5) + '...' + clientId.slice(-5), // Partially mask client ID
+      redirectUri,
+      port
+    });
+
     res.json({
       success: true,
-      connection: {
-        id: 'conn-1',
-        platform: 'slack',
-        displayName: 'Slack - Test Workspace',
-        status: 'active',
-        permissions: ['channels:read', 'users:read', 'team:read']
-      }
+      authorizationUrl: authUrl,
+      state: 'mock-state'
     });
-  } else {
-    res.status(400).json({
+  } catch (error) {
+    console.error('Unexpected error in Slack OAuth authorization:', error);
+    res.status(500).json({
       success: false,
-      message: 'OAuth callback failed'
+      error: 'Unexpected OAuth configuration error',
+      details: error instanceof Error ? error.message : 'Unknown error'
     });
   }
 });
 
-// Connections endpoint with data provider support
+app.get('/api/auth/callback/slack', async (req: Request, res: Response) => {
+  const { code, state } = req.query;
+  
+  try {
+    // Basic input validation
+    if (typeof code !== 'string' || typeof state !== 'string') {
+      console.error('Invalid OAuth callback parameters', { code, state });
+      const frontendUrl = process.env.CORS_ORIGIN || 'http://localhost:4200';
+      return res.redirect(`${frontendUrl}/connections?success=false&platform=slack&error=invalid_parameters`);
+    }
+
+    // State verification for CSRF protection
+    if (state !== 'mock-state') {
+      console.warn('OAuth state mismatch', { receivedState: state });
+      const frontendUrl = process.env.CORS_ORIGIN || 'http://localhost:4200';
+      return res.redirect(`${frontendUrl}/connections?success=false&platform=slack&error=csrf_failed`);
+    }
+
+    // Simulated OAuth flow with dynamic environment variables
+    const clientId = process.env.SLACK_CLIENT_ID;
+    const clientSecret = process.env.SLACK_CLIENT_SECRET;
+
+    if (!clientId || !clientSecret) {
+      console.error('Missing OAuth configuration', { clientIdSet: !!clientId, clientSecretSet: !!clientSecret });
+      const frontendUrl = process.env.CORS_ORIGIN || 'http://localhost:4200';
+      return res.redirect(`${frontendUrl}/connections?success=false&platform=slack&error=config_error`);
+    }
+
+    // In a real implementation, you would validate the code with Slack's API
+    // For now, simulate successful connection and store it
+    const frontendUrl = process.env.CORS_ORIGIN || 'http://localhost:4200';
+    
+    // Add the successful connection to our in-memory store
+    const newConnection = {
+      id: `conn-slack-${Date.now()}`,
+      organization_id: 'demo-org-id',
+      platform_type: 'slack',
+      display_name: 'Slack - Test Workspace',
+      status: 'active',
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      last_sync_at: new Date().toISOString(),
+      permissions: ['channels:read', 'users:read', 'team:read']
+    };
+    
+    // Check if Slack is already connected (avoid duplicates)
+    const existingSlack = connections.find(conn => conn.platform_type === 'slack');
+    if (!existingSlack) {
+      connections.push(newConnection);
+      console.log('Added new Slack connection:', newConnection.id);
+    } else {
+      console.log('Slack already connected, updating existing connection');
+      existingSlack.status = 'active';
+      existingSlack.updated_at = new Date().toISOString();
+      existingSlack.last_sync_at = new Date().toISOString();
+    }
+    
+    console.log('Slack OAuth callback successful, redirecting to:', `${frontendUrl}/connections?success=true&platform=slack`);
+    
+    // Redirect back to frontend with success status
+    res.redirect(`${frontendUrl}/connections?success=true&platform=slack&connection=${newConnection.id}`);
+  } catch (error) {
+    console.error('Unexpected OAuth callback error', error);
+    const frontendUrl = process.env.CORS_ORIGIN || 'http://localhost:4200';
+    
+    // Redirect to frontend with error status
+    res.redirect(`${frontendUrl}/connections?success=false&platform=slack&error=callback_failed`);
+  }
+});
+
+// Connections endpoint - returns OAuth connected platforms
 app.get('/api/connections', (req: Request, res: Response) => {
   try {
-    // Check if client wants to toggle data source
-    const useMockData = req.headers['x-use-mock-data'] === 'true';
-    const dataProvider = getDataProvider(useMockData);
-    
-    const connections = dataProvider.getConnections();
+    console.log(`Connections requested, found ${connections.length} connections`);
     
     res.json({
       success: true,
       connections,
-      metadata: {
-        usingMockData: useMockData || process.env.USE_MOCK_DATA === 'true',
-        dataToggleEnabled: isDataToggleEnabled()
+      pagination: {
+        page: 1,
+        limit: 20,
+        total: connections.length,
+        totalPages: Math.ceil(connections.length / 20)
       }
     });
   } catch (error) {
@@ -119,6 +215,43 @@ app.get('/api/connections', (req: Request, res: Response) => {
       success: false,
       error: error instanceof Error ? error.message : 'Failed to fetch connections',
       usingMockData: true // Fallback to mock on error
+    });
+  }
+});
+
+// Disconnect endpoint - removes a specific connection
+app.delete('/api/connections/:id', (req: Request, res: Response) => {
+  const { id } = req.params;
+
+  try {
+    // Find the connection index
+    const connectionIndex = connections.findIndex(conn => conn.id === id);
+
+    // If connection not found, return 404
+    if (connectionIndex === -1) {
+      return res.status(404).json({
+        success: false,
+        error: 'Connection not found',
+        connectionId: id
+      });
+    }
+
+    // Remove the connection
+    const removedConnection = connections.splice(connectionIndex, 1)[0];
+
+    console.log(`Disconnected platform: ${removedConnection.platform_type}, Connection ID: ${id}`);
+
+    res.json({
+      success: true,
+      message: 'Connection successfully removed',
+      connection: removedConnection
+    });
+  } catch (error) {
+    console.error('Error during connection removal:', error);
+    res.status(500).json({
+      success: false,
+      error: error instanceof Error ? error.message : 'Failed to remove connection',
+      connectionId: id
     });
   }
 });
@@ -190,7 +323,7 @@ const server = app.listen(PORT, () => {
   console.log(`🚀 SaaS X-Ray Backend running on port ${PORT}`);
   console.log(`📍 Environment: ${NODE_ENV}`);
   console.log(`🔗 Health check: http://localhost:${PORT}/api/health`);
-  console.log(`🔗 CORS origin: ${process.env.CORS_ORIGIN || 'http://localhost:3000'}`);
+  console.log(`🔗 CORS origin: ${process.env.CORS_ORIGIN || 'http://localhost:4200'}`);
 });
 
 // Graceful shutdown

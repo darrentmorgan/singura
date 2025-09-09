@@ -5,20 +5,44 @@
 
 import React, { useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
+import { useSearchParams } from 'react-router-dom';
 
 import ConnectionsGrid from '@/components/connections/ConnectionsGrid';
 import { useConnectionsActions, useConnectionStats, useConnectionsLoading } from '@/stores/connections';
 import { useUIActions } from '@/stores/ui';
 
 export const ConnectionsPage: React.FC = () => {
+  const [searchParams, setSearchParams] = useSearchParams();
   const connectionStats = useConnectionStats();
   const isLoading = useConnectionsLoading();
   const { fetchConnections, fetchConnectionStats } = useConnectionsActions();
-  const { showError } = useUIActions();
+  const { showError, showSuccess } = useUIActions();
 
   useEffect(() => {
     const loadInitialData = async () => {
       try {
+        // Check for OAuth completion parameters
+        const success = searchParams.get('success');
+        const platform = searchParams.get('platform');
+        const error = searchParams.get('error');
+
+        if (success === 'true' && platform) {
+          // Show success message
+          const platformName = platform.charAt(0).toUpperCase() + platform.slice(1);
+          showSuccess(`${platformName} connected successfully!`, 'Platform Connected');
+          
+          // Clear the URL parameters
+          setSearchParams(new URLSearchParams());
+        } else if (success === 'false' && platform) {
+          // Show error message
+          const platformName = platform.charAt(0).toUpperCase() + platform.slice(1);
+          const errorMessage = error ? `Connection failed: ${error}` : 'Connection failed';
+          showError(`${platformName} connection failed: ${errorMessage}`, 'Connection Failed');
+          
+          // Clear the URL parameters
+          setSearchParams(new URLSearchParams());
+        }
+
         await Promise.all([
           fetchConnections(),
           fetchConnectionStats()
@@ -29,7 +53,7 @@ export const ConnectionsPage: React.FC = () => {
     };
 
     loadInitialData();
-  }, [fetchConnections, fetchConnectionStats, showError]);
+  }, [fetchConnections, fetchConnectionStats, showError, showSuccess, searchParams, setSearchParams]);
 
   return (
     <>
