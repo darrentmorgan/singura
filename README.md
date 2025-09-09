@@ -44,9 +44,16 @@ Most enterprises have **20-50 unauthorized AI integrations** already running in 
 ### Prerequisites
 - Node.js 20+
 - TypeScript 5.3+
-- PostgreSQL 14+
-- Docker (optional)
-- npm or pnpm package manager
+- PostgreSQL 14+ (Docker containers provided)
+- Docker & Docker Compose
+- npm package manager
+
+### **Current Working Configuration** ✅
+- **Frontend**: http://localhost:4200
+- **Backend**: http://localhost:4201/api  
+- **Test Credentials**: admin@example.com / SecurePass123!
+- **OAuth Integration**: Live Slack workspace connections functional
+- **PDF Generation**: Enterprise reporting system operational
 
 ### 1. Clone and Install
 ```bash
