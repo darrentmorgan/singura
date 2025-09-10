@@ -114,14 +114,14 @@ app.get('/api/auth/oauth/slack/authorize', (req: Request, res: Response) => {
       port
     });
 
-    res.json({
+    return res.json({
       success: true,
       authorizationUrl: authUrl,
       state: 'mock-state'
     });
   } catch (error) {
     console.error('Unexpected error in Slack OAuth authorization:', error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       error: 'Unexpected OAuth configuration error',
       details: error instanceof Error ? error.message : 'Unknown error'
@@ -242,17 +242,25 @@ app.delete('/api/connections/:id', (req: Request, res: Response) => {
 
     // Remove the connection
     const removedConnection = connections.splice(connectionIndex, 1)[0];
+    
+    if (!removedConnection) {
+      return res.status(500).json({
+        success: false,
+        error: 'Failed to remove connection',
+        connectionId: id
+      });
+    }
 
     console.log(`Disconnected platform: ${removedConnection.platform_type}, Connection ID: ${id}`);
 
-    res.json({
+    return res.json({
       success: true,
       message: 'Connection successfully removed',
       connection: removedConnection
     });
   } catch (error) {
     console.error('Error during connection removal:', error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       error: error instanceof Error ? error.message : 'Failed to remove connection',
       connectionId: id

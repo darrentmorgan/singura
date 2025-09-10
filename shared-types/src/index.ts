@@ -24,7 +24,7 @@ export * from './api/mock-data-toggle';
 
 // OAuth types
 export * from './oauth/credentials';
-export * from './oauth/platforms';
+export * from './oauth/slack';
 
 // Platform-specific types
 export * from './platforms/google';
