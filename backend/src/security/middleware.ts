@@ -15,7 +15,7 @@ import { jwtService } from './jwt';
 
 export interface SecurityConfig {
   cors: {
-    origins: string[];
+    origins: (string | RegExp)[];
     credentials: boolean;
     maxAge: number;
   };
@@ -76,13 +76,16 @@ export class SecurityMiddleware {
           corsOrigin,
           'https://app.saas-xray.com',
           'https://saas-xray.com',
+          // Add support for ngrok subdomains in development
           ...(process.env.NODE_ENV === 'development' ? [
             'http://localhost:4200', 
             'http://localhost:4201',
             'http://localhost:3000', 
             'http://127.0.0.1:4200',
             'http://127.0.0.1:4201',
-            'http://127.0.0.1:3000'
+            'http://127.0.0.1:3000',
+            // Dynamic ngrok domain matching
+            /^https:\/\/[a-z0-9]+\.ngrok-free\.app$/
           ] : [])
         ].filter(Boolean),
         credentials: true,
@@ -119,8 +122,19 @@ export class SecurityMiddleware {
           return callback(null, true);
         }
 
-        // Check if origin is in allowed list
-        if (this.config.cors.origins.includes(origin)) {
+        // Check if origin is in allowed list or matches a regex pattern
+        const isAllowedOrigin = this.config.cors.origins.some(allowedOrigin => {
+          if (typeof allowedOrigin === 'string') {
+            return allowedOrigin === origin;
+          }
+          // Handle regex patterns
+          if (allowedOrigin instanceof RegExp) {
+            return allowedOrigin.test(origin || '');
+          }
+          return false;
+        });
+
+        if (isAllowedOrigin) {
           return callback(null, true);
         }
 
