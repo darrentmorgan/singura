@@ -20,6 +20,7 @@ export * from './models/events';
 export * from './api/requests';
 export * from './api/responses';
 export * from './api/errors';
+export * from './api/mock-data-toggle';
 
 // OAuth types
 export * from './oauth/credentials';

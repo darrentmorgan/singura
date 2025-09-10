@@ -13,10 +13,18 @@ import {
   Clock,
   Zap,
   ExternalLink,
-  Search
+  Search,
+  MoreHorizontal
 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { PlatformType, ConnectionStatus } from '@/types/api';
 import { useConnectionsActions } from '@/stores/connections';
 import { useAutomationsActions, useDiscoveryByConnectionId } from '@/stores/automations';
@@ -235,24 +243,25 @@ export const PlatformCard: React.FC<PlatformCardProps> = ({
   return (
     <div className={cn(
       "bg-card border rounded-lg p-6 hover:shadow-md transition-all duration-200",
+      "flex flex-col min-h-[240px]", // Consistent card height and flex layout
       isConnected && connection?.status === 'active' && "ring-2 ring-green-200 dark:ring-green-800",
       className
     )}>
       {/* Header */}
-      <div className="flex items-start justify-between mb-4">
-        <div className="flex items-center space-x-3">
-          <div className="text-3xl">{config.icon}</div>
-          <div>
-            <h3 className="font-semibold text-lg text-foreground">{config.name}</h3>
-            <p className="text-sm text-muted-foreground">{config.description}</p>
+      <div className="flex items-start justify-between mb-6"> {/* Increased margin bottom */}
+        <div className="flex items-center space-x-3 flex-1 min-w-0"> {/* Added flex-1 and min-w-0 for text wrapping */}
+          <div className="text-3xl flex-shrink-0">{config.icon}</div> {/* Prevent icon shrinking */}
+          <div className="min-w-0 flex-1"> {/* Allow text to wrap properly */}
+            <h3 className="font-semibold text-lg text-foreground truncate">{config.name}</h3>
+            <p className="text-sm text-muted-foreground line-clamp-2">{config.description}</p> {/* Allow 2 line description */}
           </div>
         </div>
         
         {/* Status indicator */}
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center space-x-2 flex-shrink-0 ml-4"> {/* Added margin-left for breathing room */}
           {getStatusIcon()}
           <span className={cn(
-            "text-sm font-medium",
+            "text-sm font-medium whitespace-nowrap", // Prevent wrapping of status text
             connection?.status === 'active' && "text-green-600",
             connection?.status === 'error' && "text-red-600",
             connection?.status === 'pending' && "text-yellow-600",
@@ -265,34 +274,34 @@ export const PlatformCard: React.FC<PlatformCardProps> = ({
 
       {/* Connection Details */}
       {isConnected && connection && (
-        <div className="space-y-3 mb-4">
-          <div className="flex justify-between items-center text-sm">
-            <span className="text-muted-foreground">Account:</span>
-            <span className="font-medium text-foreground">{connection.displayName}</span>
-          </div>
-          
-          <div className="flex justify-between items-center text-sm">
-            <span className="text-muted-foreground">Last sync:</span>
-            <span className="text-foreground">{formatLastSync(connection.lastSync)}</span>
-          </div>
-
-          {(connection.automationCount !== undefined || discoveryResult) && (
+        <div className="flex-1 space-y-4 mb-6"> {/* Added flex-1 to push actions to bottom */}
+          <div className="bg-gray-50 dark:bg-gray-800/50 rounded-lg p-4 space-y-3"> {/* Added background container */}
             <div className="flex justify-between items-center text-sm">
-              <span className="text-muted-foreground">Automations:</span>
+              <span className="text-muted-foreground font-medium">Account:</span>
+              <span className="font-semibold text-foreground truncate ml-2 max-w-[60%]">{connection.displayName}</span>
+            </div>
+            
+            <div className="flex justify-between items-center text-sm">
+              <span className="text-muted-foreground font-medium">Last sync:</span>
+              <span className="text-foreground font-medium">{formatLastSync(connection.lastSync)}</span>
+            </div>
+
+            <div className="flex justify-between items-center text-sm">
+              <span className="text-muted-foreground font-medium">Automations:</span>
               <div className="flex items-center space-x-1">
-                <Zap className="h-3 w-3 text-primary" />
-                <span className="font-medium text-foreground">
+                <Zap className="h-4 w-4 text-blue-600" /> {/* Enhanced icon color */}
+                <span className="font-semibold text-foreground">
                   {discoveryResult ? discoveryResult.automations.length : (connection.automationCount || 0)}
                 </span>
               </div>
             </div>
-          )}
+          </div>
 
           {connection.error && (
-            <div className="p-3 bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-900 rounded-md">
-              <div className="flex items-start space-x-2">
-                <AlertCircle className="h-4 w-4 text-red-500 flex-shrink-0 mt-0.5" />
-                <p className="text-sm text-red-700 dark:text-red-300">
+            <div className="p-4 bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-900 rounded-lg">
+              <div className="flex items-start space-x-3">
+                <AlertCircle className="h-5 w-5 text-red-500 flex-shrink-0 mt-0.5" />
+                <p className="text-sm text-red-700 dark:text-red-300 font-medium">
                   {connection.error}
                 </p>
               </div>
@@ -302,80 +311,101 @@ export const PlatformCard: React.FC<PlatformCardProps> = ({
       )}
 
       {/* Actions */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-2">
-          {!isConnected ? (
-            <Button 
-              onClick={handleConnect}
-              disabled={isLoading}
-              loading={isLoading}
-              className="flex-1 bg-blue-600 text-white hover:bg-blue-700"
-            >
-              <Link2 className="h-4 w-4 mr-2" />
-              Connect
-            </Button>
-          ) : (
-            <>
-              {connection?.status === 'error' && (
+      <div className="flex items-center justify-between gap-3 pt-2 border-t border-gray-100 dark:border-gray-800">
+        {!isConnected ? (
+          <Button 
+            onClick={handleConnect}
+            disabled={isLoading}
+            className="flex-1 bg-blue-600 text-white hover:bg-blue-700 h-10"
+          >
+            <Link2 className="h-4 w-4 mr-2" />
+            Connect
+          </Button>
+        ) : (
+          <>
+            {/* Primary Actions - Responsive Layout */}
+            <div className="flex items-center gap-2 flex-1 min-w-0"> {/* Added min-w-0 for proper flex behavior */}
+              {connection?.status === 'error' ? (
                 <Button
                   onClick={handleRetry}
-                  variant="outline"
                   size="sm"
                   disabled={isLoading}
-                  className="border-gray-300 hover:bg-gray-50 dark:border-gray-600 dark:hover:bg-gray-800"
+                  className="bg-orange-600 text-white hover:bg-orange-700 flex-shrink-0"
                 >
-                  <RotateCw className="h-4 w-4 mr-2" />
-                  Retry
+                  <RotateCw className="h-4 w-4 sm:mr-2" />
+                  <span className="hidden sm:inline">Retry</span> {/* Hide text on mobile */}
                 </Button>
-              )}
-              
-              <Button
-                onClick={handleRefresh}
-                variant="outline"
-                size="sm"
-                disabled={isLoading}
-                className="border-gray-300 hover:bg-gray-50 dark:border-gray-600 dark:hover:bg-gray-800"
-              >
-                <RotateCw className="h-4 w-4 mr-2" />
-                Refresh
-              </Button>
-              
-              {connection?.status === 'active' && (
+              ) : connection?.status === 'active' ? (
                 <Button
                   onClick={handleDiscoverAutomations}
+                  size="sm"
+                  disabled={isLoading}
+                  className="bg-blue-600 text-white hover:bg-blue-700 flex-shrink-0"
+                >
+                  <Search className="h-4 w-4 sm:mr-2" />
+                  <span className="hidden sm:inline">Discover</span> {/* Hide text on mobile */}
+                </Button>
+              ) : (
+                <Button
+                  onClick={handleRefresh}
                   variant="outline"
                   size="sm"
                   disabled={isLoading}
-                  className="border-gray-300 hover:bg-gray-50 dark:border-gray-600 dark:hover:bg-gray-800"
+                  className="border-gray-300 hover:bg-gray-50 dark:border-gray-600 dark:hover:bg-gray-800 flex-shrink-0"
                 >
-                  <Search className="h-4 w-4 mr-2" />
-                  Discover
+                  <RotateCw className="h-4 w-4 sm:mr-2" />
+                  <span className="hidden sm:inline">Refresh</span> {/* Hide text on mobile */}
                 </Button>
               )}
               
-              <Button
-                onClick={handleViewDetails}
-                variant="outline"
-                size="sm"
-                className="border-gray-300 hover:bg-gray-50 dark:border-gray-600 dark:hover:bg-gray-800"
-              >
-                <ExternalLink className="h-4 w-4 mr-2" />
-                Details
-              </Button>
-            </>
-          )}
-        </div>
+              {/* Connection Status Badge - Only show on larger screens when connected */}
+              <div className="hidden md:flex items-center px-3 py-1 rounded-full bg-green-100 dark:bg-green-900/20 text-green-700 dark:text-green-300 text-xs font-medium">
+                <CheckCircle className="h-3 w-3 mr-1" />
+                Active
+              </div>
+            </div>
 
-        {isConnected && (
-          <Button
-            onClick={handleDisconnect}
-            variant="ghost"
-            size="sm"
-            className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/20"
-          >
-            <Unlink className="h-4 w-4 mr-2" />
-            Disconnect
-          </Button>
+            {/* Secondary Actions Dropdown */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="border-gray-300 hover:bg-gray-50 dark:border-gray-600 dark:hover:bg-gray-800 flex-shrink-0"
+                >
+                  <MoreHorizontal className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56"> {/* Wider for better readability */}
+                <DropdownMenuItem onClick={handleRefresh} disabled={isLoading}>
+                  <RotateCw className="h-4 w-4 mr-3" />
+                  Refresh Connection
+                </DropdownMenuItem>
+                
+                {connection?.status === 'active' && (
+                  <DropdownMenuItem onClick={handleDiscoverAutomations} disabled={isLoading}>
+                    <Search className="h-4 w-4 mr-3" />
+                    Discover Automations
+                  </DropdownMenuItem>
+                )}
+                
+                <DropdownMenuItem onClick={handleViewDetails}>
+                  <ExternalLink className="h-4 w-4 mr-3" />
+                  View Details
+                </DropdownMenuItem>
+                
+                <DropdownMenuSeparator />
+                
+                <DropdownMenuItem 
+                  onClick={handleDisconnect}
+                  className="text-red-600 focus:text-red-600 focus:bg-red-50 dark:focus:bg-red-950/20"
+                >
+                  <Unlink className="h-4 w-4 mr-3" />
+                  Disconnect Platform
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </>
         )}
       </div>
     </div>

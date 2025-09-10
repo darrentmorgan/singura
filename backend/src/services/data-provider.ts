@@ -291,10 +291,41 @@ export class RealDataProvider implements DataProvider {
 }
 
 /**
- * Factory function to get the appropriate data provider
+ * Enhanced factory function to get the appropriate data provider
+ * Now supports runtime toggle state checking
  */
 export function getDataProvider(useMockData?: boolean): DataProvider {
-  const shouldUseMock = useMockData ?? (process.env.USE_MOCK_DATA === 'true');
+  // Check runtime toggle state if available (development only)
+  let runtimeToggleState = false;
+  try {
+    // Only attempt to get runtime state in development
+    if (process.env.NODE_ENV === 'development') {
+      const { isMockDataEnabledRuntime } = require('../routes/dev-routes');
+      runtimeToggleState = isMockDataEnabledRuntime();
+    }
+  } catch (error) {
+    // Fallback to environment variable if runtime state unavailable
+    console.warn('Runtime toggle state unavailable, falling back to environment variable:', error instanceof Error ? error.message : 'Unknown error');
+  }
+
+  // Priority order: explicit parameter > runtime toggle > environment variable
+  const shouldUseMock = useMockData !== undefined 
+    ? useMockData 
+    : (process.env.NODE_ENV === 'development' ? runtimeToggleState : false) || process.env.USE_MOCK_DATA === 'true';
+  
+  // SECURITY: Never use mock data in production regardless of any toggle state
+  if (process.env.NODE_ENV === 'production' && shouldUseMock) {
+    console.error('SECURITY WARNING: Mock data requested in production environment - blocking');
+    return new RealDataProvider();
+  }
+
+  console.log('Data Provider Selection:', {
+    environment: process.env.NODE_ENV,
+    runtimeToggle: process.env.NODE_ENV === 'development' ? runtimeToggleState : 'disabled',
+    environmentVariable: process.env.USE_MOCK_DATA,
+    explicitParameter: useMockData,
+    finalDecision: shouldUseMock ? 'MockDataProvider' : 'RealDataProvider'
+  });
   
   if (shouldUseMock) {
     return new MockDataProvider();

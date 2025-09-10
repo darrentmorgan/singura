@@ -7,6 +7,7 @@ import express, { Request, Response } from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import automationRoutes from './routes/automations-mock';
+import devRoutes from './routes/dev-routes';
 import { getDataProvider, isDataToggleEnabled } from './services/data-provider';
 
 // Load environment variables
@@ -40,6 +41,9 @@ app.use(express.urlencoded({ extended: true }));
 
 // API routes
 app.use('/api/automations', automationRoutes);
+
+// Development-only routes (blocked in production)
+app.use('/api/dev', devRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req: Request, res: Response) => {

@@ -26,6 +26,7 @@ import { useAuthUser } from '@/stores/auth';
 import { useUIActions } from '@/stores/ui';
 import { cn } from '@/lib/utils';
 import { PDFGenerator } from '@/components/reports/PDFGenerator';
+import { MockDataToggle } from '@/components/dev/MockDataToggle';
 
 // Platform icons
 const platformIcons = {

@@ -16,13 +16,14 @@ import { cn } from '@/lib/utils';
 
 const AVAILABLE_PLATFORMS: PlatformType[] = [
   'slack',
-  'google', 
-  'microsoft',
-  'hubspot',
-  'salesforce',
-  'notion',
-  'asana',
+  'google',
   'jira'
+  // Disabled platforms for focused MVP:
+  // 'microsoft',   // Coming soon
+  // 'hubspot',     // Future release  
+  // 'salesforce',  // Future release
+  // 'notion',      // Future release
+  // 'asana',       // Future release
 ];
 
 interface ConnectionsGridProps {

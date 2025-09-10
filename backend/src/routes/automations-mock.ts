@@ -1,9 +1,11 @@
 /**
- * Mock Automations API Routes
- * Returns mock data for frontend development and testing
+ * Automations API Routes
+ * Returns automation data based on toggle state (mock vs real data)
  */
 
 import { Router, Request, Response } from 'express';
+import { getDataProvider } from '../services/data-provider';
+import { isMockDataEnabledRuntime } from './dev-routes';
 
 const router = Router();
 
@@ -177,6 +179,44 @@ const mockStats = {
  */
 router.get('/', async (req: Request, res: Response): Promise<void> => {
   try {
+    // Check runtime toggle state for data provider selection
+    const useMockData = (() => {
+      try {
+        // In development, check runtime toggle state
+        if (process.env.NODE_ENV === 'development') {
+          return isMockDataEnabledRuntime();
+        }
+        // In production, never use mock data
+        return false;
+      } catch (error) {
+        // Fallback to environment variable
+        console.warn('Runtime toggle check failed, using environment variable:', error);
+        return process.env.USE_MOCK_DATA === 'true';
+      }
+    })();
+
+    console.log('Automations API - Data Provider Selection:', {
+      environment: process.env.NODE_ENV,
+      runtimeToggle: process.env.NODE_ENV === 'development' ? 'checked' : 'disabled',
+      useMockData,
+      endpoint: '/api/automations'
+    });
+
+    // Use data provider based on toggle state
+    const dataProvider = getDataProvider(useMockData);
+    
+    // Get automations from selected data provider
+    // For now, mock automations as data provider doesn't have getAutomations method yet
+    let automations: typeof mockAutomations;
+    if (useMockData) {
+      automations = mockAutomations;
+      console.log('Using MockDataProvider - 5 mock automations returned');
+    } else {
+      // Real data provider would return empty or real automations
+      automations = [];
+      console.log('Using RealDataProvider - no real automations yet (development)');
+    }
+
     const { 
       platform, 
       status, 
@@ -189,7 +229,7 @@ router.get('/', async (req: Request, res: Response): Promise<void> => {
       sort_order = 'ASC' 
     } = req.query;
 
-    let filteredAutomations = [...mockAutomations];
+    let filteredAutomations = [...automations];
 
     // Apply filters
     if (platform) {
@@ -262,9 +302,71 @@ router.get('/', async (req: Request, res: Response): Promise<void> => {
  */
 router.get('/stats', async (req: Request, res: Response): Promise<void> => {
   try {
+    // Determine data source based on runtime toggle
+    const useMockData = await (async () => {
+      try {
+        if (process.env.NODE_ENV !== 'development') {
+          return false;
+        }
+        return await isMockDataEnabledRuntime();
+      } catch (error) {
+        // Fallback to environment variable
+        console.warn('Runtime toggle check failed, using environment variable:', error);
+        return process.env.USE_MOCK_DATA === 'true';
+      }
+    })();
+
+    console.log('Automations Stats API - Data Provider Selection:', {
+      environment: process.env.NODE_ENV,
+      runtimeToggle: process.env.NODE_ENV === 'development' ? 'checked' : 'disabled',
+      useMockData,
+      endpoint: '/api/automations/stats'
+    });
+
+    // Use appropriate stats based on toggle state
+    let stats;
+    if (useMockData) {
+      stats = mockStats;
+      console.log('Using MockDataProvider - mock stats returned');
+    } else {
+      // Real data provider would return real stats or empty stats
+      stats = {
+        totalAutomations: 0,
+        byStatus: {
+          active: 0,
+          inactive: 0,
+          error: 0,
+          unknown: 0
+        },
+        byRiskLevel: {
+          low: 0,
+          medium: 0,
+          high: 0,
+          critical: 0
+        },
+        byType: {
+          bot: 0,
+          workflow: 0,
+          integration: 0,
+          webhook: 0
+        },
+        byPlatform: {
+          slack: 0,
+          google: 0,
+          microsoft: 0,
+          hubspot: 0,
+          salesforce: 0,
+          notion: 0,
+          asana: 0,
+          jira: 0
+        }
+      };
+      console.log('Using RealDataProvider - empty stats returned (development)');
+    }
+
     res.json({
       success: true,
-      stats: mockStats
+      stats
     });
   } catch (error) {
     console.error('Failed to get automation stats:', error);
