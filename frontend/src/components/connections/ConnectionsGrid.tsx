@@ -217,40 +217,18 @@ export const ConnectionsGrid: React.FC<ConnectionsGridProps> = ({
         </div>
       )}
 
-      {/* Empty State */}
-      {connections.length === 0 && !isLoading && (
+      {/* Empty State - Simplified */}
+      {connections.length === 0 && availablePlatforms.length === 0 && !isLoading && (
         <div className="text-center py-12 space-y-4">
           <div className="mx-auto w-16 h-16 bg-muted rounded-full flex items-center justify-center">
             <Plus className="h-8 w-8 text-muted-foreground" />
           </div>
           <div>
-            <h3 className="text-xl font-semibold text-foreground">No platforms connected</h3>
+            <h3 className="text-xl font-semibold text-foreground">All platforms connected</h3>
             <p className="text-muted-foreground mt-2 max-w-md mx-auto">
-              Connect your first platform to start discovering and monitoring automations across your organization.
+              All available platforms have been connected to your organization.
             </p>
           </div>
-          
-          {availablePlatforms.length > 0 && (
-            <div className="pt-4">
-              <h4 className="text-lg font-medium text-foreground mb-6">Choose a platform to connect:</h4>
-              <div className={cn("grid gap-6 max-w-4xl mx-auto", gridCols)}>
-                {availablePlatforms.slice(0, 4).map((platform) => (
-                  <PlatformCard
-                    key={platform}
-                    platform={platform}
-                    isConnected={false}
-                    isLoading={isLoading}
-                  />
-                ))}
-              </div>
-              
-              {availablePlatforms.length > 4 && (
-                <p className="text-sm text-muted-foreground mt-4">
-                  ...and {availablePlatforms.length - 4} more platforms available
-                </p>
-              )}
-            </div>
-          )}
         </div>
       )}
 
