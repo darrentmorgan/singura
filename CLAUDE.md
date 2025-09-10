@@ -320,6 +320,84 @@ type APIResult<T> =
   | { status: 'loading'; progress?: number };
 ```
 
+## 🔧 **MANDATORY TYPES-TESTS-CODE (TDD) PROTOCOL**
+
+### **Core Methodology: Types → Tests → Code**
+
+**RULE 1: Type Validation First**
+- All changes MUST pass `npx tsc --noEmit` before proceeding
+- TypeScript compilation errors = IMMEDIATE STOP and revert
+- No exceptions for "it works with --transpile-only"
+- Leverage `@saas-xray/shared-types` for consistent type definitions
+
+**RULE 2: Test Verification Second**  
+- Run existing tests to ensure no breaking changes
+- Add tests for new functionality BEFORE implementation
+- Test coverage must meet 80% threshold
+- Comprehensive test strategy includes:
+  - Unit tests for isolated functions
+  - Integration tests for cross-component interactions
+  - Type-safe mocking of dependencies
+  - Security and performance test coverage
+
+**RULE 3: Code Integration Last**
+- Only integrate after types and tests validate
+- Immediate commit after successful integration
+- Create safety checkpoints at stable states
+- Each commit represents a minimal, testable increment
+
+**STASH AND CHANGE MANAGEMENT**
+- Always validate stashed changes via Types-Tests-Code methodology
+- Drop stashes that introduce type errors or test failures
+- Create backup branches before complex stash integrations
+- Maintain clean git history with logical, incremental changes
+
+**FAILURE PROTOCOL**
+- ANY failure in types/tests → IMMEDIATE REVERT
+- Use git stash, git reset, or git revert as needed
+- Preserve working system over experimental changes
+- Log and document reasons for reversion to improve future development
+
+**COMMIT FREQUENCY GUIDELINES**
+- Commit after each successful feature/fix implementation
+- Maintain granular, logically grouped commits
+- Use descriptive commit messages explaining:
+  - What changed
+  - Why the change was necessary
+  - Any type or test validation performed
+- Never commit code with known type errors or test failures
+
+**PRACTICAL EXAMPLE**
+```typescript
+// ✅ CORRECT: Types-Tests-Code Workflow
+// 1. Define shared type
+export interface UserPermission {
+  level: 'read' | 'write' | 'admin';
+  scope: string[];
+}
+
+// 2. Write type-safe test
+describe('UserPermissionService', () => {
+  it('should validate admin permissions correctly', () => {
+    const adminPermission: UserPermission = {
+      level: 'admin',
+      scope: ['*']
+    };
+    expect(validatePermission(adminPermission)).toBeTruthy();
+  });
+});
+
+// 3. Implement minimal code to pass test
+function validatePermission(permission: UserPermission): boolean {
+  return permission.level === 'admin' && permission.scope.includes('*');
+}
+```
+
+**CRITICAL ENFORCEMENT**
+- These protocols are MANDATORY for all development
+- CI/CD will automatically enforce these guidelines
+- No manual overrides without explicit senior developer approval
+
 ---
 
 ## 🧪 **MANDATORY TESTING REQUIREMENTS (ENFORCED BY CI/CD)**
