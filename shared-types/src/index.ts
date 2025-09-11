@@ -10,6 +10,7 @@ export * from './utils/database-types';
 export * from './utils/type-guards';
 export * from './utils/job-types';
 export * from './utils/socket-types';
+export * from './utils/detection-patterns';
 
 // Domain model types
 export * from './models/automation';
