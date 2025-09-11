@@ -37,6 +37,9 @@ export interface AuthenticatedUser {
   organizationId: string;
   permissions: string[];
   sessionId: string;
+  isAdmin?: boolean;
+  email?: string;
+  name?: string;
 }
 
 export interface TokenPair {
@@ -377,7 +380,8 @@ export class JWTService {
         userId: payload.sub,
         organizationId: payload.organizationId,
         permissions: payload.permissions,
-        sessionId: payload.sessionId
+        sessionId: payload.sessionId,
+        isAdmin: payload.permissions?.includes('admin') || false
       } as AuthenticatedUser;
 
       next();

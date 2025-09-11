@@ -8,7 +8,6 @@ import {
   DialogTrigger 
 } from '@/components/ui/dialog';
 import { AdminDashboard } from './AdminDashboard';
-import { Terminal } from 'lucide-react';
 
 export const AdminToggle: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -27,11 +26,17 @@ export const AdminToggle: React.FC = () => {
           Admin Dashboard
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-[90vw] max-h-[90vh] w-full h-full">
-        <DialogHeader>
-          <DialogTitle>Admin Dashboard</DialogTitle>
+      <DialogContent className="max-w-[95vw] max-h-[95vh] w-full h-full flex flex-col">
+        <DialogHeader className="shrink-0 border-b pb-4">
+          <DialogTitle className="text-xl font-semibold flex items-center space-x-2">
+            <span className="text-2xl">🔍</span>
+            <span>Admin Dashboard</span>
+            <span className="text-sm bg-green-600 text-white px-2 py-1 rounded-full font-medium">
+              LIVE
+            </span>
+          </DialogTitle>
         </DialogHeader>
-        <div className="overflow-auto">
+        <div className="flex-1 overflow-hidden pt-4">
           <AdminDashboard />
         </div>
       </DialogContent>

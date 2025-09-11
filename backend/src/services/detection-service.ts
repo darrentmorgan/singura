@@ -4,11 +4,10 @@ import {
   AlgorithmPerformanceMetrics, 
   AdminSystemHealth,
   AdminDashboardDataRequest,
-  AdminDashboardDataResponse
+  AdminDashboardDataResponse,
+  PlatformType,
+  DetectionAlgorithm
 } from '@saas-xray/shared-types';
-
-import { PlatformType } from '@saas-xray/shared-types';
-import { DetectionAlgorithm } from '@saas-xray/shared-types';
 
 export class DetectionService {
   private scanEvents: AdminScanEvent[] = [];

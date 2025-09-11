@@ -4,6 +4,7 @@ import {
   AdminDashboardDataResponse 
 } from '@saas-xray/shared-types';
 import { detectionService } from '../services/detection-service';
+import '../types/express'; // Import express augmentation
 
 export class AdminDashboardController {
   /**

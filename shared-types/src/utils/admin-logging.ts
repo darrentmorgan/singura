@@ -1,5 +1,4 @@
-import { DetectionAlgorithm } from './detection-patterns';
-import { PlatformType } from '../platforms/google';
+import { DetectionAlgorithm, PlatformType } from './detection-patterns';
 
 /**
  * Admin Dashboard Live Scan Event
@@ -100,4 +99,90 @@ export interface AdminDashboardDataResponse {
   detectionResults: AdminDetectionResult[];
   performanceMetrics: AlgorithmPerformanceMetrics[];
   systemHealth: AdminSystemHealth;
+}
+
+/**
+ * Discovery event logging for real-time admin monitoring
+ */
+export interface DiscoveryEventLog {
+  logId: string;
+  discoveryId: string;
+  connectionId: string;
+  platform: 'slack' | 'google' | 'microsoft' | 'jira';
+  stage: 'starting' | 'api_call' | 'algorithm_execution' | 'detection_found' | 'completed' | 'error';
+  algorithm?: 'VelocityDetector' | 'AIProviderDetector' | 'BatchOperationDetector' | 'OffHoursDetector' | 'CrossPlatformCorrelator';
+  timestamp: Date;
+  message: string;
+  level: 'info' | 'success' | 'warning' | 'error';
+  
+  executionDetails?: {
+    processingTimeMs?: number;
+    eventsAnalyzed?: number;
+    confidence?: number;
+    riskScore?: number;
+    algorithmParameters?: Record<string, unknown>;
+  };
+  
+  detectionResult?: {
+    automationType?: string;
+    automationName?: string;
+    aiProvider?: 'openai' | 'anthropic' | 'cohere' | 'huggingface' | 'google' | 'unknown';
+    riskLevel?: 'low' | 'medium' | 'high' | 'critical';
+    complianceViolations?: string[];
+  };
+  
+  rawData?: {
+    apiResponse?: Record<string, unknown>;
+    auditLogCount?: number;
+    correlatedEvents?: number;
+    errorDetails?: string;
+  };
+}
+
+/**
+ * Admin terminal configuration for live/mock mode
+ */
+export interface AdminTerminalConfig {
+  mode: 'mock' | 'live' | 'hybrid';
+  showDiscoveryEvents: boolean;
+  showAlgorithmExecution: boolean;
+  showRawApiData: boolean;
+  autoScroll: boolean;
+  maxLogEntries: number;
+  refreshInterval: number; // seconds
+  logLevel: 'debug' | 'info' | 'warning' | 'error';
+}
+
+/**
+ * Live discovery session for admin monitoring
+ */
+export interface LiveDiscoverySession {
+  sessionId: string;
+  connectionId: string;
+  platform: 'slack' | 'google' | 'microsoft' | 'jira';
+  startedAt: Date;
+  completedAt?: Date;
+  status: 'running' | 'completed' | 'failed' | 'cancelled';
+  
+  progress: {
+    currentStage: string;
+    progressPercent: number;
+    estimatedTimeRemaining?: number;
+  };
+  
+  execution: {
+    apiCallsExecuted: number;
+    eventsProcessed: number;
+    algorithmsExecuted: string[];
+    detectionsFound: number;
+    errorsEncountered: string[];
+  };
+  
+  results: {
+    automationsDetected: number;
+    riskScore: number;
+    complianceViolations: string[];
+    executionTimeMs: number;
+    averageConfidence: number;
+  };
 }

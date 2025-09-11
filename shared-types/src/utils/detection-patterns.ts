@@ -5,6 +5,21 @@
  */
 
 /**
+ * Supported platform types for SaaS X-Ray detection
+ */
+export type PlatformType = 'slack' | 'google' | 'microsoft' | 'jira';
+
+/**
+ * Detection algorithm types used in SaaS X-Ray
+ */
+export type DetectionAlgorithm = 
+  | 'VelocityDetector'
+  | 'AIProviderDetector'
+  | 'BatchOperationDetector'
+  | 'OffHoursDetector'
+  | 'CrossPlatformCorrelator';
+
+/**
  * Google Workspace activity pattern for automation detection
  */
 export interface GoogleActivityPattern {

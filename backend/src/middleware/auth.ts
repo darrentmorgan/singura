@@ -40,7 +40,8 @@ export const authenticateToken = async (req: Request, res: Response, next: NextF
       userId: decoded.sub,
       organizationId: decoded.organizationId,
       permissions: decoded.permissions || [],
-      sessionId: decoded.sessionId
+      sessionId: decoded.sessionId,
+      isAdmin: decoded.permissions?.includes('admin') || false
     };
 
     next();
@@ -94,6 +95,22 @@ export const requireOrganization = (req: Request, res: Response, next: NextFunct
       success: false,
       error: 'ORGANIZATION_MISMATCH',
       message: 'Access denied: organization mismatch'
+    });
+    return;
+  }
+  
+  next();
+};
+
+/**
+ * Middleware to ensure user has admin access
+ */
+export const requireAdminAccess = (req: Request, res: Response, next: NextFunction): void => {
+  if (!req.user?.isAdmin && !req.user?.permissions.includes('admin')) {
+    res.status(403).json({
+      success: false,
+      error: 'ADMIN_ACCESS_REQUIRED',
+      message: 'Admin access required for this resource'
     });
     return;
   }

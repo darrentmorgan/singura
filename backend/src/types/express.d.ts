@@ -14,6 +14,7 @@ declare global {
         sessionId: string;
         email?: string;
         name?: string;
+        isAdmin?: boolean;
       };
     }
   }

@@ -1,6 +1,6 @@
-import express from 'express';
+import * as express from 'express';
 import { AdminDashboardController } from '../controllers/admin-dashboard-controller';
-import { requireAdminAccess } from '../middleware/auth-middleware'; // Assumed middleware
+import { requireAdminAccess } from '../middleware/auth';
 
 const adminRoutes = express.Router();
 
