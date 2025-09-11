@@ -22,6 +22,7 @@ import { Button } from '@/components/ui/button';
 import { useAuthUser, useAuthActions } from '@/stores/auth';
 import { useUIActions, useTheme, useNotifications, useSidebarState } from '@/stores/ui';
 import { useConnectionsActions } from '@/stores/connections';
+import { AdminToggle } from '@/components/admin/AdminToggle';
 import { cn } from '@/lib/utils';
 
 interface HeaderProps {
@@ -193,6 +194,9 @@ export const Header: React.FC<HeaderProps> = ({ className }) => {
               />
             </svg>
           </Button>
+
+          {/* Admin Panel (Development Only) */}
+          <AdminToggle />
 
           {/* Settings */}
           <Button

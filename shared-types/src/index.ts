@@ -13,6 +13,8 @@ export * from './utils/socket-types';
 export * from './utils/detection-patterns';
 export * from './utils/google-api-client';
 export * from './utils/cross-platform-correlation';
+export * from './utils/admin-logging';
+export * from './utils/oauth-credential-storage';
 
 // Domain model types
 export * from './models/automation';
