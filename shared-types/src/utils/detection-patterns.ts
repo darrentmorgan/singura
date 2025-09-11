@@ -78,6 +78,164 @@ export interface RiskIndicator {
 }
 
 /**
+ * Temporal pattern for velocity and timing analysis
+ */
+export interface TemporalPattern {
+  patternId: string;
+  analysisType: 'velocity' | 'frequency' | 'timing_anomaly' | 'batch_detection';
+  timeWindow: {
+    startTime: Date;
+    endTime: Date;
+    durationMs: number;
+  };
+  eventCount: number;
+  velocity: {
+    eventsPerSecond: number;
+    eventsPerMinute: number;
+    eventsPerHour: number;
+  };
+  thresholds: {
+    humanMaxVelocity: number;
+    automationThreshold: number;
+    criticalThreshold: number;
+  };
+  anomalyScore: number; // 0-100, higher = more likely automation
+  confidence: number; // 0-100, confidence in detection
+}
+
+/**
+ * Activity timeframe for off-hours and business hours analysis
+ */
+export interface ActivityTimeframe {
+  timezoneId: string;
+  businessHours: {
+    startHour: number; // 0-23, e.g., 9 for 9 AM
+    endHour: number;   // 0-23, e.g., 17 for 5 PM
+    daysOfWeek: number[]; // 0-6, Sunday=0, Monday=1, etc.
+  };
+  activityPeriod: {
+    startTime: Date;
+    endTime: Date;
+    isBusinessHours: boolean;
+    isWeekend: boolean;
+    isHoliday?: boolean;
+  };
+  humanLikelihood: number; // 0-100, likelihood of human activity during this timeframe
+  automationIndicators: string[]; // Reasons suggesting automation
+}
+
+/**
+ * Frequency pattern for regular interval detection
+ */
+export interface FrequencyPattern {
+  patternId: string;
+  intervalType: 'exact' | 'approximate' | 'irregular';
+  detectedInterval: {
+    value: number;
+    unit: 'seconds' | 'minutes' | 'hours' | 'days';
+  };
+  regularity: {
+    standardDeviation: number;
+    variance: number;
+    perfectRegularity: boolean; // Too perfect = likely automation
+  };
+  occurrences: {
+    total: number;
+    withinThreshold: number;
+    percentageRegular: number;
+  };
+  humanLikelihood: number; // 0-100, humans are less perfectly regular
+  automationConfidence: number; // 0-100, confidence this is automated
+}
+
+/**
+ * Velocity detector for inhuman activity speed detection
+ */
+export interface VelocityDetector {
+  detectVelocityAnomalies(events: GoogleWorkspaceEvent[]): TemporalPattern[];
+  calculateEventsPerSecond(events: GoogleWorkspaceEvent[], timeWindow: number): number;
+  isInhumanVelocity(velocity: number, actionType: string): boolean;
+  getVelocityThresholds(): {
+    humanMaxFileCreation: number;    // files per second
+    humanMaxPermissionChanges: number; // permission changes per second
+    humanMaxEmailActions: number;    // email actions per second
+    automationThreshold: number;     // velocity suggesting automation
+    criticalThreshold: number;       // velocity indicating certain automation
+  };
+}
+
+/**
+ * Google Workspace event for velocity analysis
+ */
+export interface GoogleWorkspaceEvent {
+  eventId: string;
+  timestamp: Date;
+  userId: string;
+  userEmail: string;
+  eventType: 'file_create' | 'file_edit' | 'file_share' | 'permission_change' | 'email_send' | 'script_execution';
+  resourceId: string;
+  resourceType: 'file' | 'folder' | 'email' | 'script' | 'permission';
+  actionDetails: {
+    action: string;
+    resourceName: string;
+    additionalMetadata: Record<string, unknown>;
+  };
+  userAgent?: string;
+  ipAddress?: string;
+  location?: string;
+}
+
+/**
+ * Batch operation detector for identifying bulk automated actions
+ */
+export interface BatchOperationDetector {
+  detectBatchOperations(events: GoogleWorkspaceEvent[]): GoogleActivityPattern[];
+  identifySimilarActions(events: GoogleWorkspaceEvent[]): BatchOperationGroup[];
+  calculateBatchLikelihood(group: BatchOperationGroup): number;
+  getBatchThresholds(): {
+    minimumSimilarActions: number;  // minimum actions to consider a batch
+    maxTimeWindowMs: number;        // max time window for batch detection
+    similarityThreshold: number;    // 0-1, how similar actions must be
+  };
+}
+
+/**
+ * Batch operation group for analysis
+ */
+export interface BatchOperationGroup {
+  groupId: string;
+  events: GoogleWorkspaceEvent[];
+  similarity: {
+    actionType: boolean;          // same action type
+    resourceType: boolean;        // same resource type  
+    namingPattern: boolean;       // similar naming pattern
+    permissions: boolean;         // similar permission changes
+    timing: boolean;              // regular timing intervals
+  };
+  timeWindow: {
+    startTime: Date;
+    endTime: Date;
+    totalDurationMs: number;
+  };
+  automationConfidence: number;   // 0-100, confidence this is automated
+  riskLevel: 'low' | 'medium' | 'high' | 'critical';
+}
+
+/**
+ * Off-hours activity detector for business hours analysis
+ */
+export interface OffHoursDetector {
+  detectOffHoursActivity(events: GoogleWorkspaceEvent[], businessHours: ActivityTimeframe): GoogleActivityPattern[];
+  isBusinessHours(timestamp: Date, timezone: string, businessConfig: ActivityTimeframe['businessHours']): boolean;
+  calculateOffHoursRisk(activity: GoogleWorkspaceEvent[], totalActivity: GoogleWorkspaceEvent[]): number;
+  getOffHoursThresholds(): {
+    suspiciousActivityThreshold: number;    // % of activity outside business hours
+    criticalActivityThreshold: number;     // % indicating certain automation
+    minimumEventsForAnalysis: number;      // minimum events to analyze
+  };
+}
+
+/**
  * Type guards for runtime validation
  */
 
