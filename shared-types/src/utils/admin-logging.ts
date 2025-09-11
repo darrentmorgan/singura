@@ -186,3 +186,172 @@ export interface LiveDiscoverySession {
     averageConfidence: number;
   };
 }
+
+/**
+ * Persistent discovery event history for static admin logging
+ */
+export interface DiscoveryEventHistory {
+  eventId: string;
+  discoveryId: string;
+  connectionId: string;
+  platform: 'slack' | 'google' | 'microsoft' | 'jira';
+  triggeredAt: Date;
+  completedAt?: Date;
+  status: 'running' | 'completed' | 'failed';
+  
+  summary: DiscoveryEventSummary;
+  detailedResults: AutomationDetectionDetail[];
+  rawData: DiscoveryRawData;
+  performance: DiscoveryPerformanceMetrics;
+}
+
+/**
+ * Discovery event summary for quick overview
+ */
+export interface DiscoveryEventSummary {
+  automationsFound: number;
+  overallRiskScore: number;
+  highRiskCount: number;
+  mediumRiskCount: number;
+  lowRiskCount: number;
+  aiIntegrationsDetected: number;
+  complianceViolations: string[];
+  processingTimeMs: number;
+  algorithmsExecuted: string[];
+}
+
+/**
+ * Detailed automation detection analysis
+ */
+export interface AutomationDetectionDetail {
+  automationId: string;
+  name: string;
+  type: 'bot' | 'workflow' | 'integration' | 'webhook' | 'script';
+  platform: 'slack' | 'google' | 'microsoft' | 'jira';
+  confidence: number; // 0-100
+  riskScore: number; // 0-100
+  riskLevel: 'low' | 'medium' | 'high' | 'critical';
+  
+  aiIntegration?: {
+    provider: 'openai' | 'anthropic' | 'cohere' | 'huggingface' | 'google' | 'unknown';
+    apiEndpoints: string[];
+    dataTypesProcessed: string[];
+    estimatedDataVolume: 'low' | 'medium' | 'high' | 'massive';
+    lastActivity: Date;
+  };
+  
+  complianceAnalysis: {
+    violations: ComplianceViolationDetail[];
+    regulationsAffected: ('GDPR' | 'SOX' | 'HIPAA' | 'PCI' | 'CCPA')[];
+    businessImpact: 'minimal' | 'moderate' | 'significant' | 'severe';
+    recommendedActions: string[];
+    urgencyLevel: 'low' | 'medium' | 'high' | 'immediate';
+  };
+  
+  technicalDetails: {
+    detectionMethod: string;
+    algorithmsUsed: string[];
+    evidenceFactors: string[];
+    correlatedEvents: number;
+    detectionTimestamp: Date;
+    confidence_breakdown: {
+      behavioral_patterns: number;
+      api_signatures: number;
+      timing_analysis: number;
+      data_flow_analysis: number;
+    };
+  };
+  
+  automationMetadata: {
+    description: string;
+    triggers: string[];
+    actions: string[];
+    permissions: string[];
+    createdDate?: Date;
+    lastModified?: Date;
+    lastTriggered?: Date;
+    executionFrequency?: string;
+  };
+}
+
+/**
+ * Compliance violation detail
+ */
+export interface ComplianceViolationDetail {
+  violationType: string;
+  regulation: 'GDPR' | 'SOX' | 'HIPAA' | 'PCI' | 'CCPA';
+  description: string;
+  severity: 'low' | 'medium' | 'high' | 'critical';
+  dataTypesAffected: string[];
+  potentialFineRange?: {
+    min: number;
+    max: number;
+    currency: string;
+  };
+  remediationSteps: string[];
+}
+
+/**
+ * Raw discovery data for technical analysis
+ */
+export interface DiscoveryRawData {
+  apiCalls: {
+    endpoint: string;
+    method: string;
+    responseStatus: number;
+    responseTimeMs: number;
+    dataRetrieved: number;
+  }[];
+  
+  auditLogEntries: {
+    platform: string;
+    entryCount: number;
+    timeRange: {
+      start: Date;
+      end: Date;
+    };
+    eventTypes: string[];
+    usersInvolved: string[];
+  };
+  
+  algorithmExecution: {
+    algorithm: string;
+    processingTimeMs: number;
+    eventsAnalyzed: number;
+    detectionCount: number;
+    errorCount: number;
+    parameters: Record<string, unknown>;
+  }[];
+  
+  correlationData: {
+    crossPlatformEvents: number;
+    temporalCorrelations: number;
+    userCorrelations: number;
+    dataFlowCorrelations: number;
+  };
+}
+
+/**
+ * Discovery performance metrics for optimization
+ */
+export interface DiscoveryPerformanceMetrics {
+  totalProcessingTime: number;
+  apiCallLatency: number;
+  algorithmExecutionTime: number;
+  dataProcessingTime: number;
+  memoryUsage: number;
+  
+  efficiency: {
+    eventsPerSecond: number;
+    detectionsPerMinute: number;
+    apiCallsPerSecond: number;
+    accuracyRate: number;
+  };
+  
+  resourceUtilization: {
+    cpuUsage: number;
+    memoryPeak: number;
+    networkBandwidth: number;
+    apiQuotaUsed: number;
+  };
+}
