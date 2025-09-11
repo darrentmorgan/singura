@@ -15,9 +15,9 @@ export type GoogleAutomationType =
   | 'trigger'         // Event-based triggers
 
 /**
- * Google Apps Script project information
+ * Google Apps Script project information (Workspace-specific)
  */
-export interface GoogleAppsScriptProject {
+export interface GoogleWorkspaceAppsScriptProject {
   scriptId: string;
   title: string;
   description?: string;
@@ -25,7 +25,7 @@ export interface GoogleAppsScriptProject {
   createdTime: Date;
   lastModifiedTime: Date;
   permissions: GoogleAppsScriptPermission[];
-  triggers: GoogleAppsScriptTrigger[];
+  triggers: GoogleWorkspaceAppsScriptTrigger[];
   riskScore: number;
   riskFactors: string[];
 }
@@ -41,9 +41,9 @@ export interface GoogleAppsScriptPermission {
 }
 
 /**
- * Apps Script triggers for automation detection
+ * Apps Script triggers for automation detection (Workspace-specific)
  */
-export interface GoogleAppsScriptTrigger {
+export interface GoogleWorkspaceAppsScriptTrigger {
   triggerId: string;
   eventType: 'ON_EDIT' | 'ON_CHANGE' | 'ON_FORM_SUBMIT' | 'ON_OPEN' | 'TIME_DRIVEN';
   functionName: string;
@@ -88,15 +88,15 @@ export interface GoogleServiceAccount {
   description?: string;
   projectId: string;
   createdTime: Date;
-  keys: GoogleServiceAccountKey[];
+  keys: GoogleWorkspaceServiceAccountKey[];
   permissions: string[];
   riskLevel: 'low' | 'medium' | 'high' | 'critical';
 }
 
 /**
- * Service account key information for security assessment
+ * Service account key information for security assessment (Workspace-specific)
  */
-export interface GoogleServiceAccountKey {
+export interface GoogleWorkspaceServiceAccountKey {
   keyId: string;
   keyType: 'USER_MANAGED' | 'SYSTEM_MANAGED';
   createdTime: Date;
@@ -109,7 +109,7 @@ export interface GoogleServiceAccountKey {
  * Google Workspace automation discovery result
  */
 export interface GoogleWorkspaceDiscoveryResult {
-  appsScriptProjects: GoogleAppsScriptProject[];
+  appsScriptProjects: GoogleWorkspaceAppsScriptProject[];
   driveAutomations: GoogleDriveAutomation[];
   serviceAccounts: GoogleServiceAccount[];
   totalAutomations: number;

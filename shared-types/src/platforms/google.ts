@@ -25,7 +25,7 @@ export interface GoogleAutomation extends Automation {
     appsScript?: GoogleAppsScriptInfo;
     
     /** Service account information */
-    serviceAccount?: GoogleServiceAccountInfo;
+    serviceAccount?: GooglePlatformServiceAccountInfo;
     
     /** OAuth client information */
     oauthClient?: GoogleOAuthClientInfo;
@@ -83,7 +83,7 @@ export interface GoogleAppsScriptInfo {
   apis: GoogleAPIUsage[];
   
   /** Triggers configured */
-  triggers: GoogleScriptTrigger[];
+  triggers: GooglePlatformScriptTrigger[];
   
   /** Permissions required */
   oauthScopes: string[];
@@ -117,9 +117,9 @@ export interface GoogleAPIUsage {
 }
 
 /**
- * Google Apps Script trigger
+ * Google Apps Script trigger (Platform-specific)
  */
-export interface GoogleScriptTrigger {
+export interface GooglePlatformScriptTrigger {
   /** Trigger ID */
   triggerId: string;
   
@@ -157,9 +157,9 @@ export interface GoogleScriptTrigger {
 }
 
 /**
- * Google Service Account information
+ * Google Service Account information (Platform-specific)
  */
-export interface GoogleServiceAccountInfo {
+export interface GooglePlatformServiceAccountInfo {
   /** Service account email */
   email: string;
   

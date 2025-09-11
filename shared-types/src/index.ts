@@ -11,6 +11,7 @@ export * from './utils/type-guards';
 export * from './utils/job-types';
 export * from './utils/socket-types';
 export * from './utils/detection-patterns';
+export * from './utils/google-api-client';
 
 // Domain model types
 export * from './models/automation';
