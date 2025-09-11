@@ -74,8 +74,9 @@ export const DiscoveryProgress: React.FC<DiscoveryProgressProps> = ({
   showDetails = true,
   className,
 }) => {
-  const config = stageConfig[progress.stage];
-  const isInProgress = !['completed', 'failed'].includes(progress.stage);
+  // Safe access to config with fallback for unknown stages
+  const config = stageConfig[progress.stage] || stageConfig['started'];
+  const isInProgress = progress.stage && !['completed', 'failed'].includes(progress.stage);
   const isCompleted = progress.stage === 'completed';
   const isFailed = progress.stage === 'failed';
 
@@ -109,7 +110,7 @@ export const DiscoveryProgress: React.FC<DiscoveryProgressProps> = ({
               Automation Discovery
             </h3>
             <p className="text-sm text-muted-foreground">
-              Connection ID: {progress.connectionId}
+              Connection ID: {progress.connectionId || 'Unknown'}
             </p>
           </div>
         </div>
@@ -145,7 +146,7 @@ export const DiscoveryProgress: React.FC<DiscoveryProgressProps> = ({
             {config.label}
           </span>
           <span className="text-muted-foreground">
-            {Math.round(progress.progress)}%
+            {Math.round(progress.progress || 0)}%
           </span>
         </div>
         
@@ -157,7 +158,7 @@ export const DiscoveryProgress: React.FC<DiscoveryProgressProps> = ({
               isFailed && "bg-red-500",
               isInProgress && "bg-blue-500"
             )}
-            style={{ width: `${progress.progress}%` }}
+            style={{ width: `${progress.progress || 0}%` }}
           />
         </div>
       </div>
@@ -190,7 +191,7 @@ export const DiscoveryProgress: React.FC<DiscoveryProgressProps> = ({
             
             <div>
               <p className="text-muted-foreground">Progress</p>
-              <p className="font-medium text-foreground">{Math.round(progress.progress)}% Complete</p>
+              <p className="font-medium text-foreground">{Math.round(progress.progress || 0)}% Complete</p>
             </div>
             
             <div>

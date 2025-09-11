@@ -74,7 +74,7 @@ export class MockDataProvider implements DataProvider {
 
   async discoverAutomations(connectionId: string): Promise<DiscoveryResult> {
     // AI-focused mock data for demos
-    if (connectionId === 'conn-2') {
+    if (connectionId === 'conn-2' || connectionId.includes('google')) {
       return {
         success: true,
         discovery: {

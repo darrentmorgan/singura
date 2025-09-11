@@ -6,6 +6,8 @@
 import express, { Request, Response } from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import { createServer } from 'http';
+import { Server } from 'socket.io';
 import automationRoutes from './routes/automations-mock';
 import devRoutes from './routes/dev-routes';
 import { getDataProvider, isDataToggleEnabled } from './services/data-provider';
@@ -405,28 +407,59 @@ app.post('/api/connections/:id/discover', async (req: Request, res: Response) =>
   const { id } = req.params;
   
   try {
+    console.log(`🔍 Starting discovery for connection: ${id}`);
+    
+    // Emit discovery progress stages via Socket.io
+    io.emit('discovery:progress', { connectionId: id, stage: 'initializing', progress: 0 });
+    await new Promise(resolve => setTimeout(resolve, 500));
+    
+    io.emit('discovery:progress', { connectionId: id, stage: 'connecting', progress: 25 });
+    await new Promise(resolve => setTimeout(resolve, 500));
+    
     // Check if client wants to toggle data source
     const useMockData = req.headers['x-use-mock-data'] === 'true';
     const dataProvider = getDataProvider(useMockData);
     
+    io.emit('discovery:progress', { connectionId: id, stage: 'analyzing', progress: 50 });
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
     const result = await dataProvider.discoverAutomations(id || '');
+    
+    io.emit('discovery:progress', { connectionId: id, stage: 'processing', progress: 75 });
+    await new Promise(resolve => setTimeout(resolve, 500));
     
     // Add metadata about data source
     (result.discovery.metadata as any).usingMockData = useMockData || process.env.USE_MOCK_DATA === 'true';
     (result.discovery.metadata as any).dataToggleEnabled = isDataToggleEnabled();
     
+    io.emit('discovery:progress', { connectionId: id, stage: 'completed', progress: 100 });
+    console.log(`✅ Discovery completed for connection: ${id}, found ${result.discovery.automations.length} automations`);
+    
     res.json(result);
   } catch (error) {
-    // Fallback to mock data on error
+    // Fallback to mock data on error with progress tracking
     console.error('Discovery failed, falling back to mock data:', error);
     
     try {
+      io.emit('discovery:progress', { connectionId: id, stage: 'fallback', progress: 25 });
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
       const mockProvider = getDataProvider(true);
+      
+      io.emit('discovery:progress', { connectionId: id, stage: 'mock_data_loading', progress: 50 });
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
       const mockResult = await mockProvider.discoverAutomations(id || '');
+      
+      io.emit('discovery:progress', { connectionId: id, stage: 'mock_processing', progress: 75 });
+      await new Promise(resolve => setTimeout(resolve, 500));
       
       (mockResult.discovery.metadata as any).usingMockData = true;
       (mockResult.discovery.metadata as any).dataToggleEnabled = isDataToggleEnabled();
       (mockResult.discovery.metadata as any).fallbackReason = error instanceof Error ? error.message : 'Unknown error';
+      
+      io.emit('discovery:progress', { connectionId: id, stage: 'completed', progress: 100 });
+      console.log(`✅ Mock discovery completed for connection: ${id}, found ${mockResult.discovery.automations.length} automations`);
       
       res.json(mockResult);
     } catch (fallbackError) {
@@ -462,12 +495,31 @@ app.use('*', (req: Request, res: Response) => {
   });
 });
 
-// Start server
-const server = app.listen(PORT, () => {
+// Start server with Socket.io support
+const httpServer = createServer(app);
+const io = new Server(httpServer, {
+  cors: {
+    origin: process.env.CORS_ORIGIN || 'http://localhost:4200',
+    methods: ['GET', 'POST'],
+    credentials: true
+  }
+});
+
+// Socket.io connection handling
+io.on('connection', (socket) => {
+  console.log('Client connected:', socket.id);
+  
+  socket.on('disconnect', () => {
+    console.log('Client disconnected:', socket.id);
+  });
+});
+
+const server = httpServer.listen(PORT, () => {
   console.log(`🚀 SaaS X-Ray Backend running on port ${PORT}`);
   console.log(`📍 Environment: ${NODE_ENV}`);
   console.log(`🔗 Health check: http://localhost:${PORT}/api/health`);
   console.log(`🔗 CORS origin: ${process.env.CORS_ORIGIN || 'http://localhost:4200'}`);
+  console.log(`⚡ Socket.io enabled for real-time discovery progress`);
 });
 
 // Graceful shutdown
