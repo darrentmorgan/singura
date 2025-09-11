@@ -117,15 +117,22 @@ export class SecurityMiddleware {
   corsMiddleware() {
     return cors.default({
       origin: (origin: string | undefined, callback: (err: Error | null, allowed?: boolean) => void) => {
+        console.log('Received CORS origin:', origin); // Enhanced logging
+
         // Allow requests with no origin (mobile apps, etc.)
         if (!origin) {
+          return callback(null, true);
+        }
+
+        // More lenient origin matching for development
+        if (process.env.NODE_ENV === 'development') {
           return callback(null, true);
         }
 
         // Check if origin is in allowed list or matches a regex pattern
         const isAllowedOrigin = this.config.cors.origins.some(allowedOrigin => {
           if (typeof allowedOrigin === 'string') {
-            return allowedOrigin === origin;
+            return origin?.startsWith(allowedOrigin) || allowedOrigin === origin;
           }
           // Handle regex patterns
           if (allowedOrigin instanceof RegExp) {
@@ -140,6 +147,7 @@ export class SecurityMiddleware {
 
         // Block unauthorized origins
         this.recordSuspiciousActivity(origin, 'unauthorized_cors_origin');
+        console.warn(`CORS blocked for origin: ${origin}`); // Detailed logging
         callback(new Error('Not allowed by CORS'));
       },
       credentials: this.config.cors.credentials,

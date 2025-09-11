@@ -199,6 +199,138 @@ app.get('/api/auth/callback/slack', async (req: Request, res: Response) => {
   }
 });
 
+// Mock Google OAuth endpoints  
+app.get('/api/auth/oauth/google/authorize', (req: Request, res: Response) => {
+  try {
+    // Dynamic OAuth URL with environment variables
+    const port = process.env.PORT || 4201;
+    const clientId = process.env.GOOGLE_CLIENT_ID;
+    const redirectUri = process.env.GOOGLE_REDIRECT_URI || `http://localhost:${port}/api/auth/callback/google`;
+
+    if (!clientId) {
+      console.error('Google OAuth: Missing GOOGLE_CLIENT_ID environment variable');
+      return res.status(500).json({
+        success: false,
+        error: 'OAuth configuration error: Missing client ID',
+        details: 'Please set the GOOGLE_CLIENT_ID environment variable'
+      });
+    }
+
+    if (!redirectUri) {
+      console.error('Google OAuth: Unable to determine redirect URI');
+      return res.status(500).json({
+        success: false,
+        error: 'OAuth configuration error: Missing redirect URI',
+        details: 'Please set the GOOGLE_REDIRECT_URI environment variable or configure PORT'
+      });
+    }
+    
+    // Basic scopes (no verification required for testing)
+    const scopes = [
+      'openid',                                                          // Basic user info
+      'email',                                                           // User email  
+      'profile'                                                          // Basic profile
+      // Note: Advanced scopes require app verification or test user approval
+      // 'https://www.googleapis.com/auth/drive.metadata.readonly',      // Requires verification
+      // 'https://www.googleapis.com/auth/admin.reports.audit.readonly', // Requires verification
+    ];
+    
+    const authUrl = `https://accounts.google.com/o/oauth2/auth?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${encodeURIComponent(scopes.join(' '))}&response_type=code&state=mock-state&access_type=offline&prompt=consent`;
+    
+    console.log('Google OAuth Authorization Request:', {
+      clientId: clientId.substring(0, 10) + '...', // Partially mask client ID
+      redirectUri,
+      port,
+      scopeCount: scopes.length
+    });
+
+    res.json({
+      success: true,
+      authorizationUrl: authUrl,
+      state: 'mock-state'
+    });
+    return;
+  } catch (error) {
+    console.error('Unexpected error in Google OAuth authorization:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Unexpected OAuth configuration error',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    });
+    return;
+  }
+});
+
+app.get('/api/auth/callback/google', async (req: Request, res: Response) => {
+  const { code, state } = req.query;
+  
+  try {
+    // Basic input validation
+    if (typeof code !== 'string' || typeof state !== 'string') {
+      console.error('Invalid Google OAuth callback parameters', { code, state });
+      const frontendUrl = process.env.CORS_ORIGIN || 'http://localhost:4200';
+      return res.redirect(`${frontendUrl}/connections?success=false&platform=google&error=invalid_parameters`);
+    }
+
+    // State verification for CSRF protection
+    if (state !== 'mock-state') {
+      console.warn('Google OAuth state mismatch', { receivedState: state });
+      const frontendUrl = process.env.CORS_ORIGIN || 'http://localhost:4200';
+      return res.redirect(`${frontendUrl}/connections?success=false&platform=google&error=csrf_failed`);
+    }
+
+    // Simulated OAuth flow with dynamic environment variables
+    const clientId = process.env.GOOGLE_CLIENT_ID;
+    const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
+
+    if (!clientId || !clientSecret) {
+      console.error('Missing Google OAuth configuration', { clientIdSet: !!clientId, clientSecretSet: !!clientSecret });
+      const frontendUrl = process.env.CORS_ORIGIN || 'http://localhost:4200';
+      return res.redirect(`${frontendUrl}/connections?success=false&platform=google&error=config_error`);
+    }
+
+    // In a real implementation, you would validate the code with Google's API
+    // For now, simulate successful connection and store it
+    const frontendUrl = process.env.CORS_ORIGIN || 'http://localhost:4200';
+    
+    // Add the successful connection to our in-memory store
+    const newConnection = {
+      id: `conn-google-${Date.now()}`,
+      organization_id: 'demo-org-id',
+      platform_type: 'google',
+      display_name: 'Google Workspace - Demo Organization',
+      status: 'active',
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      last_sync_at: new Date().toISOString(),
+      permissions: ['admin.directory.user.readonly', 'admin.directory.group.readonly', 'admin.reports.audit.readonly']
+    };
+    
+    // Check if Google is already connected (avoid duplicates)
+    const existingGoogle = connections.find(conn => conn.platform_type === 'google');
+    if (!existingGoogle) {
+      connections.push(newConnection);
+      console.log('Added new Google connection:', newConnection.id);
+    } else {
+      console.log('Google already connected, updating existing connection');
+      existingGoogle.status = 'active';
+      existingGoogle.updated_at = new Date().toISOString();
+      existingGoogle.last_sync_at = new Date().toISOString();
+    }
+    
+    console.log('Google OAuth callback successful, redirecting to:', `${frontendUrl}/connections?success=true&platform=google`);
+    
+    // Redirect back to frontend with success status
+    res.redirect(`${frontendUrl}/connections?success=true&platform=google&connection=${newConnection.id}`);
+  } catch (error) {
+    console.error('Unexpected Google OAuth callback error', error);
+    const frontendUrl = process.env.CORS_ORIGIN || 'http://localhost:4200';
+    
+    // Redirect to frontend with error status
+    res.redirect(`${frontendUrl}/connections?success=false&platform=google&error=callback_failed`);
+  }
+});
+
 // Connections endpoint - returns OAuth connected platforms
 app.get('/api/connections', (req: Request, res: Response) => {
   try {

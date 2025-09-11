@@ -59,9 +59,9 @@ export class MockDataGenerator {
       organization_id: organizationId,
       platform_type: platform,
       platform_user_id: `${platform}-user-${Math.floor(Math.random() * 10000)}`,
-      platform_workspace_id: platform === 'slack' ? `T${Math.floor(Math.random() * 1000000000)}` : undefined,
+      platform_workspace_id: this.getPlatformWorkspaceId(platform),
       display_name: `Test ${platform.charAt(0).toUpperCase() + platform.slice(1)} Connection`,
-      status: 'active',
+      status: 'connected',
       permissions_granted: { scopes: this.getMockPermissions(platform) },
       last_sync_at: new Date(Date.now() - Math.random() * 86400000), // Random time in last 24h
       last_error: undefined,
@@ -184,6 +184,22 @@ export class MockDataGenerator {
       permissions,
       sessionId: `sess_${crypto.randomBytes(16).toString('hex')}_${Date.now()}`
     };
+  }
+
+  /**
+   * Get platform-specific workspace ID
+   */
+  private static getPlatformWorkspaceId(platform: Platform): string | undefined {
+    switch (platform) {
+      case 'slack':
+        return `T${Math.floor(Math.random() * 1000000000)}`;
+      case 'google':
+        return 'example.com'; // Google Workspace domain
+      case 'microsoft':
+        return crypto.randomUUID(); // Microsoft tenant ID
+      default:
+        return undefined;
+    }
   }
 
   /**
@@ -320,6 +336,247 @@ export class MockDataGenerator {
       connections,
       credentials,
       auditLogs
+    };
+  }
+
+  /**
+   * Generate mock Google OAuth credentials
+   */
+  static createMockGoogleOAuthCredentials(overrides: Record<string, unknown> = {}): Record<string, unknown> {
+    return {
+      accessToken: `ya29.a0ARrdaM8x_mock_google_access_token_${crypto.randomBytes(16).toString('hex')}`,
+      refreshToken: `1//04mock_google_refresh_token_${crypto.randomBytes(12).toString('hex')}`,
+      tokenType: 'Bearer',
+      scope: [
+        'https://www.googleapis.com/auth/userinfo.email',
+        'https://www.googleapis.com/auth/userinfo.profile',
+        'https://www.googleapis.com/auth/admin.directory.user.readonly',
+        'https://www.googleapis.com/auth/script.projects.readonly'
+      ],
+      expiresAt: new Date(Date.now() + 3600000), // 1 hour from now
+      idToken: `eyJhbGciOiJSUzI1NiIsImtpZCI6ImNhZjc1YTQwOWU5MGY3MjE4OGYyZjU2YTA3NmZlNjZhMjMwOGJkMDAiLCJ0eXAiOiJKV1QifQ.mock_id_token_${crypto.randomBytes(8).toString('hex')}`,
+      userId: `${Math.floor(Math.random() * 900000000) + 100000000}`, // 9-digit number
+      email: `test.user${Math.floor(Math.random() * 1000)}@example.com`,
+      domain: 'example.com',
+      organizationId: `org-${crypto.randomBytes(8).toString('hex')}`,
+      ...overrides
+    };
+  }
+
+  /**
+   * Generate mock Google Workspace user info
+   */
+  static createMockGoogleWorkspaceUserInfo(overrides: Record<string, unknown> = {}): Record<string, unknown> {
+    const userId = `${Math.floor(Math.random() * 900000000) + 100000000}`;
+    const userNumber = Math.floor(Math.random() * 1000);
+    
+    return {
+      id: userId,
+      email: `test.user${userNumber}@example.com`,
+      name: `Test User ${userNumber}`,
+      domain: 'example.com',
+      isAdmin: Math.random() > 0.7, // 30% chance of admin
+      orgUnit: Math.random() > 0.5 ? '/Engineering' : '/Sales',
+      lastLoginTime: new Date(Date.now() - Math.random() * 7 * 24 * 3600000), // Random time in last week
+      ...overrides
+    };
+  }
+
+  /**
+   * Generate mock Google Apps Script project
+   */
+  static createMockGoogleAppsScriptProject(overrides: Record<string, unknown> = {}): Record<string, unknown> {
+    const scriptId = `AKfycbx_mock_script_${crypto.randomBytes(8).toString('hex')}`;
+    const projectTypes = ['Expense Reports', 'Email Automation', 'Data Sync', 'Form Processing', 'Calendar Integration'];
+    const projectType = projectTypes[Math.floor(Math.random() * projectTypes.length)];
+    
+    return {
+      scriptId,
+      title: `${projectType} Automation`,
+      description: `Automated ${projectType.toLowerCase()} processing script`,
+      owner: `test.user${Math.floor(Math.random() * 100)}@example.com`,
+      createdTime: new Date(Date.now() - Math.random() * 365 * 24 * 3600000), // Random time in last year
+      lastModifiedTime: new Date(Date.now() - Math.random() * 30 * 24 * 3600000), // Random time in last month
+      permissions: [
+        {
+          scope: 'https://www.googleapis.com/auth/spreadsheets',
+          description: 'Access to Google Sheets',
+          riskLevel: 'medium',
+          dataAccess: ['sheets', 'drive']
+        },
+        {
+          scope: 'https://www.googleapis.com/auth/gmail.send',
+          description: 'Send emails',
+          riskLevel: 'high',
+          dataAccess: ['gmail', 'contacts']
+        }
+      ],
+      triggers: [
+        {
+          triggerId: `trigger_${crypto.randomBytes(6).toString('hex')}`,
+          eventType: Math.random() > 0.5 ? 'ON_FORM_SUBMIT' : 'TIME_DRIVEN',
+          functionName: 'processAutomation',
+          enabled: Math.random() > 0.2, // 80% chance enabled
+          lastRunTime: new Date(Date.now() - Math.random() * 7 * 24 * 3600000),
+          frequency: Math.random() > 0.5 ? 'daily' : 'on_demand'
+        }
+      ],
+      riskScore: Math.floor(Math.random() * 100),
+      riskFactors: ['external_sharing', 'admin_permissions'].filter(() => Math.random() > 0.6),
+      ...overrides
+    };
+  }
+
+  /**
+   * Generate mock Google Workspace discovery result
+   */
+  static createMockGoogleWorkspaceDiscoveryResult(
+    scriptCount: number = 3,
+    serviceAccountCount: number = 2
+  ): Record<string, unknown> {
+    const appsScriptProjects = Array.from({ length: scriptCount }, () => 
+      this.createMockGoogleAppsScriptProject()
+    );
+    
+    const serviceAccounts = Array.from({ length: serviceAccountCount }, (_, i) => ({
+      uniqueId: `${Math.floor(Math.random() * 900000000) + 100000000}`,
+      email: `automation-${i}@example-project.iam.gserviceaccount.com`,
+      displayName: `Automation Service Account ${i + 1}`,
+      description: `Service account for automated processes`,
+      projectId: `example-project-${crypto.randomBytes(4).toString('hex')}`,
+      createdTime: new Date(Date.now() - Math.random() * 365 * 24 * 3600000),
+      keys: [
+        {
+          keyId: `key_${crypto.randomBytes(8).toString('hex')}`,
+          keyType: 'USER_MANAGED',
+          createdTime: new Date(Date.now() - Math.random() * 90 * 24 * 3600000),
+          keyAlgorithm: 'RSA_2048'
+        }
+      ],
+      permissions: ['https://www.googleapis.com/auth/admin.directory.user'],
+      riskLevel: Math.random() > 0.5 ? 'high' : 'medium'
+    }));
+
+    const totalAutomations = scriptCount + serviceAccountCount;
+    const riskDistribution = {
+      low: Math.floor(totalAutomations * 0.2),
+      medium: Math.floor(totalAutomations * 0.5),
+      high: Math.floor(totalAutomations * 0.25),
+      critical: Math.floor(totalAutomations * 0.05)
+    };
+
+    return {
+      appsScriptProjects,
+      driveAutomations: [], // Can be extended later
+      serviceAccounts,
+      totalAutomations,
+      riskDistribution,
+      discoveryMetadata: {
+        scanStartTime: new Date(Date.now() - 30 * 60 * 1000), // 30 minutes ago
+        scanEndTime: new Date(),
+        scopesUsed: [
+          'https://www.googleapis.com/auth/script.projects.readonly',
+          'https://www.googleapis.com/auth/admin.directory.user.readonly'
+        ],
+        apiCallsCount: Math.floor(Math.random() * 50) + 10, // 10-60 API calls
+        errorsEncountered: []
+      }
+    };
+  }
+
+  /**
+   * Generate mock Google OAuth raw response
+   */
+  static createMockGoogleOAuthRawResponse(overrides: Record<string, unknown> = {}): Record<string, unknown> {
+    return {
+      access_token: `ya29.a0ARrdaM8x_mock_google_access_token_${crypto.randomBytes(16).toString('hex')}`,
+      refresh_token: `1//04mock_google_refresh_token_${crypto.randomBytes(12).toString('hex')}`,
+      token_type: 'Bearer',
+      expires_in: 3599,
+      scope: 'https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile',
+      id_token: `eyJhbGciOiJSUzI1NiIsImtpZCI6ImNhZjc1YTQwOWU5MGY3MjE4OGYyZjU2YTA3NmZlNjZhMjMwOGJkMDAiLCJ0eXAiOiJKV1QifQ.mock_id_token_${crypto.randomBytes(8).toString('hex')}`,
+      granted_scopes: 'https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile',
+      ...overrides
+    };
+  }
+
+  /**
+   * Generate mock Google workspace organization
+   */
+  static createMockGoogleWorkspaceOrganization(overrides: Record<string, unknown> = {}): Record<string, unknown> {
+    return {
+      customerId: `C${Math.floor(Math.random() * 100000000).toString().padStart(8, '0')}`,
+      domain: 'example.com',
+      organizationName: 'Example Corporation',
+      adminEmail: 'admin@example.com',
+      userCount: Math.floor(Math.random() * 500) + 50, // 50-550 users
+      serviceAccountsCount: Math.floor(Math.random() * 20) + 5, // 5-25 service accounts
+      appsScriptProjectsCount: Math.floor(Math.random() * 15) + 3, // 3-18 scripts
+      securitySettings: {
+        twoFactorRequired: Math.random() > 0.3, // 70% chance enabled
+        externalSharingEnabled: Math.random() > 0.6, // 40% chance enabled
+        appsScriptEnabled: Math.random() > 0.1, // 90% chance enabled
+        marketplaceInstallsAllowed: Math.random() > 0.5 // 50% chance allowed
+      },
+      ...overrides
+    };
+  }
+
+  /**
+   * Generate comprehensive Google OAuth test scenarios
+   */
+  static createGoogleOAuthTestScenarios() {
+    return {
+      validCredentials: this.createMockGoogleOAuthCredentials(),
+      expiredCredentials: this.createMockGoogleOAuthCredentials({
+        expiresAt: new Date(Date.now() - 3600000) // Expired 1 hour ago
+      }),
+      personalAccount: this.createMockGoogleOAuthCredentials({
+        domain: undefined, // Personal accounts don't have workspace domain
+        email: 'personal.user@gmail.com'
+      }),
+      workspaceAdmin: this.createMockGoogleWorkspaceUserInfo({
+        isAdmin: true,
+        orgUnit: '/',
+        email: 'admin@example.com'
+      }),
+      workspaceUser: this.createMockGoogleWorkspaceUserInfo({
+        isAdmin: false,
+        orgUnit: '/Engineering',
+        email: 'developer@example.com'
+      }),
+      highRiskScript: this.createMockGoogleAppsScriptProject({
+        riskScore: 95,
+        riskFactors: ['external_sharing', 'admin_permissions', 'frequent_execution', 'sensitive_data_access'],
+        permissions: [
+          {
+            scope: 'https://www.googleapis.com/auth/admin.directory.user',
+            description: 'Manage users in domain',
+            riskLevel: 'critical',
+            dataAccess: ['users', 'admin', 'directory']
+          }
+        ]
+      }),
+      oauthErrors: {
+        accessDenied: {
+          error: 'access_denied',
+          error_description: 'The user denied the request',
+          error_uri: 'https://developers.google.com/identity/protocols/oauth2/web-server#errorhandling'
+        },
+        invalidGrant: {
+          error: 'invalid_grant',
+          error_description: 'Bad Request'
+        },
+        invalidClient: {
+          error: 'invalid_client',
+          error_description: 'The OAuth client was not found.'
+        }
+      },
+      discoveryResults: {
+        smallOrganization: this.createMockGoogleWorkspaceDiscoveryResult(2, 1),
+        mediumOrganization: this.createMockGoogleWorkspaceDiscoveryResult(8, 4),
+        largeOrganization: this.createMockGoogleWorkspaceDiscoveryResult(25, 12)
+      }
     };
   }
 

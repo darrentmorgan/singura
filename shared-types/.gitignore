@@ -1,0 +1,6 @@
+
+# Google OAuth credential files (SENSITIVE)
+OAuth Client ID for SaaS X-Ray Scanner.json
+*.json
+!package*.json
+!tsconfig*.json
