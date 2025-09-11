@@ -12,6 +12,7 @@ export * from './utils/job-types';
 export * from './utils/socket-types';
 export * from './utils/detection-patterns';
 export * from './utils/google-api-client';
+export * from './utils/cross-platform-correlation';
 
 // Domain model types
 export * from './models/automation';

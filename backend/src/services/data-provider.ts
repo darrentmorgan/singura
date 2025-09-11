@@ -250,7 +250,7 @@ export class RealDataProvider implements DataProvider {
             name: 'Google API Client Ready',
             type: 'integration',
             platform: 'google',
-            status: 'ready',
+            status: 'active',
             trigger: 'oauth_integration',
             actions: ['api_client_initialized', 'oauth_credential_handling', 'real_api_calls'],
             createdAt: new Date('2025-09-11T06:30:00Z'),
@@ -279,9 +279,7 @@ export class RealDataProvider implements DataProvider {
               executionTimeMs: 1500,
               automationsFound: automations.length,
               riskScore: this.calculateOverallRisk(automations),
-              platform: 'google',
-              integrationStatus: 'api_client_ready',
-              nextPhase: 'oauth_credential_integration'
+              platform: 'google'
             }
           }
         };
