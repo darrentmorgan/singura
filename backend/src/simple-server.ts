@@ -11,22 +11,14 @@ import { Server } from 'socket.io';
 import automationRoutes from './routes/automations-mock';
 import devRoutes from './routes/dev-routes';
 import { getDataProvider, isDataToggleEnabled } from './services/data-provider';
+import { platformConnectionRepository } from './database/repositories/platform-connection';
 
 // Load environment variables
 dotenv.config();
 
-// In-memory connection store (for demo purposes)
-const connections: Array<{
-  id: string;
-  organization_id: string;
-  platform_type: string;
-  display_name: string;
-  status: string;
-  created_at: string;
-  updated_at: string;
-  last_sync_at?: string;
-  permissions: string[];
-}> = [];
+// Database-backed connection storage
+// Connections are now persisted in PostgreSQL via platformConnectionRepository
+// Removed in-memory array to prevent data loss on server restart
 
 const app = express();
 const PORT = process.env.PORT || 4201;
@@ -163,35 +155,45 @@ app.get('/api/auth/callback/slack', async (req: Request, res: Response) => {
     // For now, simulate successful connection and store it
     const frontendUrl = process.env.CORS_ORIGIN || 'http://localhost:4200';
     
-    // Add the successful connection to our in-memory store
-    const newConnection = {
-      id: `conn-slack-${Date.now()}`,
-      organization_id: 'demo-org-id',
-      platform_type: 'slack',
-      display_name: 'Slack - Test Workspace',
-      status: 'active',
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-      last_sync_at: new Date().toISOString(),
-      permissions: ['channels:read', 'users:read', 'team:read']
-    };
+    // Add the successful connection to database
+    const organizationId = 'demo-org-id';
+    const platformUserId = `slack-user-${Date.now()}`;
     
     // Check if Slack is already connected (avoid duplicates)
-    const existingSlack = connections.find(conn => conn.platform_type === 'slack');
-    if (!existingSlack) {
-      connections.push(newConnection);
-      console.log('Added new Slack connection:', newConnection.id);
+    const existingSlack = await platformConnectionRepository.findByPlatform(organizationId, 'slack');
+    let savedConnection;
+    
+    if (existingSlack.length === 0) {
+      // Create new connection in database
+      savedConnection = await platformConnectionRepository.create({
+        organization_id: organizationId,
+        platform_type: 'slack',
+        platform_user_id: platformUserId,
+        display_name: 'Slack - Test Workspace',
+        permissions_granted: ['channels:read', 'users:read', 'team:read'],
+        metadata: {
+          platformSpecific: {
+            slack: {
+              team_id: 'demo-team-id',
+              team_name: 'Test Workspace',
+              user_id: platformUserId,
+              scope: 'channels:read,users:read,team:read'
+            }
+          }
+        }
+      });
+      console.log('Added new Slack connection to database:', savedConnection.id);
     } else {
-      console.log('Slack already connected, updating existing connection');
-      existingSlack.status = 'active';
-      existingSlack.updated_at = new Date().toISOString();
-      existingSlack.last_sync_at = new Date().toISOString();
+      // Update existing connection
+      const existing = existingSlack[0];
+      savedConnection = await platformConnectionRepository.updateStatus(existing.id, 'active');
+      console.log('Updated existing Slack connection in database:', existing.id);
     }
     
     console.log('Slack OAuth callback successful, redirecting to:', `${frontendUrl}/connections?success=true&platform=slack`);
     
     // Redirect back to frontend with success status
-    res.redirect(`${frontendUrl}/connections?success=true&platform=slack&connection=${newConnection.id}`);
+    res.redirect(`${frontendUrl}/connections?success=true&platform=slack&connection=${savedConnection?.id}`);
   } catch (error) {
     console.error('Unexpected OAuth callback error', error);
     const frontendUrl = process.env.CORS_ORIGIN || 'http://localhost:4200';
@@ -295,35 +297,46 @@ app.get('/api/auth/callback/google', async (req: Request, res: Response) => {
     // For now, simulate successful connection and store it
     const frontendUrl = process.env.CORS_ORIGIN || 'http://localhost:4200';
     
-    // Add the successful connection to our in-memory store
-    const newConnection = {
-      id: `conn-google-${Date.now()}`,
-      organization_id: 'demo-org-id',
-      platform_type: 'google',
-      display_name: 'Google Workspace - Demo Organization',
-      status: 'active',
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-      last_sync_at: new Date().toISOString(),
-      permissions: ['admin.directory.user.readonly', 'admin.directory.group.readonly', 'admin.reports.audit.readonly']
-    };
+    // Add the successful connection to database
+    const organizationId = 'demo-org-id';
+    const platformUserId = `google-user-${Date.now()}`;
     
     // Check if Google is already connected (avoid duplicates)
-    const existingGoogle = connections.find(conn => conn.platform_type === 'google');
-    if (!existingGoogle) {
-      connections.push(newConnection);
-      console.log('Added new Google connection:', newConnection.id);
+    const existingGoogle = await platformConnectionRepository.findByPlatform(organizationId, 'google');
+    let savedConnection;
+    
+    if (existingGoogle.length === 0) {
+      // Create new connection in database
+      savedConnection = await platformConnectionRepository.create({
+        organization_id: organizationId,
+        platform_type: 'google',
+        platform_user_id: platformUserId,
+        display_name: 'Google Workspace - Demo Organization',
+        permissions_granted: ['admin.directory.user.readonly', 'admin.directory.group.readonly', 'admin.reports.audit.readonly'],
+        metadata: {
+          platformSpecific: {
+            google: {
+              email: `demo@example.com`,
+              domain: 'example.com',
+              workspace_domain: 'example.com',
+              scopes: ['admin.directory.user.readonly', 'admin.directory.group.readonly', 'admin.reports.audit.readonly'],
+              token_type: 'Bearer'
+            }
+          }
+        }
+      });
+      console.log('Added new Google connection to database:', savedConnection.id);
     } else {
-      console.log('Google already connected, updating existing connection');
-      existingGoogle.status = 'active';
-      existingGoogle.updated_at = new Date().toISOString();
-      existingGoogle.last_sync_at = new Date().toISOString();
+      // Update existing connection
+      const existing = existingGoogle[0];
+      savedConnection = await platformConnectionRepository.updateStatus(existing.id, 'active');
+      console.log('Updated existing Google connection in database:', existing.id);
     }
     
     console.log('Google OAuth callback successful, redirecting to:', `${frontendUrl}/connections?success=true&platform=google`);
     
     // Redirect back to frontend with success status
-    res.redirect(`${frontendUrl}/connections?success=true&platform=google&connection=${newConnection.id}`);
+    res.redirect(`${frontendUrl}/connections?success=true&platform=google&connection=${savedConnection?.id}`);
   } catch (error) {
     console.error('Unexpected Google OAuth callback error', error);
     const frontendUrl = process.env.CORS_ORIGIN || 'http://localhost:4200';
@@ -333,14 +346,31 @@ app.get('/api/auth/callback/google', async (req: Request, res: Response) => {
   }
 });
 
-// Connections endpoint - returns OAuth connected platforms
-app.get('/api/connections', (req: Request, res: Response) => {
+// Connections endpoint - returns OAuth connected platforms from database
+app.get('/api/connections', async (req: Request, res: Response) => {
   try {
-    console.log(`Connections requested, found ${connections.length} connections`);
+    // Fetch connections from database for the demo organization
+    const organizationId = 'demo-org-id';
+    const connections = await platformConnectionRepository.findByOrganization(organizationId);
+    
+    console.log(`Connections requested, found ${connections.length} connections from database`);
+    
+    // Transform database connections to match the frontend expected format
+    const transformedConnections = connections.map(conn => ({
+      id: conn.id,
+      organization_id: conn.organization_id,
+      platform_type: conn.platform_type,
+      display_name: conn.display_name,
+      status: conn.status,
+      created_at: conn.created_at.toISOString(),
+      updated_at: conn.updated_at.toISOString(),
+      last_sync_at: conn.last_sync_at?.toISOString(),
+      permissions: conn.permissions_granted
+    }));
     
     res.json({
       success: true,
-      connections,
+      connections: transformedConnections,
       pagination: {
         page: 1,
         limit: 20,
@@ -349,24 +379,25 @@ app.get('/api/connections', (req: Request, res: Response) => {
       }
     });
   } catch (error) {
+    console.error('Failed to fetch connections from database:', error);
     res.status(500).json({
       success: false,
       error: error instanceof Error ? error.message : 'Failed to fetch connections',
-      usingMockData: true // Fallback to mock on error
+      usingMockData: false
     });
   }
 });
 
-// Disconnect endpoint - removes a specific connection
-app.delete('/api/connections/:id', (req: Request, res: Response) => {
+// Disconnect endpoint - removes a specific connection from database
+app.delete('/api/connections/:id', async (req: Request, res: Response) => {
   const { id } = req.params;
 
   try {
-    // Find the connection index
-    const connectionIndex = connections.findIndex(conn => conn.id === id);
+    // Find the connection in database
+    const connection = await platformConnectionRepository.findById(id);
 
     // If connection not found, return 404
-    if (connectionIndex === -1) {
+    if (!connection) {
       return res.status(404).json({
         success: false,
         error: 'Connection not found',
@@ -374,10 +405,10 @@ app.delete('/api/connections/:id', (req: Request, res: Response) => {
       });
     }
 
-    // Remove the connection
-    const removedConnection = connections.splice(connectionIndex, 1)[0];
+    // Remove the connection from database
+    const deleted = await platformConnectionRepository.delete(id);
     
-    if (!removedConnection) {
+    if (!deleted) {
       return res.status(500).json({
         success: false,
         error: 'Failed to remove connection',
@@ -385,12 +416,22 @@ app.delete('/api/connections/:id', (req: Request, res: Response) => {
       });
     }
 
-    console.log(`Disconnected platform: ${removedConnection.platform_type}, Connection ID: ${id}`);
+    console.log(`Disconnected platform: ${connection.platform_type}, Connection ID: ${id}`);
 
     return res.json({
       success: true,
       message: 'Connection successfully removed',
-      connection: removedConnection
+      connection: {
+        id: connection.id,
+        organization_id: connection.organization_id,
+        platform_type: connection.platform_type,
+        display_name: connection.display_name,
+        status: connection.status,
+        created_at: connection.created_at.toISOString(),
+        updated_at: connection.updated_at.toISOString(),
+        last_sync_at: connection.last_sync_at?.toISOString(),
+        permissions: connection.permissions_granted
+      }
     });
   } catch (error) {
     console.error('Error during connection removal:', error);
