@@ -1,0 +1,91 @@
+# Supabase configuration file for SaaS X-Ray
+# This file defines the Supabase project configuration for all environments
+
+[api]
+enabled = true
+port = 54321
+schemas = ["public", "graphql_public"]
+extra_search_path = ["public", "extensions"]
+max_rows = 1000
+
+[auth]
+enabled = true
+port = 54322
+# JWT settings
+jwt_expiry = 3600
+refresh_token_rotation_enabled = true
+security_refresh_token_reuse_interval = 10
+# OAuth providers will be configured per environment
+site_url = "http://localhost:3000"
+additional_redirect_urls = ["http://localhost:3000/**"]
+# Password requirements
+password_min_length = 8
+# Email settings
+enable_signup = true
+enable_confirmations = true
+enable_anonymous_users = false
+
+[auth.email]
+# Email configuration will be environment-specific
+enable_signup = true
+double_confirm_changes = true
+enable_confirmations = true
+
+[auth.external.google]
+enabled = false  # Will be enabled per environment
+client_id = ""
+secret = ""
+redirect_uri = "http://localhost:54321/auth/v1/callback"
+
+[auth.external.slack]
+enabled = false  # Will be enabled per environment
+client_id = ""
+secret = ""
+redirect_uri = "http://localhost:54321/auth/v1/callback"
+
+[db]
+enabled = true
+port = 54322
+shadow_port = 54320
+major_version = 15
+
+[realtime]
+enabled = true
+port = 54323
+max_header_length = 4096
+
+[studio]
+enabled = true
+port = 54323
+
+[inbucket]
+enabled = true
+port = 54324
+smtp_port = 54325
+pop3_port = 54326
+
+[storage]
+enabled = true
+port = 54321
+file_size_limit = "50MiB"
+buckets = [
+  { name = "attachments", public = false },
+  { name = "reports", public = false },
+  { name = "audit-logs", public = false }
+]
+
+[analytics]
+enabled = false
+port = 54327
+vector_port = 54328
+# Disable in development, enable in production
+webhook_url = ""
+api_key = ""
+
+[functions]
+enabled = true
+verify_jwt = false
+
+[edge_runtime]
+enabled = true
+ip_version = "dual"

@@ -35,7 +35,14 @@
     "docker:prod:restart": "npm run docker:prod:down && npm run docker:prod:up",
     "deploy": "scripts/deploy.sh",
     "deploy:staging": "scripts/deploy.sh latest .env.staging",
-    "deploy:production": "scripts/deploy.sh latest .env.production"
+    "deploy:production": "scripts/deploy.sh latest .env.production",
+    "deploy:cloud:demo": "scripts/deploy-cloud.sh demo",
+    "deploy:cloud:staging": "scripts/deploy-cloud.sh staging",
+    "deploy:cloud:production": "scripts/deploy-cloud.sh production",
+    "migrate:supabase:demo": "scripts/migrate-to-supabase.sh demo",
+    "migrate:supabase:staging": "scripts/migrate-to-supabase.sh staging --skip-data",
+    "migrate:supabase:production": "scripts/migrate-to-supabase.sh production --skip-data",
+    "build:shared-types": "cd shared-types && npm run build"
   },
   "workspaces": [
     "backend",

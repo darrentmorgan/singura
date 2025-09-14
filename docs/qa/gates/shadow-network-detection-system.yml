@@ -1,0 +1,28 @@
+schema: 1
+story: 'shadow-network-detection-system'
+gate: CONCERNS
+status_reason: 'Revolutionary 3-layer GPT-5 system ready for customer beta with identified optimization opportunities for enterprise scale.'
+reviewer: 'Quinn'
+updated: '2025-09-14T09:30:00Z'
+top_issues:
+  - id: 'PERF-001'
+    severity: medium
+    finding: 'GPT-5 API calls may introduce latency for real-time detection scenarios'
+    suggested_action: 'Implement async processing with progress indicators for AI validation'
+  - id: 'TEST-001'
+    severity: medium
+    finding: 'Need integration tests for complete 3-layer detection workflow'
+    suggested_action: 'Add comprehensive test suite covering signal→AI→feedback flow'
+  - id: 'SEC-002'
+    severity: medium
+    finding: 'LLM API key management needs enterprise-grade secret management'
+    suggested_action: 'Implement secure key rotation and environment-based configuration'
+  - id: 'ARCH-001'
+    severity: low
+    finding: 'Database connection issues prevent full OAuth persistence testing'
+    suggested_action: 'Resolve Docker database connectivity for complete system validation'
+  - id: 'DOC-001'
+    severity: low
+    finding: 'GPT-5 cost implications need documentation for enterprise customers'
+    suggested_action: 'Document cost modeling and usage caps for customer planning'
+waiver: { active: false }

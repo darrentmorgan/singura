@@ -143,3 +143,4 @@ service-account-key*.json
 
 # OAuth Application Files
 OAuth\ Client\ ID*.json
+.vercel
