@@ -10,19 +10,22 @@ export class AIProviderDetectorService {
       apiEndpoints: ['api.openai.com', 'api.chat.openai.com'],
       userAgents: ['OpenAI-Python', 'ChatGPT-Integration'],
       contentSignatures: [
-        'model:', 
-        'openai_api_key', 
-        'text-davinci', 
-        'gpt-3.5-turbo'
+        'model:',
+        'openai_api_key',
+        'text-davinci',
+        'gpt-3.5-turbo',
+        'gpt-4',
+        'chatgpt'
       ]
     },
     anthropic: {
       apiEndpoints: ['api.anthropic.com', 'api.claude.ai'],
       userAgents: ['Anthropic-Python', 'Claude-Integration'],
       contentSignatures: [
-        'anthropic_api_key', 
-        'claude-v1', 
-        'claude-v2', 
+        'anthropic_api_key',
+        'claude-v1',
+        'claude-v2',
+        'claude-instant',
         'anthropic-'
       ]
     },
@@ -30,9 +33,20 @@ export class AIProviderDetectorService {
       apiEndpoints: ['api.cohere.ai', 'cohere.com/generate'],
       userAgents: ['Cohere-Python', 'Cohere-Integration'],
       contentSignatures: [
-        'cohere_api_key', 
-        'cohere.generate', 
+        'cohere_api_key',
+        'cohere.generate',
         'cohere-'
+      ]
+    },
+    huggingface: {
+      apiEndpoints: ['huggingface.co/api', 'inference-api.huggingface.co'],
+      userAgents: ['HuggingFace-Python', 'Hugging-Face-Integration'],
+      contentSignatures: [
+        'huggingface_api_key',
+        'transformers.',
+        'pipeline(',
+        'hf_token',
+        'huggingface'
       ]
     }
   };
@@ -51,45 +65,94 @@ export class AIProviderDetectorService {
   private analyzeEventForAIProvider(event: GoogleWorkspaceEvent): AutomationSignature | null {
     const userAgent = event.userAgent?.toLowerCase() || '';
     const actionDetails = JSON.stringify(event.actionDetails).toLowerCase();
-    const scriptContent = actionDetails.includes('script') 
-      ? actionDetails 
+    const scriptContent = actionDetails.includes('script')
+      ? actionDetails
       : '';
 
-    // Detect by API endpoints
-    const apiEndpointMatch = Object.entries(this.AI_DETECTION_PATTERNS).find(
-      ([_, patterns]) => patterns.apiEndpoints.some(
-        endpoint => actionDetails.includes(endpoint.toLowerCase())
-      )
+    // Enhanced detection with more comprehensive pattern matching
+    const matchedProviders = Object.entries(this.AI_DETECTION_PATTERNS).filter(
+      ([_, patterns]) =>
+        patterns.apiEndpoints.some(endpoint => actionDetails.includes(endpoint.toLowerCase())) ||
+        patterns.userAgents.some(agent => userAgent.includes(agent.toLowerCase())) ||
+        patterns.contentSignatures.some(signature => scriptContent.includes(signature.toLowerCase()))
     );
 
-    // Detect by user agent
-    const userAgentMatch = Object.entries(this.AI_DETECTION_PATTERNS).find(
-      ([_, patterns]) => patterns.userAgents.some(
-        agent => userAgent.includes(agent.toLowerCase())
-      )
-    );
+    // If multiple providers are detected, choose the most confident one
+    const matchedProvider = matchedProviders.length > 0
+      ? this.selectMostConfidentProvider(matchedProviders, event)
+      : null;
 
-    // Detect by content signatures
-    const contentSignatureMatch = Object.entries(this.AI_DETECTION_PATTERNS).find(
-      ([_, patterns]) => patterns.contentSignatures.some(
-        signature => scriptContent.includes(signature.toLowerCase())
-      )
-    );
-
-    const matchedProvider = apiEndpointMatch?.[0] || 
-                             userAgentMatch?.[0] || 
-                             contentSignatureMatch?.[0] || 
-                             'unknown';
-
-    if (matchedProvider !== 'unknown') {
-      return this.createAIProviderSignature(event, matchedProvider as keyof typeof this.AI_DETECTION_PATTERNS);
+    if (matchedProvider) {
+      const [provider] = matchedProvider;
+      return this.createAIProviderSignature(
+        event,
+        provider as keyof typeof this.AI_DETECTION_PATTERNS
+      );
     }
 
     return null;
   }
 
+  private selectMostConfidentProvider(
+    providers: [string, { apiEndpoints: string[], userAgents: string[], contentSignatures: string[] }][],
+    event: GoogleWorkspaceEvent
+  ): [string, { apiEndpoints: string[], userAgents: string[], contentSignatures: string[] }] | null {
+    const scoredProviders = providers.map(([provider, patterns]) => ({
+      provider,
+      confidence: this.calculateProviderConfidence(event, patterns)
+    }));
+
+    return scoredProviders.length > 0
+      ? providers[scoredProviders.findIndex(p => p.confidence === Math.max(...scoredProviders.map(sp => sp.confidence)))]
+      : null;
+  }
+
+  private calculateProviderConfidence(
+    event: GoogleWorkspaceEvent,
+    patterns: { apiEndpoints: string[], userAgents: string[], contentSignatures: string[] }
+  ): number {
+    const methods = [
+      this.scoreApiEndpointDetection(event, patterns.apiEndpoints),
+      this.scoreUserAgentDetection(event, patterns.userAgents),
+      this.scoreContentSignatureDetection(event, patterns.contentSignatures)
+    ];
+
+    const averageConfidence = methods.reduce((sum, score) => sum + score, 0) / methods.length;
+    return Math.min(Math.max(averageConfidence, 0), 100);
+  }
+
+  private scoreApiEndpointDetection(event: GoogleWorkspaceEvent, apiEndpoints: string[]): number {
+    const actionDetails = JSON.stringify(event.actionDetails).toLowerCase();
+
+    const matchCount = apiEndpoints.filter(
+      endpoint => actionDetails.includes(endpoint.toLowerCase())
+    ).length;
+
+    return matchCount * 40; // High weight for API endpoint detection
+  }
+
+  private scoreUserAgentDetection(event: GoogleWorkspaceEvent, userAgents: string[]): number {
+    const userAgent = event.userAgent?.toLowerCase() || '';
+
+    const matchCount = userAgents.filter(
+      agent => userAgent.includes(agent.toLowerCase())
+    ).length;
+
+    return matchCount * 30; // Medium weight for user agent
+  }
+
+  private scoreContentSignatureDetection(event: GoogleWorkspaceEvent, contentSignatures: string[]): number {
+    const actionDetails = JSON.stringify(event.actionDetails).toLowerCase();
+
+    const matchCount = contentSignatures.filter(
+      signature => actionDetails.includes(signature.toLowerCase())
+    ).length;
+
+    return matchCount * 30; // Medium weight for content signature
+  }
+
   private createAIProviderSignature(
-    event: GoogleWorkspaceEvent, 
+    event: GoogleWorkspaceEvent,
     provider: keyof typeof this.AI_DETECTION_PATTERNS
   ): AutomationSignature {
     const confidence = this.calculateConfidence(event, provider);
@@ -118,46 +181,13 @@ export class AIProviderDetectorService {
 
   private calculateConfidence(event: GoogleWorkspaceEvent, provider: string): number {
     const methods = [
-      this.scoreApiEndpointDetection(event, provider),
-      this.scoreUserAgentDetection(event, provider),
-      this.scoreContentSignatureDetection(event, provider)
+      this.scoreApiEndpointDetection(event, this.AI_DETECTION_PATTERNS[provider as keyof typeof this.AI_DETECTION_PATTERNS].apiEndpoints),
+      this.scoreUserAgentDetection(event, this.AI_DETECTION_PATTERNS[provider as keyof typeof this.AI_DETECTION_PATTERNS].userAgents),
+      this.scoreContentSignatureDetection(event, this.AI_DETECTION_PATTERNS[provider as keyof typeof this.AI_DETECTION_PATTERNS].contentSignatures)
     ];
 
     const averageConfidence = methods.reduce((sum, score) => sum + score, 0) / methods.length;
     return Math.min(Math.max(averageConfidence, 0), 100);
-  }
-
-  private scoreApiEndpointDetection(event: GoogleWorkspaceEvent, provider: string): number {
-    const patterns = this.AI_DETECTION_PATTERNS[provider as keyof typeof this.AI_DETECTION_PATTERNS];
-    const actionDetails = JSON.stringify(event.actionDetails).toLowerCase();
-    
-    const matchCount = patterns.apiEndpoints.filter(
-      endpoint => actionDetails.includes(endpoint.toLowerCase())
-    ).length;
-
-    return matchCount * 40; // High weight for API endpoint detection
-  }
-
-  private scoreUserAgentDetection(event: GoogleWorkspaceEvent, provider: string): number {
-    const patterns = this.AI_DETECTION_PATTERNS[provider as keyof typeof this.AI_DETECTION_PATTERNS];
-    const userAgent = event.userAgent?.toLowerCase() || '';
-    
-    const matchCount = patterns.userAgents.filter(
-      agent => userAgent.includes(agent.toLowerCase())
-    ).length;
-
-    return matchCount * 30; // Medium weight for user agent
-  }
-
-  private scoreContentSignatureDetection(event: GoogleWorkspaceEvent, provider: string): number {
-    const patterns = this.AI_DETECTION_PATTERNS[provider as keyof typeof this.AI_DETECTION_PATTERNS];
-    const actionDetails = JSON.stringify(event.actionDetails).toLowerCase();
-    
-    const matchCount = patterns.contentSignatures.filter(
-      signature => actionDetails.includes(signature.toLowerCase())
-    ).length;
-
-    return matchCount * 30; // Medium weight for content signature
   }
 
   private determineDetectionMethod(event: GoogleWorkspaceEvent): AutomationSignature['detectionMethod'] {
