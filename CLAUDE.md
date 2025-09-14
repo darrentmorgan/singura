@@ -2,14 +2,15 @@
 
 ## **🚨 CRITICAL PROTOCOL - READ FIRST EVERY TIME 🚨**
 
-### **MANDATORY PRE-ACTION CHECKLIST**
+### **MANDATORY PRE-ACTION CHECKLIST (BMAD ENHANCED)**
 
 **Before responding to ANY user request, you MUST:**
 
 1. **📋 Check Agent Dispatch Requirements** - Is this a task requiring specialized agents?
-2. **🔍 Reference SaaS X-Ray Context** - Does this relate to the existing project?  
-3. **📖 Consult Documentation Strategy** - Should Context7 be used for up-to-date docs?
-4. **⚡ Apply Immediate Dispatch Rule** - If complex, delegate NOW, don't attempt yourself
+2. **🔍 Reference SaaS X-Ray Context** - Does this relate to the existing project?
+3. **💰 VALIDATE BMAD BUSINESS PRIORITY** - Check revenue impact in docs/bmad/
+4. **📖 Consult Documentation Strategy** - Should Context7 be used for up-to-date docs?
+5. **⚡ Apply Immediate Dispatch Rule** - If complex, delegate NOW, don't attempt yourself
 
 ### **🎯 IMMEDIATE DISPATCH TRIGGERS (NO EXCEPTIONS)**
 
@@ -23,6 +24,107 @@ If the request contains ANY of these keywords or concepts, **IMMEDIATELY** invok
 - **Detection Keywords**: `discover`, `monitor`, `scan`, `correlate`, `risk assessment`
 
 **❌ NEVER attempt these tasks yourself. ✅ ALWAYS dispatch to agent_organizer.**
+
+---
+
+## **💰 BMAD BUSINESS CONTEXT INTEGRATION**
+
+### **MANDATORY BUSINESS-FIRST VALIDATION**
+
+Before any technical decision, agents MUST reference BMAD documentation for business context:
+
+#### **🎯 Business Impact Validation Framework**
+
+**Step 1: Revenue Impact Assessment**
+- **📊 Market Position**: Does this align with revenue goals in `docs/bmad/project-brief.md`?
+- **💵 Pricing Tier Impact**: Will this enable higher subscription tiers ($299→$999→$2999)?
+- **🎯 Customer Success**: Does this reduce time-to-value or increase retention?
+
+**Step 2: Priority Validation (P0-P3 Framework)**
+- **P0 (Revenue Blocker)**: Prevents customer acquisition or causes immediate churn
+- **P1 (Revenue Driver)**: Directly increases ARR or enables premium pricing
+- **P2 (Revenue Enabler)**: Supports future revenue growth or market expansion
+- **P3 (Revenue Neutral)**: Technical debt with minimal business impact
+
+Reference: `docs/bmad/epic-story-breakdown.md` for complete priority framework
+
+**Step 3: Architecture Alignment Check**
+- **🏗️ Scalability**: Does this support business scaling in `docs/bmad/architecture-bmad.md`?
+- **🔒 Enterprise Requirements**: Does this meet enterprise buyer needs for $2999+ tier?
+- **⚡ Performance**: Does this maintain competitive advantage through speed?
+
+**Step 4: Implementation Gap Analysis**
+- **📋 Critical Gaps**: Is this addressing P0/P1 gaps in `docs/bmad/implementation-gap-analysis.md`?
+- **🔄 Revenue Risk**: What's the opportunity cost of NOT implementing this?
+- **⏰ Timeline**: How does this align with revenue milestone targets?
+
+### **🚀 BMAD-Enhanced Agent Dispatch Protocol**
+
+```typescript
+interface BMADValidatedRequest {
+  businessContext: {
+    revenueImpact: "P0 Revenue Blocker" | "P1 Revenue Driver" | "P2 Revenue Enabler" | "P3 Revenue Neutral";
+    marketPosition: "Competitive Advantage" | "Table Stakes" | "Differentiation" | "Nice to Have";
+    customerValue: "Immediate" | "Short-term" | "Long-term" | "Minimal";
+    riskMitigation: "Critical" | "High" | "Medium" | "Low";
+  };
+
+  technicalExecution: {
+    dispatchRequired: boolean;
+    agentSpecialization: string[];
+    businessValidation: boolean;
+  };
+}
+```
+
+### **📚 BMAD Documentation Quick Reference**
+
+#### **Strategic Business Context**
+- **📊 Market & Revenue Strategy**: [`docs/bmad/project-brief.md`](docs/bmad/project-brief.md)
+  - $2.3B market opportunity, competitive positioning
+  - Revenue model validation ($299-2999/month tiers)
+  - Go-to-market strategy and customer success metrics
+
+- **📋 Business-Driven Product Spec**: [`docs/bmad/prd-bmad.md`](docs/bmad/prd-bmad.md)
+  - Revenue-driven user stories with business impact
+  - Competitive feature requirements for revenue protection
+  - Success metrics correlated to revenue growth
+
+#### **Technical Business Alignment**
+- **🏗️ Business-Aligned Architecture**: [`docs/bmad/architecture-bmad.md`](docs/bmad/architecture-bmad.md)
+  - Revenue-scalable technology stack decisions
+  - Business-critical detection algorithms
+  - Enterprise-grade security for premium pricing
+
+- **📝 Revenue-Prioritized Development**: [`docs/bmad/epic-story-breakdown.md`](docs/bmad/epic-story-breakdown.md)
+  - P0-P3 priority framework based on revenue impact
+  - Business value mapping for each epic and story
+  - Implementation status with revenue validation
+
+#### **Implementation Intelligence**
+- **🔍 Business Gap Analysis**: [`docs/bmad/implementation-gap-analysis.md`](docs/bmad/implementation-gap-analysis.md)
+  - Critical gaps blocking revenue growth
+  - Business-impact gap assessment methodology
+  - Mitigation roadmap prioritized by revenue impact
+
+- **📖 BMAD Methodology Guide**: [`docs/bmad/bmad-methodology.md`](docs/bmad/bmad-methodology.md)
+  - Complete business-first development framework
+  - Integration guidelines and best practices
+
+### **⚡ Revenue-First Development Protocol**
+
+**All agents MUST validate business impact before technical implementation:**
+
+1. **Business Context First**: Reference BMAD docs for revenue/market context
+2. **Priority Validation**: Confirm P0-P3 priority based on business impact
+3. **Technical Excellence**: Implement with full TypeScript/testing standards
+4. **Revenue Correlation**: Measure success by business outcomes, not just technical metrics
+
+**Success Criteria Integration:**
+- ✅ Technical implementation achieves business objectives from BMAD docs
+- ✅ Feature priority aligns with revenue impact (P0-P3 framework)
+- ✅ Architecture decisions support business model scaling
+- ✅ Customer success metrics improve through technical excellence
 
 ---
 
@@ -592,16 +694,17 @@ export const TEST_OAUTH_CREDENTIALS: OAuthCredentials = {
 - Log all data access and modifications
 - Comply with GDPR and other regulations
 
-### Decision Framework
+### Decision Framework (BMAD Enhanced)
 
-When multiple solutions exist (via agents), prioritize:
+When multiple solutions exist (via agents), prioritize in this order:
 
-1. **Security** – Does this maintain OAuth security and data protection?
-2. **Testability** – Can OAuth flows and detection logic be tested in isolation?
-3. **Readability** – Will another dev understand this in 6 months?
-4. **Consistency** – Matches existing API/UI/security patterns?
-5. **Simplicity** – Is this the least complex full-stack solution?
-6. **Reversibility** – Can we swap OAuth providers/detection methods easily?
+1. **💰 Business Value (BMAD)** – Revenue impact and customer value from docs/bmad/
+2. **🔒 Security** – Does this maintain OAuth security and data protection?
+3. **🧪 Testability** – Can OAuth flows and detection logic be tested in isolation?
+4. **📖 Readability** – Will another dev understand this in 6 months?
+5. **🔄 Consistency** – Matches existing patterns and BMAD architecture?
+6. **⚡ Simplicity** – Least complex solution achieving business goals
+7. **🔄 Reversibility** – Can we swap OAuth providers/detection methods easily?
 
 ---
 
@@ -862,7 +965,7 @@ interface ConnectorRepository extends Repository<PlatformConnector> {
 
 ---
 
-## **🎯 Success Metrics (TypeScript Migration Enhanced)**
+## **🎯 Success Metrics (BMAD + TypeScript Excellence)**
 
 **Migration Achievement Status:**
 - ✅ **99% TypeScript Migration Complete** - Near-perfect error reduction achieved (199+ → ~5 errors estimated)
@@ -877,26 +980,43 @@ interface ConnectorRepository extends Repository<PlatformConnector> {
 - 🔄 **Production API Integration Target** - Connect detection algorithms to live Google APIs
 
 **You are succeeding when:**
-- 95%+ of complex requests are dispatched to agents
-- Users receive comprehensive, expert solutions with proper TypeScript context
-- SaaS X-Ray patterns and shared-types architecture are properly leveraged
-- OAuth security requirements use ExtendedTokenResponse pattern
-- Code quality remains high through agent oversight and type safety
-- TypeScript error count continues to decrease toward zero
-- All new code uses shared-types imports and T | null patterns
-- Advanced OAuth integrations like Slack have comprehensive security handling
-- Live OAuth connections working with real enterprise workspaces
-- PDF generation system operational with professional report templates
-- QA-validated user experience with comprehensive testing coverage
+
+**🎯 BMAD Business Alignment:**
+- All technical decisions reference BMAD documentation for business context
+- Feature priority aligns with P0-P3 revenue impact framework from docs/bmad/
+- Implementation addresses critical gaps identified in BMAD gap analysis
+- Technical architecture supports business model scaling (docs/bmad/architecture-bmad.md)
+- Customer success metrics improve through business-focused development
+
+**⚡ Technical Excellence + Business Value:**
+- 95%+ of complex requests are dispatched to agents with BMAD context validation
+- Users receive expert solutions that achieve both technical and business objectives
+- SaaS X-Ray patterns and shared-types architecture properly leveraged for revenue goals
+- OAuth security requirements use ExtendedTokenResponse pattern for enterprise sales
+- Code quality remains high while delivering measurable business outcomes
+- TypeScript error count decreases toward zero without sacrificing business priorities
+- All new code uses shared-types imports and supports revenue-tier differentiation
+- Advanced OAuth integrations enable premium pricing and enterprise deals
+- Live OAuth connections working with real enterprise workspaces for customer validation
+- PDF generation and compliance features support revenue expansion opportunities
 
 **You are failing when:**
-- You attempt complex solutions yourself without considering shared-types
-- Users get partial or incomplete technical responses lacking type safety context
-- SaaS X-Ray context is ignored or shared-types architecture misapplied
-- Security requirements are overlooked or implemented without proper typing
-- Code changes lack proper analysis, testing, or TypeScript coverage
-- TypeScript error count increases or shared-types patterns are bypassed
-- OAuth integrations lack comprehensive security and encryption measures
+
+**🚫 BMAD Business Misalignment:**
+- Technical decisions made without referencing BMAD business context documentation
+- Feature priority ignores P0-P3 revenue impact framework from docs/bmad/
+- Implementation doesn't address critical business gaps identified in BMAD analysis
+- Architecture choices don't support business model scaling or revenue goals
+- Technical metrics prioritized over business outcomes and customer success
+
+**❌ Technical Execution Without Business Context:**
+- You attempt complex solutions yourself without considering BMAD + shared-types context
+- Users get technical responses that lack business value and revenue correlation
+- SaaS X-Ray context ignored or shared-types architecture misapplied for business goals
+- Security requirements implemented without considering enterprise sales impact
+- Code changes lack proper business analysis, testing, and revenue outcome validation
+- TypeScript improvements pursued without connection to business objectives
+- OAuth integrations lack comprehensive security needed for premium tier pricing
 
 ---
 
@@ -917,4 +1037,4 @@ interface ConnectorRepository extends Repository<PlatformConnector> {
 
 ---
 
-**🔥 FINAL REMINDER: This protocol is MANDATORY, not optional. Every complex request gets dispatched. Every SaaS X-Ray request leverages full context and security requirements. OAuth integrations ALWAYS require agent expertise. No exceptions.**
+**🔥 FINAL REMINDER: This protocol is MANDATORY, not optional. Every complex request gets dispatched with BMAD business context validation. Every SaaS X-Ray request leverages full business and technical context from docs/bmad/. OAuth integrations ALWAYS require agent expertise with revenue impact assessment. All technical decisions MUST reference business priorities (P0-P3) and revenue goals. No exceptions.**
