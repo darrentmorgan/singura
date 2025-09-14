@@ -15,6 +15,7 @@ export * from './utils/google-api-client';
 export * from './utils/cross-platform-correlation';
 export * from './utils/admin-logging';
 export * from './utils/oauth-credential-storage';
+export * from './utils/memory-storage';
 
 // Domain model types
 export * from './models/automation';

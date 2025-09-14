@@ -12,6 +12,7 @@ import automationRoutes from './routes/automations-mock';
 import devRoutes from './routes/dev-routes';
 import { getDataProvider, isDataToggleEnabled } from './services/data-provider';
 import { platformConnectionRepository } from './database/repositories/platform-connection';
+import { hybridStorage } from './services/hybrid-storage';
 
 // Load environment variables
 dotenv.config();
@@ -155,45 +156,49 @@ app.get('/api/auth/callback/slack', async (req: Request, res: Response) => {
     // For now, simulate successful connection and store it
     const frontendUrl = process.env.CORS_ORIGIN || 'http://localhost:4200';
     
-    // Add the successful connection to database
+    // Use hybrid storage for resilient OAuth connection persistence
     const organizationId = 'demo-org-id';
     const platformUserId = `slack-user-${Date.now()}`;
     
-    // Check if Slack is already connected (avoid duplicates)
-    const existingSlack = await platformConnectionRepository.findByPlatform(organizationId, 'slack');
-    let savedConnection;
-    
-    if (existingSlack.length === 0) {
-      // Create new connection in database
-      savedConnection = await platformConnectionRepository.create({
-        organization_id: organizationId,
-        platform_type: 'slack',
-        platform_user_id: platformUserId,
-        display_name: 'Slack - Test Workspace',
-        permissions_granted: ['channels:read', 'users:read', 'team:read'],
-        metadata: {
-          platformSpecific: {
-            slack: {
-              team_id: 'demo-team-id',
-              team_name: 'Test Workspace',
-              user_id: platformUserId,
-              scope: 'channels:read,users:read,team:read'
-            }
+    const connectionData = {
+      organization_id: organizationId,
+      platform_type: 'slack',
+      platform_user_id: platformUserId,
+      display_name: 'Slack - Test Workspace',
+      permissions_granted: ['channels:read', 'users:read', 'team:read'],
+      metadata: {
+        platformSpecific: {
+          slack: {
+            team_id: 'demo-team-id',
+            team_name: 'Test Workspace',
+            user_id: platformUserId,
+            scope: 'channels:read,users:read,team:read'
           }
         }
-      });
-      console.log('Added new Slack connection to database:', savedConnection.id);
-    } else {
-      // Update existing connection
-      const existing = existingSlack[0];
-      savedConnection = await platformConnectionRepository.updateStatus(existing.id, 'active');
-      console.log('Updated existing Slack connection in database:', existing.id);
+      }
+    };
+
+    const storageResult = await hybridStorage.storeConnection(connectionData);
+    
+    // Construct success URL with storage result information
+    let successUrl = `${frontendUrl}/connections?success=true&platform=slack`;
+    if (storageResult.success && storageResult.data?.id) {
+      successUrl += `&connection=${storageResult.data.id}`;
     }
     
-    console.log('Slack OAuth callback successful, redirecting to:', `${frontendUrl}/connections?success=true&platform=slack`);
+    // Add storage mode and warning information
+    successUrl += `&storage=${storageResult.storageMode}`;
+    if (storageResult.warning) {
+      successUrl += `&storage_info=${encodeURIComponent(storageResult.warning)}`;
+    }
+    if (storageResult.usedFallback) {
+      successUrl += `&fallback=true`;
+    }
     
-    // Redirect back to frontend with success status
-    res.redirect(`${frontendUrl}/connections?success=true&platform=slack&connection=${savedConnection?.id}`);
+    console.log('✅ Slack OAuth callback successful, redirecting to:', successUrl);
+    
+    // Redirect back to frontend with success status (OAuth succeeded regardless of DB issues)
+    res.redirect(successUrl);
   } catch (error) {
     console.error('Unexpected OAuth callback error', error);
     const frontendUrl = process.env.CORS_ORIGIN || 'http://localhost:4200';
@@ -297,46 +302,50 @@ app.get('/api/auth/callback/google', async (req: Request, res: Response) => {
     // For now, simulate successful connection and store it
     const frontendUrl = process.env.CORS_ORIGIN || 'http://localhost:4200';
     
-    // Add the successful connection to database
+    // Use hybrid storage for resilient OAuth connection persistence
     const organizationId = 'demo-org-id';
     const platformUserId = `google-user-${Date.now()}`;
     
-    // Check if Google is already connected (avoid duplicates)
-    const existingGoogle = await platformConnectionRepository.findByPlatform(organizationId, 'google');
-    let savedConnection;
-    
-    if (existingGoogle.length === 0) {
-      // Create new connection in database
-      savedConnection = await platformConnectionRepository.create({
-        organization_id: organizationId,
-        platform_type: 'google',
-        platform_user_id: platformUserId,
-        display_name: 'Google Workspace - Demo Organization',
-        permissions_granted: ['admin.directory.user.readonly', 'admin.directory.group.readonly', 'admin.reports.audit.readonly'],
-        metadata: {
-          platformSpecific: {
-            google: {
-              email: `demo@example.com`,
-              domain: 'example.com',
-              workspace_domain: 'example.com',
-              scopes: ['admin.directory.user.readonly', 'admin.directory.group.readonly', 'admin.reports.audit.readonly'],
-              token_type: 'Bearer'
-            }
+    const connectionData = {
+      organization_id: organizationId,
+      platform_type: 'google',
+      platform_user_id: platformUserId,
+      display_name: 'Google Workspace - Demo Organization',
+      permissions_granted: ['admin.directory.user.readonly', 'admin.directory.group.readonly', 'admin.reports.audit.readonly'],
+      metadata: {
+        platformSpecific: {
+          google: {
+            email: `demo@example.com`,
+            domain: 'example.com',
+            workspace_domain: 'example.com',
+            scopes: ['admin.directory.user.readonly', 'admin.directory.group.readonly', 'admin.reports.audit.readonly'],
+            token_type: 'Bearer'
           }
         }
-      });
-      console.log('Added new Google connection to database:', savedConnection.id);
-    } else {
-      // Update existing connection
-      const existing = existingGoogle[0];
-      savedConnection = await platformConnectionRepository.updateStatus(existing.id, 'active');
-      console.log('Updated existing Google connection in database:', existing.id);
+      }
+    };
+
+    const storageResult = await hybridStorage.storeConnection(connectionData);
+    
+    // Construct success URL with storage result information
+    let successUrl = `${frontendUrl}/connections?success=true&platform=google`;
+    if (storageResult.success && storageResult.data?.id) {
+      successUrl += `&connection=${storageResult.data.id}`;
     }
     
-    console.log('Google OAuth callback successful, redirecting to:', `${frontendUrl}/connections?success=true&platform=google`);
+    // Add storage mode and warning information
+    successUrl += `&storage=${storageResult.storageMode}`;
+    if (storageResult.warning) {
+      successUrl += `&storage_info=${encodeURIComponent(storageResult.warning)}`;
+    }
+    if (storageResult.usedFallback) {
+      successUrl += `&fallback=true`;
+    }
     
-    // Redirect back to frontend with success status
-    res.redirect(`${frontendUrl}/connections?success=true&platform=google&connection=${savedConnection?.id}`);
+    console.log('✅ Google OAuth callback successful, redirecting to:', successUrl);
+    
+    // Redirect back to frontend with success status (OAuth succeeded regardless of DB issues)
+    res.redirect(successUrl);
   } catch (error) {
     console.error('Unexpected Google OAuth callback error', error);
     const frontendUrl = process.env.CORS_ORIGIN || 'http://localhost:4200';
@@ -346,16 +355,27 @@ app.get('/api/auth/callback/google', async (req: Request, res: Response) => {
   }
 });
 
-// Connections endpoint - returns OAuth connected platforms from database
+// Connections endpoint - returns OAuth connected platforms from hybrid storage
 app.get('/api/connections', async (req: Request, res: Response) => {
   try {
-    // Fetch connections from database for the demo organization
+    // Fetch connections from hybrid storage for the demo organization
     const organizationId = 'demo-org-id';
-    const connections = await platformConnectionRepository.findByOrganization(organizationId);
+    const storageResult = await hybridStorage.getConnections(organizationId);
     
-    console.log(`Connections requested, found ${connections.length} connections from database`);
+    if (!storageResult.success) {
+      console.error('Failed to fetch connections from hybrid storage:', storageResult.error);
+      return res.status(500).json({
+        success: false,
+        error: storageResult.error || 'Failed to fetch connections',
+        storageMode: storageResult.storageMode,
+        usedFallback: storageResult.usedFallback
+      });
+    }
+
+    const connections = storageResult.data || [];
+    console.log(`Connections requested, found ${connections.length} connections from ${storageResult.storageMode} storage`);
     
-    // Transform database connections to match the frontend expected format
+    // Transform connections to match the frontend expected format
     const transformedConnections = connections.map(conn => ({
       id: conn.id,
       organization_id: conn.organization_id,
@@ -376,14 +396,23 @@ app.get('/api/connections', async (req: Request, res: Response) => {
         limit: 20,
         total: connections.length,
         totalPages: Math.ceil(connections.length / 20)
+      },
+      // Add hybrid storage information
+      storageInfo: {
+        mode: storageResult.storageMode,
+        databaseAttempted: storageResult.databaseAttempted,
+        usedFallback: storageResult.usedFallback,
+        warning: storageResult.warning,
+        executionTime: storageResult.metadata?.executionTime
       }
     });
   } catch (error) {
-    console.error('Failed to fetch connections from database:', error);
+    console.error('Unexpected error in connections endpoint:', error);
     res.status(500).json({
       success: false,
-      error: error instanceof Error ? error.message : 'Failed to fetch connections',
-      usingMockData: false
+      error: error instanceof Error ? error.message : 'Unexpected error fetching connections',
+      storageMode: 'unknown',
+      usedFallback: false
     });
   }
 });
@@ -611,6 +640,47 @@ app.get('/api/config/data-mode', (req: Request, res: Response) => {
       environment: process.env.NODE_ENV || 'development'
     }
   });
+});
+
+// Storage status endpoint for debugging and monitoring
+app.get('/api/admin/storage-status', (req: Request, res: Response) => {
+  try {
+    const storageStatus = hybridStorage.getStorageStatus();
+    const storageStatistics = hybridStorage.getStorageStatistics();
+    
+    res.json({
+      success: true,
+      status: storageStatus,
+      statistics: storageStatistics,
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    console.error('Failed to get storage status:', error);
+    res.status(500).json({
+      success: false,
+      error: error instanceof Error ? error.message : 'Failed to get storage status'
+    });
+  }
+});
+
+// Endpoint to manually trigger pending item persistence
+app.post('/api/admin/persist-memory', async (req: Request, res: Response) => {
+  try {
+    const result = await hybridStorage.persistPendingItems();
+    
+    res.json({
+      success: true,
+      result,
+      message: `Persistence completed: ${result.succeeded} succeeded, ${result.failed} failed`,
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    console.error('Failed to persist memory items:', error);
+    res.status(500).json({
+      success: false,
+      error: error instanceof Error ? error.message : 'Failed to persist memory items'
+    });
+  }
 });
 
 // 404 handler
