@@ -386,6 +386,20 @@ export class OAuthCredentialStorageService implements OAuthCredentialStorage, Li
   }
 
   /**
+   * Get all stored connections for the data provider
+   */
+  getStoredConnections(): StoredConnectionInfo[] {
+    return Array.from(this.connectionInfo.values());
+  }
+
+  /**
+   * Get credentials by connection ID (alias for retrieveCredentials)
+   */
+  async getCredentials(connectionId: string): Promise<GoogleOAuthCredentials | null> {
+    return this.retrieveCredentials(connectionId);
+  }
+
+  /**
    * Get debug information for troubleshooting
    */
   getDebugInfo(): { storedConnections: number; activeAPIClients: number; connectionIds: string[] } {

@@ -6,7 +6,8 @@
  */
 
 import { google, Auth } from 'googleapis';
-import { 
+import { AutomationEvent } from '../connectors/types';
+import {
   GoogleAPIClient,
   GoogleOAuthCredentials,
   GoogleAuditLogOptions,
@@ -501,5 +502,359 @@ export class GoogleAPIClientService implements GoogleAPIClient {
       hasCredentials: !!this.credentials,
       credentialsValid: !!this.credentials?.accessToken
     };
+  }
+
+  /**
+   * Comprehensive Google Workspace automation discovery orchestration
+   * Combines all detection methods for complete shadow AI visibility
+   * BMAD P0 Priority: Revenue-enabling production API integration
+   */
+  async discoverAutomations(options?: {
+    dateRange?: DateRange;
+    includeAppsScript?: boolean;
+    includeServiceAccounts?: boolean;
+    includeEmailAutomation?: boolean;
+    includeDriveActivity?: boolean;
+  }): Promise<AutomationEvent[]> {
+    try {
+      console.log('🚀 Starting comprehensive Google Workspace automation discovery...');
+
+      const startTime = Date.now();
+      const automations: AutomationEvent[] = [];
+
+      // Default to last 30 days for automation discovery
+      const defaultRange: DateRange = {
+        startDate: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000), // 30 days ago
+        endDate: new Date()
+      };
+
+      const timeRange = options?.dateRange || defaultRange;
+      const config = {
+        includeAppsScript: options?.includeAppsScript !== false,
+        includeServiceAccounts: options?.includeServiceAccounts !== false,
+        includeEmailAutomation: options?.includeEmailAutomation !== false,
+        includeDriveActivity: options?.includeDriveActivity !== false
+      };
+
+      console.log('🔍 Discovery configuration:', {
+        timeRange: {
+          startDate: timeRange.startDate.toISOString(),
+          endDate: timeRange.endDate.toISOString()
+        },
+        ...config
+      });
+
+      // 1. Discover Apps Script automations (highest AI/automation risk)
+      if (config.includeAppsScript) {
+        try {
+          console.log('📜 Discovering Apps Script projects...');
+          const appsScriptProjects = await this.getAppsScriptProjects();
+
+          for (const project of appsScriptProjects) {
+            const automation: AutomationEvent = {
+              id: `apps-script-${project.scriptId}`,
+              name: project.title || `Apps Script Project ${project.scriptId.substring(0, 8)}`,
+              type: 'workflow',
+              platform: 'google',
+              status: 'active',
+              trigger: project.triggers.length > 0 ? 'event' : 'manual',
+              actions: project.functions.map(f => f.name) || ['script_execution'],
+              createdAt: project.createTime,
+              lastTriggered: project.updateTime,
+              lastModified: project.updateTime,
+              riskLevel: this.calculateAppsScriptRisk(project),
+              metadata: {
+                scriptId: project.scriptId,
+                description: project.description || `Apps Script: ${project.title}`,
+                parentType: project.parentId ? 'BOUND' : 'STANDALONE',
+                triggers: project.triggers.map(t => t.eventType || 'UNKNOWN'),
+                functions: project.functions.map(f => f.name),
+                permissions: project.permissions.map(p => this.mapScopeToPermission(p.scope)),
+                aiEndpoints: this.detectAIEndpoints(project.functions.map(f => f.name)),
+                riskFactors: this.generateAppsScriptRiskFactors(project)
+              }
+            };
+
+            automations.push(automation);
+          }
+
+          console.log(`📜 Found ${appsScriptProjects.length} Apps Script projects`);
+        } catch (error) {
+          console.warn('Apps Script discovery failed:', error instanceof Error ? error.message : 'Unknown error');
+        }
+      }
+
+      // 2. Discover Service Account automations
+      if (config.includeServiceAccounts) {
+        try {
+          console.log('🤖 Discovering Service Accounts...');
+          const serviceAccounts = await this.getServiceAccounts();
+
+          for (const sa of serviceAccounts) {
+            const automation: AutomationEvent = {
+              id: `service-account-${sa.uniqueId}`,
+              name: sa.displayName || sa.email.split('@')[0] || 'Unknown Service Account',
+              type: 'integration',
+              platform: 'google',
+              status: sa.disabledTime ? 'inactive' : 'active',
+              trigger: 'api_key',
+              actions: ['api_calls', 'data_access'],
+              createdAt: sa.createTime,
+              lastTriggered: new Date(), // Service accounts don't have last activity in basic info
+              riskLevel: this.calculateServiceAccountRisk(sa),
+              metadata: {
+                email: sa.email,
+                description: sa.description || `Service Account: ${sa.displayName}`,
+                projectId: sa.projectId,
+                keyCount: sa.keys.length,
+                roles: sa.roles,
+                hasAdminAccess: sa.riskAssessment.hasAdminAccess,
+                riskFactors: this.generateServiceAccountRiskFactors(sa)
+              }
+            };
+
+            automations.push(automation);
+          }
+
+          console.log(`🤖 Found ${serviceAccounts.length} Service Accounts`);
+        } catch (error) {
+          console.warn('Service Account discovery failed:', error instanceof Error ? error.message : 'Unknown error');
+        }
+      }
+
+      // 3. Discover Email automations (filters, rules, etc.)
+      if (config.includeEmailAutomation) {
+        try {
+          console.log('📧 Discovering Email automations...');
+          const emailAutomations = await this.getEmailAutomation(timeRange);
+
+          for (const email of emailAutomations) {
+            const automation: AutomationEvent = {
+              id: `email-automation-${email.filterId || email.forwardingRule || 'unknown'}`,
+              name: email.description || 'Email Automation',
+              type: 'workflow',
+              platform: 'google',
+              status: email.enabled ? 'active' : 'inactive',
+              trigger: 'email_received',
+              actions: ['email_processing', 'automation_trigger'],
+              createdAt: email.createdDate,
+              lastTriggered: email.lastActivity,
+              riskLevel: email.automationType === 'forwarding' ? 'high' : 'medium',
+              metadata: {
+                description: `Email automation: ${email.automationType}`,
+                automationType: email.automationType,
+                externalDestinations: email.externalDestinations,
+                riskFactors: email.riskFactors
+              }
+            };
+
+            automations.push(automation);
+          }
+
+          console.log(`📧 Found ${emailAutomations.length} Email automations`);
+        } catch (error) {
+          console.warn('Email automation discovery failed:', error instanceof Error ? error.message : 'Unknown error');
+        }
+      }
+
+      const executionTimeMs = Date.now() - startTime;
+
+      console.log('✅ Google Workspace automation discovery completed:', {
+        totalAutomations: automations.length,
+        executionTimeMs,
+        breakdown: {
+          appsScript: automations.filter(a => a.type === 'workflow' && a.id.startsWith('apps-script')).length,
+          serviceAccounts: automations.filter(a => a.type === 'integration').length,
+          emailAutomations: automations.filter(a => a.type === 'workflow' && a.id.startsWith('email-automation')).length
+        }
+      });
+
+      return automations;
+
+    } catch (error) {
+      console.error('Google Workspace automation discovery failed:', error);
+      throw new Error(`Automation discovery failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  /**
+   * Calculate Apps Script project risk level based on permissions and patterns
+   */
+  private calculateAppsScriptRisk(project: GoogleAppsScriptProject): 'low' | 'medium' | 'high' {
+    let riskScore = 0;
+
+    // Check for AI-related patterns
+    const aiPatterns = ['openai', 'chatgpt', 'claude', 'anthropic', 'gemini', 'ai', 'gpt'];
+    const hasAIPatterns = project.functions.some(func =>
+      aiPatterns.some(pattern => func.name.toLowerCase().includes(pattern))
+    );
+    if (hasAIPatterns) riskScore += 3;
+
+    // Check for external URL permissions (potential AI API calls)
+    if (project.permissions.some(perm => perm.scope.includes('external') || perm.scope.includes('url'))) {
+      riskScore += 2;
+    }
+
+    // Check for broad data access permissions
+    const sensitiveScopes = ['drive', 'sheets', 'docs', 'gmail', 'calendar'];
+    const hasSensitiveAccess = project.permissions.some(perm =>
+      sensitiveScopes.some(sensitive => perm.scope.includes(sensitive))
+    );
+    if (hasSensitiveAccess) riskScore += 2;
+
+    // Check for automated triggers
+    if (project.triggers.length > 0) riskScore += 1;
+
+    if (riskScore >= 5) return 'high';
+    if (riskScore >= 3) return 'medium';
+    return 'low';
+  }
+
+  /**
+   * Calculate Service Account risk level
+   */
+  private calculateServiceAccountRisk(sa: GoogleServiceAccountInfo): 'low' | 'medium' | 'high' {
+    let riskScore = 0;
+
+    // Multiple keys increase attack surface
+    if (sa.keys.length > 2) riskScore += 2;
+
+    // Admin access is high risk
+    if (sa.riskAssessment.hasAdminAccess) riskScore += 3;
+
+    // Broad roles indicate high privileges
+    const highRiskRoles = ['editor', 'owner', 'admin'];
+    if (sa.roles.some(role => highRiskRoles.some(risk => role.includes(risk)))) {
+      riskScore += 2;
+    }
+
+    // Third-party service account patterns
+    const thirdPartyPatterns = ['automation', 'integration', 'bot', 'service'];
+    if (thirdPartyPatterns.some(pattern => sa.email.includes(pattern))) {
+      riskScore += 1;
+    }
+
+    if (riskScore >= 5) return 'high';
+    if (riskScore >= 3) return 'medium';
+    return 'low';
+  }
+
+  /**
+   * Map OAuth scope to readable permission
+   */
+  private mapScopeToPermission(scope: string): string {
+    const scopeMap: Record<string, string> = {
+      'https://www.googleapis.com/auth/drive': 'DRIVE_FULL',
+      'https://www.googleapis.com/auth/drive.readonly': 'DRIVE_READ',
+      'https://www.googleapis.com/auth/spreadsheets': 'SHEETS_FULL',
+      'https://www.googleapis.com/auth/documents': 'DOCS_FULL',
+      'https://www.googleapis.com/auth/gmail': 'GMAIL_FULL',
+      'https://www.googleapis.com/auth/script.external_request': 'EXTERNAL_URL'
+    };
+
+    return scopeMap[scope] || scope.split('/').pop()?.toUpperCase() || 'UNKNOWN';
+  }
+
+  /**
+   * Detect AI endpoints in Apps Script functions
+   */
+  private detectAIEndpoints(functions: string[]): string[] {
+    const aiEndpoints: string[] = [];
+
+    // Check function names for AI patterns
+    const aiPatterns = [
+      { pattern: /openai|chatgpt|gpt/i, endpoint: 'https://api.openai.com/v1/chat/completions' },
+      { pattern: /claude|anthropic/i, endpoint: 'https://api.anthropic.com/v1/messages' },
+      { pattern: /cohere/i, endpoint: 'https://api.cohere.ai/v1/generate' },
+      { pattern: /gemini|bard/i, endpoint: 'https://generativelanguage.googleapis.com/v1/models' }
+    ];
+
+    for (const func of functions) {
+      for (const { pattern, endpoint } of aiPatterns) {
+        if (pattern.test(func)) {
+          aiEndpoints.push(endpoint);
+          break; // Only add one endpoint per function
+        }
+      }
+    }
+
+    return [...new Set(aiEndpoints)]; // Remove duplicates
+  }
+
+  /**
+   * Generate Apps Script risk factors
+   */
+  private generateAppsScriptRiskFactors(project: GoogleAppsScriptProject): string[] {
+    const riskFactors: string[] = [];
+
+    // Check for AI patterns
+    const hasAI = this.detectAIEndpoints(project.functions.map(f => f.name)).length > 0;
+    if (hasAI) {
+      riskFactors.push('Contains AI service integration patterns');
+      riskFactors.push('Potential external API calls to AI providers');
+    }
+
+    // Check for sensitive permissions
+    if (project.permissions.some(perm => perm.scope.includes('drive') || perm.scope.includes('sheets'))) {
+      riskFactors.push('Has access to documents and spreadsheet data');
+    }
+
+    if (project.permissions.some(perm => perm.scope.includes('gmail'))) {
+      riskFactors.push('Has email access permissions');
+    }
+
+    // Check for automation triggers
+    if (project.triggers.length > 0) {
+      riskFactors.push(`Automated execution via ${project.triggers.length} trigger(s)`);
+      riskFactors.push('Processes data without direct human oversight');
+    }
+
+    // Check for external URL access
+    if (project.permissions.some(perm => perm.scope.includes('external') || perm.scope.includes('url'))) {
+      riskFactors.push('Can make external HTTP requests');
+    }
+
+    // Recent activity
+    const daysSinceUpdate = Math.floor((Date.now() - project.updateTime.getTime()) / (24 * 60 * 60 * 1000));
+    if (daysSinceUpdate <= 7) {
+      riskFactors.push('Recently active or modified');
+    }
+
+    return riskFactors;
+  }
+
+  /**
+   * Generate Service Account risk factors
+   */
+  private generateServiceAccountRiskFactors(sa: GoogleServiceAccountInfo): string[] {
+    const riskFactors: string[] = [];
+
+    if (sa.keys.length > 2) {
+      riskFactors.push(`Multiple API keys (${sa.keys.length}) increase attack surface`);
+    }
+
+    if (sa.riskAssessment.hasAdminAccess) {
+      riskFactors.push('Has administrative access - elevated privileges detected');
+    }
+
+    const highRiskRoles = sa.roles.filter(role =>
+      ['editor', 'owner', 'admin'].some(risk => role.includes(risk))
+    );
+    if (highRiskRoles.length > 0) {
+      riskFactors.push(`High-privilege roles assigned: ${highRiskRoles.join(', ')}`);
+    }
+
+    // Check for third-party automation patterns
+    const automationPatterns = ['automation', 'integration', 'bot', 'service', 'sync'];
+    if (automationPatterns.some(pattern => sa.email.includes(pattern))) {
+      riskFactors.push('Service account name suggests third-party automation use');
+    }
+
+    const daysSinceCreation = Math.floor((Date.now() - sa.createTime.getTime()) / (24 * 60 * 60 * 1000));
+    if (daysSinceCreation <= 30) {
+      riskFactors.push('Recently created service account');
+    }
+
+    return riskFactors;
   }
 }

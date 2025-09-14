@@ -7,6 +7,7 @@ import { AutomationEvent, ConnectionResult } from '../connectors/types';
 import { googleConnector } from '../connectors/google';
 import { slackConnector } from '../connectors/slack';
 import { GoogleAPIClientService } from './google-api-client-service';
+import { OAuthCredentialStorageService } from './oauth-credential-storage-service';
 
 export interface Connection {
   id: string;
@@ -221,70 +222,115 @@ export class MockDataProvider implements DataProvider {
 
 /**
  * Real data provider using actual connectors
+ * BMAD P0 Priority: Revenue-enabling production API integration
  */
 export class RealDataProvider implements DataProvider {
+  private oauthStorage: OAuthCredentialStorageService;
+
+  constructor() {
+    this.oauthStorage = new OAuthCredentialStorageService();
+  }
+
   getConnections(): Connection[] {
-    // In real implementation, this would fetch from database
-    // For now, return empty array or throw error if not configured
-    throw new Error('Real data provider not yet implemented - requires OAuth setup');
+    // Get stored connections from OAuth credential storage
+    const storedConnections = this.oauthStorage.getStoredConnections();
+
+    return storedConnections.map(stored => ({
+      id: stored.connectionId,
+      platform: stored.platform,
+      displayName: `${stored.platform === 'google' ? 'Google Workspace' : 'Slack'} - ${stored.organizationDomain || stored.userEmail}`,
+      status: stored.tokenStatus === 'active' ? 'active' : 'inactive',
+      permissions: stored.scopes,
+      createdAt: stored.connectedAt.toISOString(),
+      lastSyncAt: stored.lastUsed.toISOString()
+    }));
   }
 
   async discoverAutomations(connectionId: string): Promise<DiscoveryResult> {
-    // Determine platform from connection ID (in real app, look up in database)
-    if (connectionId.includes('google') || connectionId === 'conn-2') {
+    // Get connection platform and stored credentials
+    const storedConnections = this.oauthStorage.getStoredConnections();
+    const connection = storedConnections.find(c => c.connectionId === connectionId);
+
+    if (!connection) {
+      throw new Error(`Connection not found: ${connectionId}. Available connections: ${storedConnections.map(c => c.connectionId).join(', ')}`);
+    }
+
+    if (connection.platform === 'google') {
       try {
-        console.log('🔍 Attempting real Google Workspace discovery with GoogleAPIClientService...');
-        
-        // Create Google API client service
+        console.log('🚀 Starting real Google Workspace automation discovery...');
+        const startTime = Date.now();
+
+        // Get stored OAuth credentials
+        const credentials = await this.oauthStorage.getCredentials(connectionId);
+        if (!credentials) {
+          throw new Error(`No OAuth credentials found for connection: ${connectionId}`);
+        }
+
+        // Initialize Google API client with real credentials
         const googleAPIClient = new GoogleAPIClientService();
-        
-        // TODO: Get real OAuth credentials from connection storage
-        // For now, demonstrate service integration without real credentials
-        const authStatus = googleAPIClient.getAuthenticationStatus();
-        console.log('Google API Client Status:', authStatus);
-        
-        // Since we don't have stored OAuth tokens yet, provide meaningful response
-        const automations: AutomationEvent[] = [
-          {
-            id: 'real-google-workspace-integration-ready',
-            name: 'Google API Client Ready',
-            type: 'integration',
-            platform: 'google',
-            status: 'active',
-            trigger: 'oauth_integration',
-            actions: ['api_client_initialized', 'oauth_credential_handling', 'real_api_calls'],
-            createdAt: new Date('2025-09-11T06:30:00Z'),
-            lastTriggered: new Date(),
-            riskLevel: 'low',
-            metadata: {
-              message: 'Production Google API client ready for OAuth credential integration',
-              capabilities: [
-                'Admin Reports API integration',
-                'Drive activity monitoring', 
-                'Gmail automation detection',
-                'Apps Script analysis',
-                'Service account discovery'
-              ],
-              nextStep: 'Connect OAuth credentials from Google workspace authorization',
-              implementation: 'GoogleAPIClientService with comprehensive detection algorithms'
-            }
-          }
-        ];
-        
+        const initialized = await googleAPIClient.initialize(credentials);
+
+        if (!initialized) {
+          throw new Error('Failed to initialize Google API client with stored credentials');
+        }
+
+        console.log('✅ Google API client authenticated, starting automation discovery...');
+
+        // Use the comprehensive discovery method we just added
+        const automations = await googleAPIClient.discoverAutomations({
+          dateRange: {
+            startDate: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000), // Last 30 days
+            endDate: new Date()
+          },
+          includeAppsScript: true,
+          includeServiceAccounts: true,
+          includeEmailAutomation: true,
+          includeDriveActivity: false // Start conservative to avoid rate limits
+        });
+
+        const executionTimeMs = Date.now() - startTime;
+        const riskScore = this.calculateOverallRisk(automations);
+
+        console.log('🎉 Real Google Workspace discovery completed:', {
+          connectionId,
+          domain: credentials.domain,
+          automationsFound: automations.length,
+          executionTimeMs,
+          riskScore
+        });
+
         return {
           success: true,
           discovery: {
             automations,
             metadata: {
-              executionTimeMs: 1500,
+              executionTimeMs,
               automationsFound: automations.length,
-              riskScore: this.calculateOverallRisk(automations),
-              platform: 'google'
+              riskScore,
+              platform: 'google',
+              discoveryMethods: ['Apps Script API', 'Service Account API', 'Admin Reports API'],
+              coverage: {
+                appsScriptProjects: automations.filter(a => a.id.startsWith('apps-script')).length,
+                serviceAccounts: automations.filter(a => a.id.startsWith('service-account')).length,
+                emailAutomations: automations.filter(a => a.id.startsWith('email-automation')).length,
+                totalRiskFindings: automations.filter(a => a.riskLevel === 'high').length
+              }
             }
           }
         };
+
       } catch (error) {
-        throw new Error(`Real Google discovery failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        console.error('Real Google Workspace discovery failed:', error);
+
+        // Provide helpful error information for debugging
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        const isAuthError = errorMessage.includes('authenticate') || errorMessage.includes('credential');
+
+        if (isAuthError) {
+          throw new Error(`Google OAuth authentication failed: ${errorMessage}. Please reconnect your Google Workspace account.`);
+        } else {
+          throw new Error(`Google API discovery failed: ${errorMessage}`);
+        }
       }
     } else if (connectionId.includes('slack') || connectionId === 'conn-1') {
       try {
