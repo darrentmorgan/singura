@@ -121,3 +121,25 @@ temp/
 # Backup files
 *.bak
 *.backup
+
+# OAuth Credentials & Security Files (CRITICAL - Never commit)
+*OAuth*.json
+*oauth*.json
+*client*.json
+*credentials*.json
+*service-account*.json
+*google-credentials*.json
+*slack-credentials*.json
+*microsoft-credentials*.json
+client_secret*.json
+service-account-key*.json
+
+# API Keys and Secrets
+*secret*.json
+*key*.json
+*.pem
+*.p12
+*.pfx
+
+# OAuth Application Files
+OAuth\ Client\ ID*.json
