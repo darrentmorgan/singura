@@ -23,6 +23,7 @@ import { useAuthUser, useAuthActions } from '@/stores/auth';
 import { useUIActions, useTheme, useNotifications, useSidebarState } from '@/stores/ui';
 import { useConnectionsActions } from '@/stores/connections';
 import { AdminToggle } from '@/components/admin/AdminToggle';
+import { DataSourceToggle } from '@/components/admin/DataSourceToggle';
 import { cn } from '@/lib/utils';
 
 interface HeaderProps {
@@ -194,6 +195,9 @@ export const Header: React.FC<HeaderProps> = ({ className }) => {
               />
             </svg>
           </Button>
+
+          {/* Data Source Toggle (Development Only) */}
+          <DataSourceToggle compact={true} />
 
           {/* Admin Panel (Development Only) */}
           <AdminToggle />
