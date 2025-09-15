@@ -1,0 +1,42 @@
+{
+  "name": "@saas-xray/nextjs-app",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "build:consolidated": "cd .. && npm run build:shared-types && cd nextjs-app && npm install && npm run build",
+    "install:consolidated": "cd .. && npm install && npm run build:shared-types && cd nextjs-app && npm install",
+    "start": "next start",
+    "lint": "next lint",
+    "type-check": "tsc --noEmit",
+    "prepare-components": "node scripts/prepare-components.js",
+    "postinstall": "cd .. && npm run build:shared-types || true"
+  },
+  "dependencies": {
+    "@saas-xray/shared-types": "file:../shared-types",
+    "react": "^18",
+    "react-dom": "^18",
+    "next": "14.2.32",
+    "clsx": "^2.0.0",
+    "tailwind-merge": "^2.1.0",
+    "lucide-react": "^0.294.0",
+    "@radix-ui/react-avatar": "^1.0.4",
+    "@radix-ui/react-dialog": "^1.0.5",
+    "@radix-ui/react-dropdown-menu": "^2.0.6",
+    "@radix-ui/react-separator": "^1.0.3",
+    "class-variance-authority": "^0.7.0"
+  },
+  "devDependencies": {
+    "typescript": "^5",
+    "@types/node": "^20",
+    "@types/react": "^18",
+    "@types/react-dom": "^18",
+    "postcss": "^8",
+    "tailwindcss": "^3.4.1",
+    "eslint": "^8",
+    "eslint-config-next": "14.2.32",
+    "autoprefixer": "^10.4.16",
+    "tailwindcss-animate": "^1.0.7"
+  }
+}
