@@ -3,12 +3,23 @@
  * Replaces 'any' types in socket handling
  */
 
-import { Socket as SocketIOSocket } from 'socket.io';
+/**
+ * Base Socket interface - matches socket.io Socket interface
+ */
+export interface BaseSocket {
+  id: string;
+  rooms: Set<string>;
+  emit(event: string, ...args: any[]): boolean;
+  join(room: string): void;
+  leave(room: string): void;
+  disconnect(close?: boolean): void;
+  [key: string]: any;
+}
 
 /**
  * Authenticated socket interface
  */
-export interface AuthenticatedSocket extends SocketIOSocket {
+export interface AuthenticatedSocket extends BaseSocket {
   userId: string;
   organizationId: string;
 }

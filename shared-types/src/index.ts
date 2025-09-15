@@ -18,9 +18,12 @@ export * from './utils/oauth-credential-storage';
 export * from './utils/memory-storage';
 
 // Domain model types
+export * from './models/user';
+export * from './models/organization';
 export * from './models/automation';
 export * from './models/connection';
 export * from './models/events';
+export * from './models/audit-log';
 
 // API types
 export * from './api/requests';
