@@ -1,0 +1,119 @@
+name: Deploy to Vercel
+
+on:
+  push:
+    branches: [main, nextjs-14-app-router-setup]
+  pull_request:
+    branches: [main]
+
+env:
+  VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+  VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install root dependencies
+        run: npm ci
+
+      - name: Build shared types
+        run: npm run build:shared-types
+
+      - name: Install NextJS dependencies
+        working-directory: ./nextjs-app
+        run: npm ci
+
+      - name: TypeScript type check
+        working-directory: ./nextjs-app
+        run: npm run type-check
+
+      - name: ESLint check
+        working-directory: ./nextjs-app
+        run: npm run lint
+
+      - name: Build NextJS application
+        working-directory: ./nextjs-app
+        run: npm run build
+
+  deploy-preview:
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install Vercel CLI
+        run: npm install -g vercel@latest
+
+      - name: Pull Vercel Environment Information
+        working-directory: ./nextjs-app
+        run: vercel pull --yes --environment=preview --token=${{ secrets.VERCEL_TOKEN }}
+
+      - name: Build Project Artifacts
+        working-directory: ./nextjs-app
+        run: vercel build --token=${{ secrets.VERCEL_TOKEN }}
+
+      - name: Deploy to Vercel Preview
+        working-directory: ./nextjs-app
+        run: vercel deploy --prebuilt --token=${{ secrets.VERCEL_TOKEN }}
+
+  deploy-production:
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install Vercel CLI
+        run: npm install -g vercel@latest
+
+      - name: Pull Vercel Environment Information
+        working-directory: ./nextjs-app
+        run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
+
+      - name: Build Project Artifacts
+        working-directory: ./nextjs-app
+        run: vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
+
+      - name: Deploy to Vercel Production
+        working-directory: ./nextjs-app
+        run: vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }}
+
+  notify-success:
+    needs: [deploy-production]
+    runs-on: ubuntu-latest
+    if: success()
+
+    steps:
+      - name: Deployment Success Notification
+        run: |
+          echo "🚀 SaaS X-Ray Enterprise deployed successfully!"
+          echo "✅ Professional URL ready for Fortune 500 demonstrations"
+          echo "🔗 Production: https://saas-xray-enterprise.vercel.app"
