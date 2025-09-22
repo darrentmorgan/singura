@@ -246,7 +246,7 @@ export class HybridStorageService {
           permissions_granted: item.data.permissions_granted,
           metadata: item.data.metadata,
           platform_workspace_id: item.data.platform_workspace_id,
-          status: 'pending' as any,
+          status: 'active' as any, // OAuth completed successfully - mark as active
           created_at: item.storedAt,
           updated_at: item.storedAt,
           last_sync_at: null,

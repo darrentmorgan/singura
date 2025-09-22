@@ -417,6 +417,48 @@ app.get('/api/connections', async (req: Request, res: Response) => {
   }
 });
 
+// Connection stats endpoint - provides connection statistics for dashboard
+app.get('/api/connections/stats', async (req: Request, res: Response) => {
+  try {
+    // Fetch connections from hybrid storage for the demo organization
+    const organizationId = 'demo-org-id';
+    const storageResult = await hybridStorage.getConnections(organizationId);
+
+    const connections = storageResult.data || [];
+
+    // Calculate connection statistics
+    const stats = {
+      total: connections.length,
+      active: connections.filter(conn => conn.status === 'active').length,
+      pending: connections.filter(conn => conn.status === 'pending').length,
+      error: connections.filter(conn => conn.status === 'error').length,
+      platforms: {
+        slack: connections.filter(conn => conn.platform_type === 'slack').length,
+        google: connections.filter(conn => conn.platform_type === 'google').length,
+        microsoft: connections.filter(conn => conn.platform_type === 'microsoft').length
+      },
+      lastSync: connections.length > 0 ?
+        Math.max(...connections.map(conn => new Date(conn.updated_at).getTime())) : null
+    };
+
+    console.log('Connection stats requested:', stats);
+
+    res.json({
+      success: true,
+      stats,
+      storageMode: storageResult.storageMode,
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    console.error('Error fetching connection stats:', error);
+    res.status(500).json({
+      success: false,
+      error: error instanceof Error ? error.message : 'Failed to fetch connection stats',
+      timestamp: new Date().toISOString()
+    });
+  }
+});
+
 // Disconnect endpoint - removes a specific connection from database
 app.delete('/api/connections/:id', async (req: Request, res: Response) => {
   const { id } = req.params;

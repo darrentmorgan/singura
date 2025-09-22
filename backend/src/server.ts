@@ -11,6 +11,7 @@ import { securityMiddleware } from './security/middleware';
 import authRoutes from './routes/auth';
 import connectionRoutes from './routes/connections';
 import automationRoutes from './routes/automations';
+import correlationRoutes from './routes/correlation';
 
 // Load environment variables
 dotenv.config();
@@ -52,6 +53,7 @@ app.get('/health', (req, res) => {
 app.use('/api/auth', authRoutes);
 app.use('/api', connectionRoutes);
 app.use('/api/automations', automationRoutes);
+app.use('/api/correlation', correlationRoutes);
 
 // 404 handler
 app.use('*', (req, res) => {
