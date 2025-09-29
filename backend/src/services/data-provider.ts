@@ -8,6 +8,7 @@ import { googleConnector } from '../connectors/google';
 import { slackConnector } from '../connectors/slack';
 import { GoogleAPIClientService } from './google-api-client-service';
 import { OAuthCredentialStorageService } from './oauth-credential-storage-service';
+import { hybridStorage } from './hybrid-storage';
 
 export interface Connection {
   id: string;
@@ -247,12 +248,19 @@ export class RealDataProvider implements DataProvider {
   }
 
   async discoverAutomations(connectionId: string): Promise<DiscoveryResult> {
-    // Get connection platform and stored credentials
-    const storedConnections = this.oauthStorage.getStoredConnections();
-    const connection = storedConnections.find(c => c.connectionId === connectionId);
+    // Get connection from hybrid storage (same as /api/connections endpoint)
+    const organizationId = 'demo-org-id';
+    const connectionsResult = await hybridStorage.getConnections(organizationId);
+
+    if (!connectionsResult.success) {
+      throw new Error(`Failed to get connections: ${connectionsResult.error}`);
+    }
+
+    const connections = connectionsResult.data || [];
+    const connection = connections.find(c => c.id === connectionId);
 
     if (!connection) {
-      throw new Error(`Connection not found: ${connectionId}. Available connections: ${storedConnections.map(c => c.connectionId).join(', ')}`);
+      throw new Error(`Connection not found: ${connectionId}. Available connections: ${connections.map(c => c.id).join(', ')}`);
     }
 
     if (connection.platform === 'google') {
