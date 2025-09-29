@@ -313,9 +313,9 @@ export class AIEnhancedDetectionOrchestrator {
     fallbackMode: boolean;
   } {
     return {
-      gpt5Configured: this.isConfigured,
+      gpt5Configured: this.gpt5Validation.getStatus().configured,
       model: process.env.OPENAI_MODEL || 'gpt-5',
-      fallbackMode: !this.isConfigured
+      fallbackMode: !this.gpt5Validation.getStatus().configured
     };
   }
 }

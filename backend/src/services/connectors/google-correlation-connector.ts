@@ -18,10 +18,10 @@
 import {
   MultiPlatformEvent,
   GoogleWorkspaceEvent,
-  AutomationEvent
+  AutomationEventData
 } from '@saas-xray/shared-types';
 
-import { GoogleApiClientService } from '../google-api-client-service';
+import { GoogleAPIClientService } from '../google-api-client-service';
 import { google } from 'googleapis';
 
 /**

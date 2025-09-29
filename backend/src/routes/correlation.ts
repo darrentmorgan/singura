@@ -29,7 +29,7 @@ import { CorrelationOrchestratorService } from '../services/correlation-orchestr
 import { SlackCorrelationConnector } from '../services/connectors/slack-correlation-connector';
 import { GoogleCorrelationConnector } from '../services/connectors/google-correlation-connector';
 import { SlackOAuthService } from '../services/slack-oauth-service';
-import { GoogleApiClientService } from '../services/google-api-client-service';
+import { GoogleAPIClientService } from '../services/google-api-client-service';
 
 const router = Router();
 

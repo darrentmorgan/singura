@@ -263,7 +263,7 @@ export class RealDataProvider implements DataProvider {
       throw new Error(`Connection not found: ${connectionId}. Available connections: ${connections.map(c => c.id).join(', ')}`);
     }
 
-    if (connection.platform === 'google') {
+    if (connection.platform_type === 'google') {
       try {
         console.log('🚀 Starting real Google Workspace automation discovery...');
         const startTime = Date.now();

@@ -23,12 +23,12 @@ import {
   MultiPlatformRiskAssessment,
   GoogleWorkspaceEvent,
   SlackActivityEvent,
-  AutomationEvent,
+  AutomationEventData,
   isValidCorrelationAnalysisResult
 } from '@saas-xray/shared-types';
 
 import { CrossPlatformCorrelationService } from './detection/cross-platform-correlation.service';
-import { GoogleApiClientService } from './google-api-client-service';
+import { GoogleAPIClientService } from './google-api-client-service';
 import { EventEmitter } from 'events';
 
 /**
