@@ -77,39 +77,37 @@ interface BMADValidatedRequest {
 }
 ```
 
-### **📚 BMAD Documentation Quick Reference**
+### **📚 Project Documentation Quick Reference**
 
 #### **Strategic Business Context**
-- **📊 Market & Revenue Strategy**: [`docs/bmad/project-brief.md`](docs/bmad/project-brief.md)
+- **📊 Market & Revenue Strategy**: [`/docs/PROJECT-BRIEF.md`](/docs/PROJECT-BRIEF.md)
   - $2.3B market opportunity, competitive positioning
   - Revenue model validation ($299-2999/month tiers)
   - Go-to-market strategy and customer success metrics
 
-- **📋 Business-Driven Product Spec**: [`docs/bmad/prd-bmad.md`](docs/bmad/prd-bmad.md)
+- **📋 Business-Driven Product Spec**: [`/docs/PRD.md`](/docs/PRD.md)
   - Revenue-driven user stories with business impact
   - Competitive feature requirements for revenue protection
   - Success metrics correlated to revenue growth
 
 #### **Technical Business Alignment**
-- **🏗️ Business-Aligned Architecture**: [`docs/bmad/architecture-bmad.md`](docs/bmad/architecture-bmad.md)
+- **🏗️ Business-Aligned Architecture**: [`/docs/ARCHITECTURE.md`](/docs/ARCHITECTURE.md)
   - Revenue-scalable technology stack decisions
   - Business-critical detection algorithms
   - Enterprise-grade security for premium pricing
 
-- **📝 Revenue-Prioritized Development**: [`docs/bmad/epic-story-breakdown.md`](docs/bmad/epic-story-breakdown.md)
+- **📝 Development Roadmap**: [`/docs/ROADMAP.md`](/docs/ROADMAP.md)
   - P0-P3 priority framework based on revenue impact
   - Business value mapping for each epic and story
   - Implementation status with revenue validation
 
 #### **Implementation Intelligence**
-- **🔍 Business Gap Analysis**: [`docs/bmad/implementation-gap-analysis.md`](docs/bmad/implementation-gap-analysis.md)
-  - Critical gaps blocking revenue growth
-  - Business-impact gap assessment methodology
-  - Mitigation roadmap prioritized by revenue impact
+- **🔍 Customer Validation**: [`/docs/CUSTOMER-VALIDATION.md`](/docs/CUSTOMER-VALIDATION.md)
+  - Critical insights from beta testing
+  - Business-impact feature prioritization
+  - Customer feedback and roadmap alignment
 
-- **📖 BMAD Methodology Guide**: [`docs/bmad/bmad-methodology.md`](docs/bmad/bmad-methodology.md)
-  - Complete business-first development framework
-  - Integration guidelines and best practices
+**Note:** Previous BMAD documentation has been consolidated into these standard project documentation files.
 
 ### **⚡ Revenue-First Development Protocol**
 
