@@ -348,6 +348,77 @@ export * from './common';
 3. Frontend imports compiled shared-types
 4. All CI/CD pipelines MUST respect this order
 
+---
+
+## 🔧 **SERVICE SINGLETON PATTERN (CRITICAL - MANDATORY)**
+
+### **The Problem: State Loss from Multiple Instances**
+
+**CRITICAL ISSUE DISCOVERED**: Creating new service instances in constructors or on each request causes **STATE LOSS**.
+
+**Example of BROKEN Pattern**:
+```typescript
+// ❌ WRONG: Each request creates NEW instance = credentials disappear
+export class RealDataProvider {
+  private oauthStorage: OAuthCredentialStorageService;
+
+  constructor() {
+    this.oauthStorage = new OAuthCredentialStorageService(); // ❌ NEW INSTANCE!
+  }
+}
+```
+
+**What Happens**:
+1. OAuth callback stores credentials in instance A
+2. Discovery request creates instance B (empty credentials)
+3. Discovery fails: "No OAuth credentials found"
+
+### **The Solution: Singleton Export Pattern**
+
+**✅ CORRECT Pattern**:
+```typescript
+// In the service file (oauth-credential-storage-service.ts):
+export class OAuthCredentialStorageService {
+  private credentialStore = new Map<string, Credentials>();
+  // ... service implementation
+}
+
+// Export singleton instance at end of file
+export const oauthCredentialStorage = new OAuthCredentialStorageService();
+
+// In consuming files (data-provider.ts, simple-server.ts):
+import { oauthCredentialStorage } from './oauth-credential-storage-service';
+
+export class RealDataProvider {
+  private oauthStorage = oauthCredentialStorage; // ✅ SHARED SINGLETON!
+}
+```
+
+### **MANDATORY SINGLETON SERVICES**
+
+**These services MUST use singleton pattern** (state is shared across requests):
+- ✅ `oauthCredentialStorage` - OAuth credential management
+- ✅ `hybridStorage` - Connection metadata storage
+- ✅ Any service that caches data between requests
+- ✅ Any service that maintains WebSocket connections
+- ✅ Any service that manages rate limiting state
+
+**These can be per-request instances** (stateless or request-scoped):
+- ✅ Request-specific validators
+- ✅ Per-request loggers
+- ✅ Temporary data processors
+
+### **Validation Checklist**
+
+Before deploying any service, verify:
+- [ ] Does this service store state between requests?
+- [ ] Is this service being used by multiple modules?
+- [ ] Could creating multiple instances cause data loss?
+
+**If YES to any** → **MUST USE SINGLETON PATTERN**
+
+---
+
 **Import Patterns (MANDATORY):**
 ```typescript
 // ✅ CORRECT: Import from shared-types package
@@ -836,16 +907,122 @@ docker compose up -d postgres redis
 ### OAuth Security Requirements (CRITICAL)
 
 **Token Management**:
-- Store OAuth tokens encrypted at rest
+- Store OAuth tokens encrypted at rest using `MASTER_ENCRYPTION_KEY`
 - Implement automatic token refresh
 - Set appropriate token expiration policies
 - Log token usage for audit purposes
+- **USE SINGLETON** `oauthCredentialStorage` for credential management
 
 **Permission Auditing**:
 - Regularly review granted permissions
 - Implement least-privilege access
 - Monitor permission usage and scope
 - Set up alerts for permission changes
+
+### **OAuth Implementation Flow (VALIDATED WORKING PATTERN)**
+
+**Complete OAuth Flow** (from authorization to discovery):
+
+```typescript
+// 1. OAuth Callback Handler (simple-server.ts)
+app.get('/api/auth/callback/slack', async (req, res) => {
+  const { code } = req.query;
+
+  // Exchange authorization code for access tokens
+  const tokenResponse = await fetch('https://slack.com/api/oauth.v2.access', {
+    method: 'POST',
+    body: new URLSearchParams({
+      client_id: process.env.SLACK_CLIENT_ID,
+      client_secret: process.env.SLACK_CLIENT_SECRET,
+      code: code,
+      redirect_uri: redirectUri
+    })
+  });
+
+  const tokenData = await tokenResponse.json();
+
+  // Store connection metadata in hybridStorage
+  const storageResult = await hybridStorage.storeConnection({
+    organization_id: 'org-id',
+    platform_type: 'slack',
+    platform_user_id: userId,
+    display_name: `Slack - ${teamName}`,
+    permissions_granted: scopes
+  });
+
+  // Store OAuth credentials in singleton (CRITICAL!)
+  await oauthCredentialStorage.storeCredentials(storageResult.data.id, {
+    accessToken: tokenData.access_token,
+    refreshToken: tokenData.refresh_token,
+    // ... other credential fields
+  });
+});
+
+// 2. Discovery Handler (data-provider.ts)
+async discoverAutomations(connectionId: string) {
+  // Get connection metadata
+  const connection = await hybridStorage.getConnections(orgId);
+
+  // Get OAuth credentials from SINGLETON (shares state with callback!)
+  const credentials = await this.oauthStorage.getCredentials(connectionId);
+
+  // Authenticate API client
+  await slackConnector.authenticate(credentials);
+
+  // Make real API calls
+  const automations = await slackConnector.discoverAutomations();
+  return automations; // Real data!
+}
+```
+
+### **OAuth Scope Requirements (VALIDATED)**
+
+**Slack Minimum Scopes for Bot Discovery**:
+```typescript
+const slackScopes = [
+  'users:read',              // Required for users.list API
+  'team:read',               // Required for team.info API
+  'channels:read',           // Channel information
+  'usergroups:read',         // User groups
+  'workflow.steps:execute',  // Workflow detection
+  'commands'                 // Slash command detection
+];
+```
+
+**Google Workspace Minimum Scopes for Automation Discovery**:
+```typescript
+const googleScopes = [
+  'openid',
+  'email',
+  'profile',
+  'https://www.googleapis.com/auth/script.projects.readonly',      // Apps Script projects
+  'https://www.googleapis.com/auth/admin.directory.user.readonly', // Service accounts
+  'https://www.googleapis.com/auth/admin.reports.audit.readonly',  // Audit logs
+  'https://www.googleapis.com/auth/drive.metadata.readonly'        // Drive metadata
+];
+```
+
+### **Slack API Discovery Methods (VALIDATED WORKING)**
+
+**CRITICAL**: Some API methods don't exist in Slack Web API! Use these instead:
+
+```typescript
+// ❌ WRONG: These methods DON'T EXIST
+await client.apps.list();    // No such method
+await client.bots.list();    // No such method
+
+// ✅ CORRECT: Use these methods instead
+const usersResult = await client.users.list();  // Returns all users including bots
+const botUsers = usersResult.members.filter(user => user.is_bot === true);
+
+// Bot information is in user.profile - no need for separate bots.info call
+const botInfo = {
+  userId: botUser.id,
+  name: botUser.profile.real_name,
+  appId: botUser.profile.app_id,
+  botId: botUser.profile.bot_id
+};
+```
 
 ### Connector Interface Pattern (Enhanced with Shared Types)
 
@@ -924,6 +1101,83 @@ interface ConnectorRepository extends Repository<PlatformConnector> {
 - ✅ Prioritize OAuth security and compliance requirements
 - ✅ Let agents handle full analysis and implementation
 - ✅ Present agent results directly to users
+- ✅ **Use singleton pattern for stateful services** (prevents credential loss)
+- ✅ **Validate Slack API methods exist** before implementing (some don't exist in Web API)
+
+---
+
+## ⚠️ **CRITICAL PITFALLS LEARNED (MUST READ)**
+
+### **1. Service Instance State Loss (SOLVED)**
+
+**Symptom**: OAuth credentials stored but discovery can't find them
+**Cause**: Each module creating new service instance with empty state
+**Solution**: Export singleton from service file, import everywhere
+
+```typescript
+// ✅ CORRECT: Service file exports singleton
+export const oauthCredentialStorage = new OAuthCredentialStorageService();
+
+// ✅ CORRECT: All consumers import singleton
+import { oauthCredentialStorage } from './oauth-credential-storage-service';
+```
+
+### **2. Slack API Method Validation (CRITICAL)**
+
+**Symptom**: Code calls `client.apps.list()` or `client.bots.list()` → API errors
+**Cause**: These methods DON'T EXIST in Slack Web API
+**Solution**: Use `users.list()` with `is_bot` filter instead
+
+```typescript
+// ❌ WRONG: Non-existent methods
+await client.apps.list();   // Does not exist!
+await client.bots.list();   // Does not exist!
+
+// ✅ CORRECT: Use existing methods
+const users = await client.users.list();
+const bots = users.members.filter(u => u.is_bot === true);
+```
+
+### **3. OAuth Dual Storage Architecture**
+
+**Symptom**: Connections show but discovery fails with "No credentials"
+**Cause**: Connection metadata and OAuth tokens stored in different systems
+**Solution**: Dual storage with linked IDs
+
+```typescript
+// Store connection metadata
+const result = await hybridStorage.storeConnection(metadata);
+
+// Store OAuth tokens with SAME connection ID
+await oauthCredentialStorage.storeCredentials(result.data.id, tokens);
+```
+
+### **4. Database Persistence Fallback**
+
+**Symptom**: Credentials lost on backend restart even with database code
+**Cause**: PostgreSQL not running (Docker container failed)
+**Solution**: Hybrid pattern with graceful degradation
+
+```typescript
+// Credentials attempt database, fall back to memory if DB unavailable
+try {
+  await db.saveCredentials(credentials);
+  console.log('✅ Persisted to database');
+} catch (dbError) {
+  console.warn('⚠️  Database unavailable, using memory cache');
+  // Memory cache still works for current session
+}
+```
+
+### **5. OAuth Scope Research Before Implementation**
+
+**Symptom**: APIs return 0 results or permission errors
+**Cause**: Insufficient OAuth scopes requested
+**Solution**: Research minimum scopes BEFORE implementing
+
+**Validated Scopes**:
+- Slack bot discovery: `users:read` + `team:read` (sufficient)
+- Google Apps Script: `script.projects.readonly` + `admin.directory.user.readonly` + `admin.reports.audit.readonly`
 
 ---
 

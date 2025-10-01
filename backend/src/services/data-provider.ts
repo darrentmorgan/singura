@@ -7,7 +7,7 @@ import { AutomationEvent, ConnectionResult } from '../connectors/types';
 import { googleConnector } from '../connectors/google';
 import { slackConnector } from '../connectors/slack';
 import { GoogleAPIClientService } from './google-api-client-service';
-import { OAuthCredentialStorageService } from './oauth-credential-storage-service';
+import { oauthCredentialStorage } from './oauth-credential-storage-service';
 import { hybridStorage } from './hybrid-storage';
 
 export interface Connection {
@@ -226,10 +226,10 @@ export class MockDataProvider implements DataProvider {
  * BMAD P0 Priority: Revenue-enabling production API integration
  */
 export class RealDataProvider implements DataProvider {
-  private oauthStorage: OAuthCredentialStorageService;
+  private oauthStorage = oauthCredentialStorage;
 
   constructor() {
-    this.oauthStorage = new OAuthCredentialStorageService();
+    // Use singleton instance of OAuth credential storage
   }
 
   getConnections(): Connection[] {
@@ -340,23 +340,65 @@ export class RealDataProvider implements DataProvider {
           throw new Error(`Google API discovery failed: ${errorMessage}`);
         }
       }
-    } else if (connectionId.includes('slack') || connectionId === 'conn-1') {
+    } else if (connection.platform_type === 'slack') {
       try {
+        console.log('🚀 Starting real Slack automation discovery...');
+        const startTime = Date.now();
+
+        // Get stored OAuth credentials
+        const credentials = await this.oauthStorage.getCredentials(connectionId);
+        if (!credentials) {
+          throw new Error(`No OAuth credentials found for connection: ${connectionId}`);
+        }
+
+        // Initialize Slack client with real credentials
+        const slackAuthResult = await slackConnector.authenticate({
+          accessToken: credentials.accessToken,
+          refreshToken: credentials.refreshToken || undefined,
+          expiresAt: credentials.expiresAt,
+          scopes: credentials.scope,
+          platform: 'slack'
+        } as any);
+
+        if (!slackAuthResult.success) {
+          throw new Error(`Failed to authenticate Slack client: ${slackAuthResult.error}`);
+        }
+
+        console.log('✅ Slack API client authenticated, starting automation discovery...');
+
+        // Discover automations using authenticated client
         const automations = await slackConnector.discoverAutomations();
+
+        const executionTimeMs = Date.now() - startTime;
+        const riskScore = this.calculateOverallRisk(automations);
+
+        console.log(`✅ Slack discovery completed: ${automations.length} automations found in ${executionTimeMs}ms`);
+
         return {
           success: true,
           discovery: {
             automations,
             metadata: {
-              executionTimeMs: 1800,
+              executionTimeMs,
               automationsFound: automations.length,
-              riskScore: this.calculateOverallRisk(automations),
-              platform: 'slack'
+              riskScore,
+              platform: 'slack',
+              discoveryMethods: ['Bots API', 'Apps API', 'Workflows API', 'Team Integrations']
             }
           }
         };
       } catch (error) {
-        throw new Error(`Real Slack discovery failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        console.error('Real Slack discovery failed:', error);
+
+        // Provide helpful error information for debugging
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        const isAuthError = errorMessage.includes('authenticate') || errorMessage.includes('credential');
+
+        if (isAuthError) {
+          throw new Error(`Slack OAuth authentication failed: ${errorMessage}. Please reconnect your Slack workspace.`);
+        } else {
+          throw new Error(`Slack API discovery failed: ${errorMessage}`);
+        }
       }
     } else {
       throw new Error(`Unknown connection platform for ID: ${connectionId}`);

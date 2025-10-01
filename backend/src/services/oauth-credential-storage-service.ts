@@ -1,10 +1,10 @@
 /**
  * OAuth Credential Storage Service
- * Simple in-memory storage for Google OAuth tokens to enable live detection
- * Following CLAUDE.md Types-Tests-Code methodology - Step 1 Implementation
+ * Hybrid in-memory + database storage for OAuth tokens with encryption
+ * Memory cache for performance, PostgreSQL for persistence
  */
 
-import { 
+import {
   OAuthCredentialStorage,
   StoredConnectionInfo,
   GoogleOAuthCredentials,
@@ -14,24 +14,43 @@ import {
   OAuthConnectionStatus
 } from '@saas-xray/shared-types';
 import { GoogleAPIClientService } from './google-api-client-service';
+import { encryptedCredentialRepository } from '../database/repositories/encrypted-credential';
 
 export class OAuthCredentialStorageService implements OAuthCredentialStorage, LiveConnectionManager {
   private credentialStore = new Map<string, GoogleOAuthCredentials>();
   private connectionInfo = new Map<string, StoredConnectionInfo>();
   private apiClients = new Map<string, GoogleAPIClientService>();
+  private useDatabase: boolean = true;
 
   constructor() {
-    console.log('OAuthCredentialStorageService initialized for live Google detection');
+    console.log('OAuthCredentialStorageService initialized with database persistence');
+    this.loadCredentialsFromDatabase().catch(err =>
+      console.warn('Failed to load credentials from database on startup:', err)
+    );
+  }
+
+  /**
+   * Load existing credentials from database into memory cache on startup
+   */
+  private async loadCredentialsFromDatabase(): Promise<void> {
+    try {
+      // Note: This requires a method to list all credentials from database
+      // For now, credentials will be loaded on-demand via retrieveCredentials
+      console.log('Credential database integration active - credentials will load on-demand');
+    } catch (error) {
+      console.error('Failed to load credentials from database:', error);
+    }
   }
 
   /**
    * Store OAuth credentials from completed auth flow
+   * Stores in both memory cache and encrypted database
    */
   async storeCredentials(connectionId: string, credentials: GoogleOAuthCredentials): Promise<boolean> {
     try {
-      // Store credentials securely (in-memory for demo)
+      // Store credentials in memory cache for fast access
       this.credentialStore.set(connectionId, credentials);
-      
+
       // Store connection metadata
       const connectionInfo: StoredConnectionInfo = {
         connectionId,
@@ -44,15 +63,33 @@ export class OAuthCredentialStorageService implements OAuthCredentialStorage, Li
         scopes: credentials.scope,
         expiresAt: credentials.expiresAt
       };
-      
+
       this.connectionInfo.set(connectionId, connectionInfo);
+
+      // Persist to encrypted database for durability
+      if (this.useDatabase) {
+        try {
+          await encryptedCredentialRepository.create({
+            platform_connection_id: connectionId,
+            credential_type: 'access_token',
+            encrypted_value: JSON.stringify(credentials),
+            expires_at: credentials.expiresAt,
+            metadata: {}
+          });
+          console.log('✅ OAuth credentials persisted to encrypted database:', connectionId);
+        } catch (dbError) {
+          // Log error but don't fail - memory cache is still available
+          console.warn('⚠️  Failed to persist credentials to database (memory cache still active):', dbError);
+        }
+      }
 
       console.log('OAuth credentials stored for live detection:', {
         connectionId,
         userEmail: credentials.email?.substring(0, 3) + '...',
         domain: credentials.domain,
         scopes: credentials.scope,
-        expiresAt: credentials.expiresAt?.toISOString()
+        expiresAt: credentials.expiresAt?.toISOString(),
+        persisted: this.useDatabase
       });
 
       return true;
@@ -64,10 +101,53 @@ export class OAuthCredentialStorageService implements OAuthCredentialStorage, Li
 
   /**
    * Retrieve stored OAuth credentials for live API calls
+   * Checks memory cache first, then database if not found
    */
   async retrieveCredentials(connectionId: string): Promise<GoogleOAuthCredentials | null> {
     try {
-      const credentials = this.credentialStore.get(connectionId);
+      // Check memory cache first (fast path)
+      let credentials = this.credentialStore.get(connectionId);
+
+      // If not in memory, try loading from database
+      if (!credentials && this.useDatabase) {
+        try {
+          const dbCredential = await encryptedCredentialRepository.findByConnectionAndType(
+            connectionId,
+            'access_token'
+          );
+
+          if (dbCredential) {
+            // Decrypt and parse credentials
+            const decryptedValue = await encryptedCredentialRepository.getDecryptedValue(
+              dbCredential.id,
+              dbCredential.encryption_key_id
+            );
+            credentials = JSON.parse(decryptedValue) as GoogleOAuthCredentials;
+
+            // Restore to memory cache for future fast access
+            this.credentialStore.set(connectionId, credentials);
+
+            // Restore connection info
+            const connectionInfo: StoredConnectionInfo = {
+              connectionId,
+              platform: 'google',
+              userEmail: credentials.email || 'unknown',
+              organizationDomain: credentials.domain,
+              connectedAt: dbCredential.created_at,
+              lastUsed: new Date(),
+              tokenStatus: 'active',
+              scopes: credentials.scope || [],
+              expiresAt: dbCredential.expires_at
+            };
+            this.connectionInfo.set(connectionId, connectionInfo);
+
+            console.log(`✅ OAuth credentials loaded from database: ${connectionId}`);
+          }
+        } catch (dbError) {
+          console.warn(`⚠️  Failed to load credentials from database for ${connectionId}:`, dbError);
+        }
+      }
+
       if (!credentials) {
         console.warn(`No OAuth credentials found for connection: ${connectionId}`);
         return null;
@@ -410,3 +490,6 @@ export class OAuthCredentialStorageService implements OAuthCredentialStorage, Li
     };
   }
 }
+
+// Export singleton instance for shared use across the application
+export const oauthCredentialStorage = new OAuthCredentialStorageService();

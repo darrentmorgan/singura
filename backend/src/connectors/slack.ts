@@ -1034,15 +1034,66 @@ export class SlackConnector implements PlatformConnector {
   }
 
   /**
-   * Discover bots in the workspace
+   * Discover bots in the workspace using users.list with is_bot filter
    */
   private async discoverBots(): Promise<AutomationEvent[]> {
     const automations: AutomationEvent[] = [];
 
     try {
-      // TODO: Implement bots discovery when API is available  
-      console.warn('Slack bots.list API not available, returning empty bot array');
-      return [];
+      if (!this.client) {
+        console.warn('Slack client not initialized, cannot discover bots');
+        return [];
+      }
+
+      // Use users.list to find bot users (this API method exists and we have the scope)
+      const usersResult = await this.client.users.list();
+
+      if (usersResult.ok && usersResult.members) {
+        // Filter for bot users
+        const botUsers = usersResult.members.filter((user: any) => user.is_bot === true);
+
+        console.log(`Found ${botUsers.length} bot users in Slack workspace`);
+
+        // Create automation entries from bot users
+        for (const botUser of botUsers) {
+          try {
+            // Bot users have the information we need directly from users.list
+            // No need to call bots.info separately
+            automations.push({
+              id: `slack-bot-${botUser.id}`,
+              name: botUser.profile?.real_name || botUser.name || 'Unknown Bot',
+              type: 'bot',
+              platform: 'slack',
+              status: botUser.deleted ? 'inactive' : 'active',
+              trigger: 'message',
+              actions: ['chat:write', 'respond_to_messages'],
+              createdAt: new Date().toISOString(),
+              lastTriggered: new Date().toISOString(),
+              riskLevel: 'medium',
+              metadata: {
+                userId: botUser.id,
+                botId: botUser.profile?.bot_id,
+                appId: botUser.profile?.app_id,
+                displayName: botUser.profile?.display_name,
+                realName: botUser.profile?.real_name,
+                description: `Slack bot user: ${botUser.profile?.real_name || botUser.name}`,
+                isBot: botUser.is_bot,
+                isAppUser: botUser.is_app_user,
+                riskFactors: [
+                  'Automated bot with message access',
+                  'Potential data collection through conversations',
+                  botUser.is_app_user ? 'Associated with installed app' : 'Standalone bot'
+                ]
+              }
+            });
+          } catch (botError) {
+            console.warn(`Failed to process bot user ${botUser.id}:`, botError);
+          }
+        }
+      }
+
+      console.log(`Discovered ${automations.length} bot automations`);
+      return automations;
     } catch (error) {
       console.error('Error discovering Slack bots:', error);
       return [];

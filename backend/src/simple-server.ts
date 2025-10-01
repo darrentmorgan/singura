@@ -13,6 +13,8 @@ import devRoutes from './routes/dev-routes';
 import { getDataProvider, isDataToggleEnabled } from './services/data-provider';
 import { platformConnectionRepository } from './database/repositories/platform-connection';
 import { hybridStorage } from './services/hybrid-storage';
+import { oauthCredentialStorage } from './services/oauth-credential-storage-service';
+import { GoogleOAuthRawResponse, GoogleOAuthCredentials, SlackOAuthRawResponse, SlackOAuthCredentials } from '@saas-xray/shared-types';
 
 // Load environment variables
 dotenv.config();
@@ -20,6 +22,9 @@ dotenv.config();
 // Database-backed connection storage
 // Connections are now persisted in PostgreSQL via platformConnectionRepository
 // Removed in-memory array to prevent data loss on server restart
+
+// Use singleton OAuth credential storage service
+const oauthStorage = oauthCredentialStorage;
 
 const app = express();
 const PORT = process.env.PORT || 4201;
@@ -101,7 +106,17 @@ app.get('/api/auth/oauth/slack/authorize', (req: Request, res: Response) => {
       });
     }
     
-    const authUrl = `https://slack.com/oauth/v2/authorize?client_id=${clientId}&scope=channels:read,users:read&redirect_uri=${encodeURIComponent(redirectUri)}&state=mock-state`;
+    // Request comprehensive scopes for automation discovery
+    const scopes = [
+      'channels:read',
+      'users:read',
+      'team:read',
+      'usergroups:read',
+      'workflow.steps:execute',  // For workflow detection
+      'commands'                  // For slash command detection
+    ].join(',');
+
+    const authUrl = `https://slack.com/oauth/v2/authorize?client_id=${clientId}&scope=${scopes}&redirect_uri=${encodeURIComponent(redirectUri)}&state=mock-state`;
     
     console.log('Slack OAuth Authorization Request:', {
       clientId: clientId.substring(0, 5) + '...' + clientId.slice(-5), // Partially mask client ID
@@ -126,7 +141,7 @@ app.get('/api/auth/oauth/slack/authorize', (req: Request, res: Response) => {
 
 app.get('/api/auth/callback/slack', async (req: Request, res: Response) => {
   const { code, state } = req.query;
-  
+
   try {
     // Basic input validation
     if (typeof code !== 'string' || typeof state !== 'string') {
@@ -142,9 +157,10 @@ app.get('/api/auth/callback/slack', async (req: Request, res: Response) => {
       return res.redirect(`${frontendUrl}/connections?success=false&platform=slack&error=csrf_failed`);
     }
 
-    // Simulated OAuth flow with dynamic environment variables
+    // Get OAuth configuration
     const clientId = process.env.SLACK_CLIENT_ID;
     const clientSecret = process.env.SLACK_CLIENT_SECRET;
+    const redirectUri = process.env.SLACK_REDIRECT_URI || `http://localhost:${PORT}/api/auth/callback/slack`;
 
     if (!clientId || !clientSecret) {
       console.error('Missing OAuth configuration', { clientIdSet: !!clientId, clientSecretSet: !!clientSecret });
@@ -152,34 +168,102 @@ app.get('/api/auth/callback/slack', async (req: Request, res: Response) => {
       return res.redirect(`${frontendUrl}/connections?success=false&platform=slack&error=config_error`);
     }
 
-    // In a real implementation, you would validate the code with Slack's API
-    // For now, simulate successful connection and store it
+    console.log('🔄 Exchanging Slack authorization code for access tokens...');
+
+    // Exchange authorization code for access tokens
+    const tokenResponse = await fetch('https://slack.com/api/oauth.v2.access', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: new URLSearchParams({
+        client_id: clientId,
+        client_secret: clientSecret,
+        code: code,
+        redirect_uri: redirectUri,
+      }),
+    });
+
+    const tokenData = await tokenResponse.json() as SlackOAuthRawResponse;
+
+    if (!tokenData.ok || !tokenData.access_token) {
+      console.error('Slack OAuth token exchange failed:', tokenData);
+      const frontendUrl = process.env.CORS_ORIGIN || 'http://localhost:4200';
+      return res.redirect(`${frontendUrl}/connections?success=false&platform=slack&error=token_exchange_failed`);
+    }
+
+    console.log('✅ Slack OAuth token exchange successful');
+
+    // Extract team and user information
+    const teamId = tokenData.team?.id || 'unknown-team';
+    const teamName = tokenData.team?.name || 'Unknown Workspace';
+    const userId = tokenData.authed_user?.id || 'unknown-user';
+    const scopes = tokenData.scope ? tokenData.scope.split(',') : [];
+
     const frontendUrl = process.env.CORS_ORIGIN || 'http://localhost:4200';
-    
+
     // Use hybrid storage for resilient OAuth connection persistence
     const organizationId = 'demo-org-id';
-    const platformUserId = `slack-user-${Date.now()}`;
-    
+    const platformUserId = `slack-user-${userId}`;
+
     const connectionData = {
       organization_id: organizationId,
       platform_type: 'slack',
       platform_user_id: platformUserId,
-      display_name: 'Slack - Test Workspace',
-      permissions_granted: ['channels:read', 'users:read', 'team:read'],
+      display_name: `Slack - ${teamName}`,
+      permissions_granted: scopes,
       metadata: {
         platformSpecific: {
           slack: {
-            team_id: 'demo-team-id',
-            team_name: 'Test Workspace',
-            user_id: platformUserId,
-            scope: 'channels:read,users:read,team:read'
+            team_id: teamId,
+            team_name: teamName,
+            user_id: userId,
+            scope: tokenData.scope || ''
           }
         }
       }
     };
 
     const storageResult = await hybridStorage.storeConnection(connectionData);
-    
+
+    // Store OAuth credentials in OAuthCredentialStorageService
+    if (storageResult.success && storageResult.data?.id) {
+      const connectionId = storageResult.data.id;
+
+      // Calculate token expiration (Slack tokens don't expire by default, but we set a long expiration)
+      const expiresAt = tokenData.expires_in
+        ? new Date(Date.now() + tokenData.expires_in * 1000)
+        : new Date(Date.now() + 365 * 24 * 60 * 60 * 1000); // 1 year default
+
+      const slackCredentials: SlackOAuthCredentials = {
+        accessToken: tokenData.access_token,
+        tokenType: (tokenData.token_type === 'bot' ? 'bot' : 'user') as 'bot' | 'user',
+        scope: scopes,
+        botUserId: tokenData.bot_user_id,
+        userId: userId,
+        teamId: teamId,
+        enterpriseId: tokenData.enterprise?.id,
+        expiresAt: expiresAt,
+        refreshToken: tokenData.refresh_token,
+      };
+
+      // Note: OAuthCredentialStorageService expects GoogleOAuthCredentials, but we need Slack support
+      // For now, convert to a compatible format (this is a gap to address in shared-types)
+      const genericCredentials = {
+        accessToken: slackCredentials.accessToken,
+        refreshToken: slackCredentials.refreshToken,
+        tokenType: 'Bearer',
+        scope: scopes,
+        expiresAt: expiresAt,
+        email: undefined,
+        domain: teamName,
+      };
+
+      await oauthStorage.storeCredentials(connectionId, genericCredentials as any);
+
+      console.log('✅ Slack OAuth credentials stored for connection:', connectionId);
+    }
+
     // Construct success URL with storage result information
     let successUrl = `${frontendUrl}/connections?success=true&platform=slack`;
     if (storageResult.success && storageResult.data?.id) {
@@ -234,14 +318,15 @@ app.get('/api/auth/oauth/google/authorize', (req: Request, res: Response) => {
       });
     }
     
-    // Basic scopes (no verification required for testing)
+    // Comprehensive scopes for Apps Script and automation discovery
     const scopes = [
-      'openid',                                                          // Basic user info
-      'email',                                                           // User email  
-      'profile'                                                          // Basic profile
-      // Note: Advanced scopes require app verification or test user approval
-      // 'https://www.googleapis.com/auth/drive.metadata.readonly',      // Requires verification
-      // 'https://www.googleapis.com/auth/admin.reports.audit.readonly', // Requires verification
+      'openid',                                                                   // Basic user info
+      'email',                                                                    // User email
+      'profile',                                                                  // Basic profile
+      'https://www.googleapis.com/auth/script.projects.readonly',                // View Apps Script projects
+      'https://www.googleapis.com/auth/admin.directory.user.readonly',           // View service accounts
+      'https://www.googleapis.com/auth/admin.reports.audit.readonly',            // View audit logs
+      'https://www.googleapis.com/auth/drive.metadata.readonly'                  // View Drive file metadata
     ];
     
     const authUrl = `https://accounts.google.com/o/oauth2/auth?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${encodeURIComponent(scopes.join(' '))}&response_type=code&state=mock-state&access_type=offline&prompt=consent`;
@@ -272,7 +357,7 @@ app.get('/api/auth/oauth/google/authorize', (req: Request, res: Response) => {
 
 app.get('/api/auth/callback/google', async (req: Request, res: Response) => {
   const { code, state } = req.query;
-  
+
   try {
     // Basic input validation
     if (typeof code !== 'string' || typeof state !== 'string') {
@@ -288,9 +373,10 @@ app.get('/api/auth/callback/google', async (req: Request, res: Response) => {
       return res.redirect(`${frontendUrl}/connections?success=false&platform=google&error=csrf_failed`);
     }
 
-    // Simulated OAuth flow with dynamic environment variables
+    // Get OAuth configuration
     const clientId = process.env.GOOGLE_CLIENT_ID;
     const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
+    const redirectUri = process.env.GOOGLE_REDIRECT_URI || `http://localhost:${PORT}/api/auth/callback/google`;
 
     if (!clientId || !clientSecret) {
       console.error('Missing Google OAuth configuration', { clientIdSet: !!clientId, clientSecretSet: !!clientSecret });
@@ -298,35 +384,116 @@ app.get('/api/auth/callback/google', async (req: Request, res: Response) => {
       return res.redirect(`${frontendUrl}/connections?success=false&platform=google&error=config_error`);
     }
 
-    // In a real implementation, you would validate the code with Google's API
-    // For now, simulate successful connection and store it
+    console.log('🔄 Exchanging Google authorization code for access tokens...');
+
+    // Exchange authorization code for access tokens
+    const tokenResponse = await fetch('https://oauth2.googleapis.com/token', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: new URLSearchParams({
+        client_id: clientId,
+        client_secret: clientSecret,
+        code: code,
+        grant_type: 'authorization_code',
+        redirect_uri: redirectUri,
+      }),
+    });
+
+    if (!tokenResponse.ok) {
+      const errorText = await tokenResponse.text();
+      console.error('Google OAuth token exchange failed:', errorText);
+      const frontendUrl = process.env.CORS_ORIGIN || 'http://localhost:4200';
+      return res.redirect(`${frontendUrl}/connections?success=false&platform=google&error=token_exchange_failed`);
+    }
+
+    const tokenData = await tokenResponse.json() as GoogleOAuthRawResponse;
+
+    if (!tokenData.access_token) {
+      console.error('Google OAuth token exchange returned no access token:', tokenData);
+      const frontendUrl = process.env.CORS_ORIGIN || 'http://localhost:4200';
+      return res.redirect(`${frontendUrl}/connections?success=false&platform=google&error=no_access_token`);
+    }
+
+    console.log('✅ Google OAuth token exchange successful');
+
+    // Decode ID token to get user information (basic JWT parsing)
+    let userEmail = 'unknown@example.com';
+    let userDomain = 'example.com';
+
+    if (tokenData.id_token) {
+      try {
+        // Simple JWT decode (payload is the second segment)
+        const tokenParts = tokenData.id_token.split('.');
+        if (tokenParts.length === 3 && tokenParts[1]) {
+          const idTokenPayload = JSON.parse(
+            Buffer.from(tokenParts[1], 'base64').toString()
+          );
+          userEmail = idTokenPayload.email || userEmail;
+          userDomain = idTokenPayload.hd || userEmail.split('@')[1] || userDomain;
+        }
+      } catch (error) {
+        console.warn('Failed to decode ID token:', error);
+      }
+    }
+
+    // Parse scopes
+    const scopes = tokenData.scope ? tokenData.scope.split(' ') : [];
+
     const frontendUrl = process.env.CORS_ORIGIN || 'http://localhost:4200';
-    
+
     // Use hybrid storage for resilient OAuth connection persistence
     const organizationId = 'demo-org-id';
-    const platformUserId = `google-user-${Date.now()}`;
-    
+    const platformUserId = `google-user-${userEmail}`;
+
     const connectionData = {
       organization_id: organizationId,
       platform_type: 'google',
       platform_user_id: platformUserId,
-      display_name: 'Google Workspace - Demo Organization',
-      permissions_granted: ['admin.directory.user.readonly', 'admin.directory.group.readonly', 'admin.reports.audit.readonly'],
+      display_name: `Google Workspace - ${userDomain}`,
+      permissions_granted: scopes,
       metadata: {
         platformSpecific: {
           google: {
-            email: `demo@example.com`,
-            domain: 'example.com',
-            workspace_domain: 'example.com',
-            scopes: ['admin.directory.user.readonly', 'admin.directory.group.readonly', 'admin.reports.audit.readonly'],
-            token_type: 'Bearer'
+            email: userEmail,
+            domain: userDomain,
+            workspace_domain: userDomain,
+            scopes: scopes,
+            token_type: tokenData.token_type
           }
         }
       }
     };
 
     const storageResult = await hybridStorage.storeConnection(connectionData);
-    
+
+    // Store OAuth credentials in OAuthCredentialStorageService
+    if (storageResult.success && storageResult.data?.id) {
+      const connectionId = storageResult.data.id;
+
+      // Calculate token expiration
+      const expiresAt = tokenData.expires_in
+        ? new Date(Date.now() + tokenData.expires_in * 1000)
+        : new Date(Date.now() + 3600 * 1000); // Default 1 hour
+
+      const googleCredentials: GoogleOAuthCredentials = {
+        accessToken: tokenData.access_token,
+        refreshToken: tokenData.refresh_token,
+        tokenType: tokenData.token_type,
+        scope: scopes,
+        expiresAt: expiresAt,
+        idToken: tokenData.id_token,
+        email: userEmail,
+        domain: userDomain,
+        organizationId: organizationId,
+      };
+
+      await oauthStorage.storeCredentials(connectionId, googleCredentials);
+
+      console.log('✅ Google OAuth credentials stored for connection:', connectionId);
+    }
+
     // Construct success URL with storage result information
     let successUrl = `${frontendUrl}/connections?success=true&platform=google`;
     if (storageResult.success && storageResult.data?.id) {
