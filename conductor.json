@@ -1,0 +1,9 @@
+{
+  "scripts": {
+    "setup": "echo '🔧 Setting up SaaS X-Ray workspace...' && npm install && echo '📦 Building shared-types...' && cd shared-types && npm install && npm run build && cd ../backend && echo '🔗 Linking shared-types to backend...' && npm install && npm link @saas-xray/shared-types && cd ../frontend && echo '📱 Installing frontend dependencies...' && npm install && echo '✅ Workspace setup complete!' && echo '📋 Next: Start Docker containers if needed: docker compose up -d postgres redis'",
+    "run": "echo '🚀 Starting SaaS X-Ray backend on port' $CONDUCTOR_PORT && cd backend && PORT=$CONDUCTOR_PORT MASTER_ENCRYPTION_KEY='dev-master-encryption-key-with-sufficient-length-for-aes-256-gcm-encryption-2024-secure' DATABASE_URL='postgresql://postgres:password@localhost:5433/saas_xray' REDIS_URL='redis://localhost:6379' npm run dev",
+    "archive": "echo '🗂️  Archiving workspace:' $CONDUCTOR_WORKSPACE_NAME && echo 'Workspace archived successfully'"
+  },
+  "runScriptMode": "nonconcurrent",
+  "description": "SaaS X-Ray - Enterprise Shadow AI Detection Platform. Use for parallel development of AI platform connectors (Gemini, ChatGPT, Claude) and GPT-5 analysis service."
+}
