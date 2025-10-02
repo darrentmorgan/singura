@@ -2,127 +2,13 @@
 
 ## **🚨 CRITICAL PROTOCOL - READ FIRST EVERY TIME 🚨**
 
-### **MANDATORY PRE-ACTION CHECKLIST (BMAD ENHANCED)**
+### **MANDATORY PRE-ACTION CHECKLIST**
 
 **Before responding to ANY user request, you MUST:**
 
-1. **📋 Check Agent Dispatch Requirements** - Is this a task requiring specialized agents?
-2. **🔍 Reference SaaS X-Ray Context** - Does this relate to the existing project?
-3. **💰 VALIDATE BMAD BUSINESS PRIORITY** - Check revenue impact in docs/bmad/
-4. **📖 Consult Documentation Strategy** - Should Context7 be used for up-to-date docs?
-5. **⚡ Apply Immediate Dispatch Rule** - If complex, delegate NOW, don't attempt yourself
-
-### **🎯 IMMEDIATE DISPATCH TRIGGERS (NO EXCEPTIONS)**
-
-If the request contains ANY of these keywords or concepts, **IMMEDIATELY** invoke `agent_organizer`:
-
-- **Code Keywords**: `write`, `create`, `build`, `implement`, `add`, `fix`, `debug`, `refactor`
-- **Analysis Keywords**: `analyze`, `explain`, `understand`, `review`, `examine`  
-- **Project Keywords**: `feature`, `function`, `component`, `API`, `endpoint`, `test`
-- **File Operations**: `modify`, `update`, `generate`, `document`
-- **OAuth Keywords**: `authenticate`, `connect`, `integration`, `permissions`, `security`
-- **Detection Keywords**: `discover`, `monitor`, `scan`, `correlate`, `risk assessment`
-
-**❌ NEVER attempt these tasks yourself. ✅ ALWAYS dispatch to agent_organizer.**
-
----
-
-## **💰 BMAD BUSINESS CONTEXT INTEGRATION**
-
-### **MANDATORY BUSINESS-FIRST VALIDATION**
-
-Before any technical decision, agents MUST reference BMAD documentation for business context:
-
-#### **🎯 Business Impact Validation Framework**
-
-**Step 1: Revenue Impact Assessment**
-- **📊 Market Position**: Does this align with revenue goals in `docs/bmad/project-brief.md`?
-- **💵 Pricing Tier Impact**: Will this enable higher subscription tiers ($299→$999→$2999)?
-- **🎯 Customer Success**: Does this reduce time-to-value or increase retention?
-
-**Step 2: Priority Validation (P0-P3 Framework)**
-- **P0 (Revenue Blocker)**: Prevents customer acquisition or causes immediate churn
-- **P1 (Revenue Driver)**: Directly increases ARR or enables premium pricing
-- **P2 (Revenue Enabler)**: Supports future revenue growth or market expansion
-- **P3 (Revenue Neutral)**: Technical debt with minimal business impact
-
-Reference: `docs/bmad/epic-story-breakdown.md` for complete priority framework
-
-**Step 3: Architecture Alignment Check**
-- **🏗️ Scalability**: Does this support business scaling in `docs/bmad/architecture-bmad.md`?
-- **🔒 Enterprise Requirements**: Does this meet enterprise buyer needs for $2999+ tier?
-- **⚡ Performance**: Does this maintain competitive advantage through speed?
-
-**Step 4: Implementation Gap Analysis**
-- **📋 Critical Gaps**: Is this addressing P0/P1 gaps in `docs/bmad/implementation-gap-analysis.md`?
-- **🔄 Revenue Risk**: What's the opportunity cost of NOT implementing this?
-- **⏰ Timeline**: How does this align with revenue milestone targets?
-
-### **🚀 BMAD-Enhanced Agent Dispatch Protocol**
-
-```typescript
-interface BMADValidatedRequest {
-  businessContext: {
-    revenueImpact: "P0 Revenue Blocker" | "P1 Revenue Driver" | "P2 Revenue Enabler" | "P3 Revenue Neutral";
-    marketPosition: "Competitive Advantage" | "Table Stakes" | "Differentiation" | "Nice to Have";
-    customerValue: "Immediate" | "Short-term" | "Long-term" | "Minimal";
-    riskMitigation: "Critical" | "High" | "Medium" | "Low";
-  };
-
-  technicalExecution: {
-    dispatchRequired: boolean;
-    agentSpecialization: string[];
-    businessValidation: boolean;
-  };
-}
-```
-
-### **📚 Project Documentation Quick Reference**
-
-#### **Strategic Business Context**
-- **📊 Market & Revenue Strategy**: [`/docs/PROJECT-BRIEF.md`](/docs/PROJECT-BRIEF.md)
-  - $2.3B market opportunity, competitive positioning
-  - Revenue model validation ($299-2999/month tiers)
-  - Go-to-market strategy and customer success metrics
-
-- **📋 Business-Driven Product Spec**: [`/docs/PRD.md`](/docs/PRD.md)
-  - Revenue-driven user stories with business impact
-  - Competitive feature requirements for revenue protection
-  - Success metrics correlated to revenue growth
-
-#### **Technical Business Alignment**
-- **🏗️ Business-Aligned Architecture**: [`/docs/ARCHITECTURE.md`](/docs/ARCHITECTURE.md)
-  - Revenue-scalable technology stack decisions
-  - Business-critical detection algorithms
-  - Enterprise-grade security for premium pricing
-
-- **📝 Development Roadmap**: [`/docs/ROADMAP.md`](/docs/ROADMAP.md)
-  - P0-P3 priority framework based on revenue impact
-  - Business value mapping for each epic and story
-  - Implementation status with revenue validation
-
-#### **Implementation Intelligence**
-- **🔍 Customer Validation**: [`/docs/CUSTOMER-VALIDATION.md`](/docs/CUSTOMER-VALIDATION.md)
-  - Critical insights from beta testing
-  - Business-impact feature prioritization
-  - Customer feedback and roadmap alignment
-
-**Note:** Previous BMAD documentation has been consolidated into these standard project documentation files.
-
-### **⚡ Revenue-First Development Protocol**
-
-**All agents MUST validate business impact before technical implementation:**
-
-1. **Business Context First**: Reference BMAD docs for revenue/market context
-2. **Priority Validation**: Confirm P0-P3 priority based on business impact
-3. **Technical Excellence**: Implement with full TypeScript/testing standards
-4. **Revenue Correlation**: Measure success by business outcomes, not just technical metrics
-
-**Success Criteria Integration:**
-- ✅ Technical implementation achieves business objectives from BMAD docs
-- ✅ Feature priority aligns with revenue impact (P0-P3 framework)
-- ✅ Architecture decisions support business model scaling
-- ✅ Customer success metrics improve through technical excellence
+1. **🔍 Reference SaaS X-Ray Context** - Does this relate to the existing project?
+2. **📖 Consult Documentation Strategy** - Should Context7 be used for up-to-date docs?
+3. **✅ Validate Technical Requirements** - Check TypeScript, testing, and security needs
 
 ---
 
@@ -130,7 +16,6 @@ interface BMADValidatedRequest {
 
 ### Core Beliefs
 
-- **🚀 Agent-First Development** – Complex tasks require specialized virtual agents, not general responses.
 - **🔒 Type-First Development** – All new code MUST be fully typed with TypeScript, no exceptions.
 - **🔄 Shared-Types Architecture** – All API contracts use centralized type definitions via @saas-xray/shared-types.
 - **🧪 Test-First Development** – All new features MUST have comprehensive tests before merge.
@@ -149,69 +34,9 @@ interface BMADValidatedRequest {
 
 ---
 
-## **🎭 AGENT DISPATCH PROTOCOL (MANDATORY)**
-
-### **Core Philosophy: You Are a Dispatcher, Not a Solver**
-
-Your primary function is **intelligent delegation**, not direct problem-solving.
-
-```mermaid
-graph TD
-    A[📨 User Request Arrives] --> B[🔍 MANDATORY: Check Dispatch Criteria]
-    B --> C{❓ Meets ANY Dispatch Trigger?}
-    C -- ✅ YES --> D[🚨 IMMEDIATE: Invoke agent_organizer]
-    C -- ❌ NO --> E{🤔 Still Uncertain?}
-    E -- YES --> D
-    E -- NO --> F[📝 Simple Direct Response Only]
-    
-    D --> G[🎯 Agent Organizer Analyzes Request]
-    G --> H[👥 Specialized Agents Execute]
-    H --> I[📋 Final Results Returned]
-    I --> J[📤 You Present Results to User]
-
-    style B fill:#ff9999,stroke:#333,stroke-width:3px
-    style D fill:#99ff99,stroke:#333,stroke-width:3px
-    style C fill:#ffff99,stroke:#333,stroke-width:2px
-```
-
-### **❗ CRITICAL DISPATCH RULES**
-
-**RULE 1: When in Doubt, DISPATCH**
-- If you spend more than 10 seconds thinking about how to solve it, dispatch it.
-- Better to over-delegate than under-delegate.
-
-**RULE 2: Multi-Step Tasks = AUTOMATIC DISPATCH**
-- Any task requiring more than 2 sequential actions gets dispatched.
-- Example: "First do X, then Y" → DISPATCH
-
-**RULE 3: SaaS X-Ray Context = ENHANCED DISPATCH**  
-- All SaaS X-Ray-related requests get enhanced context via dispatch.
-- Agent organizer has full project context you lack.
-
-**RULE 4: OAuth/Security Tasks = IMMEDIATE DISPATCH**
-- OAuth flows, security implementations, and compliance features require expert handling.
-
----
-
 ## Process
 
-### 1. **🔥 URGENT: Pre-Response Protocol**
-
-**Every single response must begin with this mental checklist:**
-
-```
-[ ] Does this involve code creation/modification?
-[ ] Does this require analysis of existing code?  
-[ ] Does this involve multiple technical steps?
-[ ] Does this relate to SaaS X-Ray project specifically?
-[ ] Does this involve OAuth, security, or compliance?
-[ ] Does this involve platform connectors or detection logic?
-[ ] Am I uncertain about the best approach?
-
-If ANY checkbox is YES → DISPATCH TO AGENT_ORGANIZER
-```
-
-### 2. Planning & Staging (When NOT Dispatching)
+### 1. Planning & Staging
 
 Break work into 3–5 cross-stack stages (front-end, back-end, database, integration). Document in `IMPLEMENTATION_PLAN.md`:
 
@@ -224,41 +49,13 @@ Break work into 3–5 cross-stack stages (front-end, back-end, database, integra
 **Status**: [Not Started|In Progress|Complete]
 ```
 
-### 3. Implementation Flow (Agent-Managed)
+### 2. Implementation Flow
 
-When you dispatch to agent_organizer:
-- **Understand** – Agents identify existing patterns for UI, API, OAuth, and detection engine.
-- **Security First** – Agents implement proper OAuth flows and security measures.
-- **Test First** – Agents write comprehensive tests including security tests.
-- **Implement Minimal** – Agents write just enough code to pass all tests.
-- **Refactor Safely** – Agents clean code with proper test coverage.
-
----
-
-## **🚨 FOLLOW-UP PROTOCOL**
-
-### Complexity Re-Assessment for Follow-ups
-
-```mermaid
-graph TD
-    A[📬 Follow-up Question] --> B[⚡ URGENT: Re-check Dispatch Criteria]
-    B --> C{🔍 New complexity or scope?}
-    C -- YES --> D[🚨 RE-DISPATCH to agent_organizer]
-    C -- NO --> E{💭 Simple clarification only?}
-    E -- NO --> D
-    E -- YES --> F[📝 Direct response OK]
-    
-    style B fill:#ff9999,stroke:#333,stroke-width:3px
-    style D fill:#99ff99,stroke:#333,stroke-width:3px
-```
-
-**Follow-up Dispatch Triggers:**
-- New OAuth platform integrations
-- Security requirement changes
-- Detection algorithm modifications
-- Cross-platform correlation features
-- Compliance or audit requirements
-- Real-time monitoring enhancements
+- **Understand** – Identify existing patterns for UI, API, OAuth, and detection engine.
+- **Security First** – Implement proper OAuth flows and security measures.
+- **Test First** – Write comprehensive tests including security tests.
+- **Implement Minimal** – Write just enough code to pass all tests.
+- **Refactor Safely** – Clean code with proper test coverage.
 
 ---
 
@@ -728,7 +525,6 @@ export const TEST_OAUTH_CREDENTIALS: OAuthCredentials = {
 
 ### Architecture (TypeScript Enhanced)
 
-- **Agent-First Approach** – Complex technical decisions made by specialized agents
 - **Shared-Types Architecture** – All API contracts centralized in @saas-xray/shared-types package
 - **Repository Pattern Standardization** – All data access uses T | null return pattern
 - **Security-First Design** – OAuth flows with ExtendedTokenResponse and proper type safety
@@ -737,7 +533,7 @@ export const TEST_OAUTH_CREDENTIALS: OAuthCredentials = {
 - **Explicit data flow** – Document request/response shapes with shared-types in OpenAPI/Swagger
 - **TDD when possible** – Unit tests + integration tests + security tests + type coverage for each feature slice
 
-### Code Quality (Agent-Enforced)
+### Code Quality
 
 **Every commit must (TypeScript Enhanced):**
 - Pass shared-types build and compilation
@@ -763,17 +559,16 @@ export const TEST_OAUTH_CREDENTIALS: OAuthCredentials = {
 - Log all data access and modifications
 - Comply with GDPR and other regulations
 
-### Decision Framework (BMAD Enhanced)
+### Decision Framework
 
-When multiple solutions exist (via agents), prioritize in this order:
+When multiple solutions exist, prioritize in this order:
 
-1. **💰 Business Value (BMAD)** – Revenue impact and customer value from docs/bmad/
-2. **🔒 Security** – Does this maintain OAuth security and data protection?
-3. **🧪 Testability** – Can OAuth flows and detection logic be tested in isolation?
-4. **📖 Readability** – Will another dev understand this in 6 months?
-5. **🔄 Consistency** – Matches existing patterns and BMAD architecture?
-6. **⚡ Simplicity** – Least complex solution achieving business goals
-7. **🔄 Reversibility** – Can we swap OAuth providers/detection methods easily?
+1. **🔒 Security** – Does this maintain OAuth security and data protection?
+2. **🧪 Testability** – Can OAuth flows and detection logic be tested in isolation?
+3. **📖 Readability** – Will another dev understand this in 6 months?
+4. **🔄 Consistency** – Matches existing patterns and architecture?
+5. **⚡ Simplicity** – Least complex solution achieving business goals
+6. **🔄 Reversibility** – Can we swap OAuth providers/detection methods easily?
 
 ---
 
@@ -782,11 +577,9 @@ When multiple solutions exist (via agents), prioritize in this order:
 ## **📋 Instant Reference Card**
 
 **When ANY SaaS X-Ray request arrives:**
-1. 🚨 **IMMEDIATE**: Check if it requires agent dispatch
-2. 📖 **CONTEXT**: Reference project architecture below  
-3. 🔐 **SECURITY**: Consider OAuth and compliance requirements
-4. 📚 **DOCS**: Consider Context7 for up-to-date library docs
-5. 🎯 **DISPATCH**: Let agent_organizer handle with full context
+1. 📖 **CONTEXT**: Reference project architecture below
+2. 🔐 **SECURITY**: Consider OAuth and compliance requirements
+3. 📚 **DOCS**: Consider Context7 for up-to-date library docs
 
 ## Project Overview
 
@@ -1084,23 +877,18 @@ interface ConnectorRepository extends Repository<PlatformConnector> {
 ## **⚡ EMERGENCY REMINDERS**
 
 ### **🚨 NEVER DO THESE:**
-- ❌ Attempt to solve complex coding requests yourself
 - ❌ Write OAuth flows without proper security validation
-- ❌ Implement detection logic without agent analysis
 - ❌ Skip security tests for OAuth integrations
-- ❌ Modify SaaS X-Ray files without agent analysis
-- ❌ Skip the dispatch protocol "to save time"
-- ❌ Ignore follow-up dispatch requirements
+- ❌ Implement features without proper TypeScript typing
+- ❌ Skip test coverage requirements
 
 ### **✅ ALWAYS DO THESE:**
-- ✅ Check dispatch criteria before every response
-- ✅ Use agent_organizer for any technical complexity
 - ✅ Reference SaaS X-Ray context for project requests
 - ✅ Prioritize OAuth security and compliance requirements
-- ✅ Let agents handle full analysis and implementation
-- ✅ Present agent results directly to users
 - ✅ **Use singleton pattern for stateful services** (prevents credential loss)
 - ✅ **Validate Slack API methods exist** before implementing (some don't exist in Web API)
+- ✅ Follow TypeScript-first development approach
+- ✅ Write comprehensive tests for all new code
 
 ---
 
@@ -1217,11 +1005,11 @@ try {
 
 ---
 
-## **🎯 Success Metrics (BMAD + TypeScript Excellence)**
+## **🎯 Success Metrics**
 
 **Migration Achievement Status:**
 - ✅ **99% TypeScript Migration Complete** - Near-perfect error reduction achieved (199+ → ~5 errors estimated)
-- ✅ **Dual OAuth Platform Integration** - Slack + Google Workspace working simultaneously 
+- ✅ **Dual OAuth Platform Integration** - Slack + Google Workspace working simultaneously
 - ✅ **Google Workspace Shadow AI Detection** - Comprehensive detection algorithm framework
 - ✅ **Real-time Discovery System** - Socket.io progress tracking with enterprise UX
 - ✅ **Detection Algorithm Framework** - VelocityDetector, BatchOperationDetector, AIProviderDetector
@@ -1233,42 +1021,21 @@ try {
 
 **You are succeeding when:**
 
-**🎯 BMAD Business Alignment:**
-- All technical decisions reference BMAD documentation for business context
-- Feature priority aligns with P0-P3 revenue impact framework from docs/bmad/
-- Implementation addresses critical gaps identified in BMAD gap analysis
-- Technical architecture supports business model scaling (docs/bmad/architecture-bmad.md)
-- Customer success metrics improve through business-focused development
-
-**⚡ Technical Excellence + Business Value:**
-- 95%+ of complex requests are dispatched to agents with BMAD context validation
-- Users receive expert solutions that achieve both technical and business objectives
-- SaaS X-Ray patterns and shared-types architecture properly leveraged for revenue goals
-- OAuth security requirements use ExtendedTokenResponse pattern for enterprise sales
-- Code quality remains high while delivering measurable business outcomes
-- TypeScript error count decreases toward zero without sacrificing business priorities
-- All new code uses shared-types imports and supports revenue-tier differentiation
-- Advanced OAuth integrations enable premium pricing and enterprise deals
-- Live OAuth connections working with real enterprise workspaces for customer validation
-- PDF generation and compliance features support revenue expansion opportunities
+- SaaS X-Ray patterns and shared-types architecture properly leveraged
+- OAuth security requirements use ExtendedTokenResponse pattern
+- Code quality remains high with comprehensive test coverage
+- TypeScript error count decreases toward zero
+- All new code uses shared-types imports
+- Live OAuth connections working with real enterprise workspaces
+- Security and compliance features properly implemented
 
 **You are failing when:**
 
-**🚫 BMAD Business Misalignment:**
-- Technical decisions made without referencing BMAD business context documentation
-- Feature priority ignores P0-P3 revenue impact framework from docs/bmad/
-- Implementation doesn't address critical business gaps identified in BMAD analysis
-- Architecture choices don't support business model scaling or revenue goals
-- Technical metrics prioritized over business outcomes and customer success
-
-**❌ Technical Execution Without Business Context:**
-- You attempt complex solutions yourself without considering BMAD + shared-types context
-- Users get technical responses that lack business value and revenue correlation
-- SaaS X-Ray context ignored or shared-types architecture misapplied for business goals
-- Security requirements implemented without considering enterprise sales impact
-- Code changes lack proper business analysis, testing, and revenue outcome validation
-- TypeScript improvements pursued without connection to business objectives
-- OAuth integrations lack comprehensive security needed for premium tier pricing
+- SaaS X-Ray context ignored or shared-types architecture misapplied
+- Security requirements not properly implemented
+- Code changes lack proper testing and validation
+- TypeScript standards not followed
+- OAuth integrations lack comprehensive security
 
 ---
 
@@ -1288,5 +1055,3 @@ try {
 - **Bull Queue**: `/bull/bull`
 
 ---
-
-**🔥 FINAL REMINDER: This protocol is MANDATORY, not optional. Every complex request gets dispatched with BMAD business context validation. Every SaaS X-Ray request leverages full business and technical context from docs/bmad/. OAuth integrations ALWAYS require agent expertise with revenue impact assessment. All technical decisions MUST reference business priorities (P0-P3) and revenue goals. No exceptions.**
