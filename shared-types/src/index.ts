@@ -37,3 +37,18 @@ export * from './oauth/google';
 export * from './platforms/google';
 export * from './platforms/microsoft';
 export * from './platforms/google-workspace';
+
+// AI Platform Detection types (Phase 0)
+export * from './platforms/ai-platforms';
+export * from './platforms/chatgpt-enterprise';
+export * from './platforms/claude-enterprise';
+export * from './platforms/gemini-workspace';
+
+// AI Analysis types
+export * from './ai-analysis/gpt5-analysis';
+
+// Connector types
+export * from './connectors/ai-platform-connector';
+
+// Database adapter types
+export * from './database/database-adapter';
