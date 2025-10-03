@@ -107,13 +107,33 @@ const initializeCorrelationServices = async () => {
       }
     });
 
-    // Register platform connectors
-    const slackOAuthService = new SlackOAuthService();
-    const slackConnector = new SlackCorrelationConnector(slackOAuthService);
+    // Register platform connectors with proper configuration
+    // TODO: Properly initialize SlackOAuthService with config and credentials
+    const slackConfig = {
+      clientId: process.env.SLACK_CLIENT_ID || '',
+      clientSecret: process.env.SLACK_CLIENT_SECRET || '',
+      redirectUri: process.env.SLACK_REDIRECT_URI || '',
+      scopes: ['channels:read', 'users:read', 'team:read']
+    };
+    const slackCreds = {
+      access_token: '',
+      team_id: '',
+      scope: ''
+    };
+    const slackOAuthService = new SlackOAuthService(slackConfig, slackCreds);
+    const slackConnector = new SlackCorrelationConnector(slackOAuthService, {
+      enableRealTimeEvents: true,
+      maxEventsPerRequest: 1000,
+      lookbackDays: 7
+    });
     correlationOrchestrator.registerPlatformConnector(slackConnector);
 
     const googleApiService = new GoogleAPIClientService();
-    const googleConnector = new GoogleCorrelationConnector(googleApiService);
+    const googleConnector = new GoogleCorrelationConnector(googleApiService, {
+      enableRealTimeEvents: true,
+      maxEventsPerRequest: 1000,
+      lookbackDays: 7
+    });
     correlationOrchestrator.registerPlatformConnector(googleConnector);
 
     console.log('Correlation services initialized successfully');

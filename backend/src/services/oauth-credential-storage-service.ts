@@ -72,9 +72,9 @@ export class OAuthCredentialStorageService implements OAuthCredentialStorage, Li
         try {
           await encryptedCredentialRepository.create({
             platform_connection_id: connectionId,
-            credential_type: 'access_token',
+            credential_type: 'access_token' as CredentialType,
             encrypted_value: JSON.stringify(credentials),
-            expires_at: credentials.expiresAt,
+            expires_at: credentials.expiresAt || undefined,
             metadata: {}
           });
           console.log('✅ OAuth credentials persisted to encrypted database:', connectionId);
@@ -119,9 +119,14 @@ export class OAuthCredentialStorageService implements OAuthCredentialStorage, Li
 
           if (dbCredential) {
             // Decrypt and parse credentials (encryption_key_id is validated by repository)
+            const encryptionKeyId = dbCredential.encryption_key_id;
+            if (!encryptionKeyId) {
+              throw new Error(`No encryption key ID found for credential ${dbCredential.id}`);
+            }
+
             const decryptedValue = await encryptedCredentialRepository.getDecryptedValue(
               dbCredential.id,
-              dbCredential.encryption_key_id!
+              encryptionKeyId
             );
             credentials = JSON.parse(decryptedValue) as GoogleOAuthCredentials;
 

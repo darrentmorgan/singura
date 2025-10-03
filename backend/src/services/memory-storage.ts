@@ -50,8 +50,10 @@ class OAuthMemoryStorageImpl implements OAuthMemoryStorage {
       if (this.storage.size >= this.config.maxMemoryItems) {
         // Remove oldest item to make space
         const oldestKey = Array.from(this.storage.keys())[0];
-        this.storage.delete(oldestKey);
-        this.log('warn', `Removed oldest item ${oldestKey} to make space for new connection`);
+        if (oldestKey !== undefined) {
+          this.storage.delete(oldestKey);
+          this.log('warn', `Removed oldest item ${oldestKey} to make space for new connection`);
+        }
       }
     }
 
@@ -315,8 +317,8 @@ class OAuthMemoryStorageImpl implements OAuthMemoryStorage {
     const averageAge = ages.length > 0 ? ages.reduce((sum, age) => sum + age, 0) / ages.length : 0;
     
     const sortedByAge = items.sort((a, b) => a.storedAt.getTime() - b.storedAt.getTime());
-    const oldestItem = sortedByAge.length > 0 ? sortedByAge[0].storedAt : null;
-    const newestItem = sortedByAge.length > 0 ? sortedByAge[sortedByAge.length - 1].storedAt : null;
+    const oldestItem = sortedByAge.length > 0 ? sortedByAge[0]?.storedAt || null : null;
+    const newestItem = sortedByAge.length > 0 ? sortedByAge[sortedByAge.length - 1]?.storedAt || null : null;
     
     const failedPersistenceAttempts = items
       .filter(item => item.metadata.lastPersistenceError)

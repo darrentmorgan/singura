@@ -443,6 +443,7 @@ export class MLBehavioralInferenceService {
     automation: AutomationEvent,
     context: { organizationId: string; platform: string }
   ): BehavioralAnalysisResult {
+    const fallbackStartTime = Date.now();
 
     // Fallback to rule-based analysis if ML fails
     const riskScore = automation.riskLevel === 'high' ? 80 :
@@ -460,7 +461,7 @@ export class MLBehavioralInferenceService {
       },
       modelMetadata: {
         modelsUsed: ['rule_based_fallback'],
-        processingTimeMs: Date.now() - startTime,
+        processingTimeMs: Date.now() - fallbackStartTime,
         accuracy: 0.75 // Traditional accuracy
       },
       timestamp: new Date()
