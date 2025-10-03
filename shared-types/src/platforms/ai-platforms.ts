@@ -257,6 +257,12 @@ export interface AIAuditLogResult {
     /** Any warnings or issues */
     warnings?: string[];
 
+    /** Detected platforms (for multi-platform queries) */
+    detectedPlatforms?: Array<{
+      platform: AIPlatform;
+      displayName: string;
+    }>;
+
     /** Additional metadata */
     [key: string]: any;
   };
