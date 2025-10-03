@@ -61,6 +61,11 @@ jobs:
       run: |
         npm ci
         npm run test:e2e:install
+        # Build and link shared-types package
+        cd shared-types && npm run build && cd ..
+        # Ensure shared-types is available to backend and frontend
+        cd backend && npm link ../shared-types && cd ..
+        cd frontend && npm link ../shared-types && cd ..
         
     - name: Install system dependencies for browsers
       run: |
