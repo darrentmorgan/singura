@@ -5,8 +5,10 @@
 
 import { google, Auth } from 'googleapis';
 import { PlatformConnector, OAuthCredentials, ConnectionResult, AutomationEvent, AuditLogEntry, PermissionCheck } from './types';
+import { AIAuditLogQuery, AIAuditLogResult, AIplatformAuditLog, AIPlatform } from '@saas-xray/shared-types';
 import { oauthService } from '../services/oauth-service';
 import { encryptedCredentialRepository } from '../database/repositories/encrypted-credential';
+import { googleOAuthAIDetector } from '../services/detection/google-oauth-ai-detector.service';
 
 /**
  * Map Google actorType to our AuditLogEntry actorType enum
@@ -201,6 +203,92 @@ export class GoogleConnector implements PlatformConnector {
       console.error('Error fetching Google Workspace audit logs:', error);
       // Return empty array if audit logs aren't available
       return [];
+    }
+  }
+
+  /**
+   * Get AI platform audit logs (OAuth-based detection)
+   */
+  async getAIAuditLogs(query: AIAuditLogQuery): Promise<AIAuditLogResult> {
+    if (!this.client) {
+      throw new Error('Google client not authenticated');
+    }
+
+    const admin = google.admin({ version: 'reports_v1', auth: this.client });
+
+    try {
+      // Query login application for OAuth events
+      const loginLogs = await admin.activities.list({
+        userKey: 'all',
+        applicationName: 'login',
+        startTime: query.startDate.toISOString(),
+        endTime: query.endDate?.toISOString(),
+        maxResults: 1000,
+        eventName: 'oauth2_authorize,oauth2_approve'
+      });
+
+      // Query token application for OAuth token events
+      const tokenLogs = await admin.activities.list({
+        userKey: 'all',
+        applicationName: 'token',
+        startTime: query.startDate.toISOString(),
+        endTime: query.endDate?.toISOString(),
+        maxResults: 1000,
+        eventName: 'authorize'
+      });
+
+      // Combine and detect AI platforms
+      const allEvents = [
+        ...(loginLogs.data.items || []),
+        ...(tokenLogs.data.items || [])
+      ];
+
+      const aiPlatformLogs = allEvents
+        .map(event => googleOAuthAIDetector.detectAIPlatformLogin(event))
+        .filter((log): log is AIplatformAuditLog => log !== null);
+
+      // Filter by platform if specified
+      const filteredLogs = query.platforms && query.platforms.length > 0
+        ? aiPlatformLogs.filter(log => query.platforms!.includes(log.platform))
+        : aiPlatformLogs;
+
+      // Determine the primary platform from detected logs
+      const detectedPlatformCounts = filteredLogs.reduce((acc, log) => {
+        acc[log.platform] = (acc[log.platform] || 0) + 1;
+        return acc;
+      }, {} as Record<AIPlatform, number>);
+
+      const primaryPlatform = Object.entries(detectedPlatformCounts)
+        .sort(([,a], [,b]) => b - a)[0]?.[0] as AIPlatform | undefined;
+
+      return {
+        logs: filteredLogs,
+        totalCount: filteredLogs.length,
+        hasMore: !!(loginLogs.data.nextPageToken || tokenLogs.data.nextPageToken),
+        nextCursor: loginLogs.data.nextPageToken || tokenLogs.data.nextPageToken || undefined,
+        metadata: {
+          queryTime: Date.now(),
+          platform: primaryPlatform || 'chatgpt', // Default to chatgpt if no logs detected
+          warnings: [],
+          detectedPlatforms: googleOAuthAIDetector.getSupportedPlatforms()
+        }
+      };
+    } catch (error) {
+      console.error('Error fetching Google AI platform audit logs:', error);
+
+      // Return empty result with error warning
+      return {
+        logs: [],
+        totalCount: 0,
+        hasMore: false,
+        metadata: {
+          queryTime: Date.now(),
+          platform: 'chatgpt', // Default platform for error case
+          warnings: [
+            error instanceof Error ? error.message : 'Failed to fetch audit logs'
+          ]
+        }
+      };
     }
   }
 

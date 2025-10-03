@@ -56,7 +56,7 @@ export interface AIplatformAuditLog {
 /**
  * Supported AI platforms
  */
-export type AIPlatform = 'chatgpt' | 'claude' | 'gemini';
+export type AIPlatform = 'chatgpt' | 'claude' | 'gemini' | 'perplexity' | 'copilot';
 
 /**
  * Normalized activity types across all platforms
@@ -217,6 +217,9 @@ export interface AIAuditLogQuery {
   /** Filter by event types */
   eventTypes?: string[];
 
+  /** Filter by specific platforms */
+  platforms?: AIPlatform[];
+
   /** Maximum number of results */
   limit?: number;
 
@@ -253,6 +256,9 @@ export interface AIAuditLogResult {
 
     /** Any warnings or issues */
     warnings?: string[];
+
+    /** Additional metadata */
+    [key: string]: any;
   };
 }
 
