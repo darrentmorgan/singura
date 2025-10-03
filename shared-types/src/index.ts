@@ -52,3 +52,32 @@ export * from './connectors/ai-platform-connector';
 
 // Database adapter types
 export * from './database/database-adapter';
+
+// Type aliases for backward compatibility
+export type { AutomationEventData as AutomationEvent } from './utils/socket-types';
+
+// Platform-specific activity events
+export interface SlackActivityEvent {
+  eventId: string;
+  platform: 'slack';
+  timestamp: Date;
+  userId: string;
+  userEmail: string;
+  eventType: string;
+  resourceId: string;
+  resourceType: string;
+  actionDetails: {
+    action: string;
+    resourceName: string;
+    metadata: Record<string, unknown>;
+  };
+}
+
+// Chain risk assessment type alias
+export type ChainRiskAssessment = {
+  dataExposure: import('./utils/cross-platform-correlation').DataExposureRisk;
+  complianceImpact: import('./utils/cross-platform-correlation').ComplianceImpact;
+  businessImpact: import('./utils/cross-platform-correlation').BusinessImpactAssessment;
+  overallRisk: 'low' | 'medium' | 'high' | 'critical';
+  recommendations: string[];
+};

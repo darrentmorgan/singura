@@ -50,12 +50,12 @@ interface APIResponse<T = any> {
 /**
  * Request validation middleware for correlation endpoints
  */
-const validateCorrelationRequest = (req: Request, res: Response, next: NextFunction) => {
+const validateCorrelationRequest = (req: Request, res: Response, next: NextFunction): void => {
   // Basic validation - could be enhanced with joi or similar
   const { organizationId } = req.params;
 
   if (!organizationId || organizationId.length < 1) {
-    return res.status(400).json({
+    res.status(400).json({
       success: false,
       error: 'Organization ID is required',
       metadata: {
@@ -63,6 +63,7 @@ const validateCorrelationRequest = (req: Request, res: Response, next: NextFunct
         version: '1.0.0'
       }
     } as APIResponse);
+    return;
   }
 
   next();
@@ -111,7 +112,7 @@ const initializeCorrelationServices = async () => {
     const slackConnector = new SlackCorrelationConnector(slackOAuthService);
     correlationOrchestrator.registerPlatformConnector(slackConnector);
 
-    const googleApiService = new GoogleApiClientService();
+    const googleApiService = new GoogleAPIClientService();
     const googleConnector = new GoogleCorrelationConnector(googleApiService);
     correlationOrchestrator.registerPlatformConnector(googleConnector);
 
@@ -152,9 +153,9 @@ router.post(
         };
       }
 
-      // Execute correlation analysis
+      // Execute correlation analysis (organizationId is validated by middleware)
       const analysisResult = await orchestrator.executeCorrelationAnalysis(
-        organizationId,
+        organizationId!,
         parsedTimeRange
       );
 
@@ -212,8 +213,8 @@ router.get(
     try {
       const orchestrator = await initializeCorrelationServices();
 
-      // Generate executive report
-      const executiveReport = await orchestrator.generateExecutiveReport(organizationId);
+      // Generate executive report (organizationId is validated by middleware)
+      const executiveReport = await orchestrator.generateExecutiveReport(organizationId!);
 
       const processingTime = Date.now() - startTime;
 
@@ -322,8 +323,8 @@ router.get(
       const status = orchestrator.getCorrelationStatus();
 
       if (!status.lastAnalysis) {
-        // No recent analysis available, trigger new analysis
-        await orchestrator.executeCorrelationAnalysis(organizationId);
+        // No recent analysis available, trigger new analysis (organizationId is validated by middleware)
+        await orchestrator.executeCorrelationAnalysis(organizationId!);
       }
 
       // For this MVP, we'll return mock filtered chains
@@ -381,14 +382,49 @@ router.get(
             }
           },
           riskAssessment: {
-            overallRisk: 65,
-            riskFactors: {
-              dataExposure: 60,
-              permissionEscalation: 40,
-              complianceImpact: 70,
-              operationalDependency: 80
+            dataExposure: {
+              exposureId: 'exp-1',
+              dataTypes: ['documents', 'spreadsheets'],
+              sensitivityLevel: 'internal',
+              exposureMethod: 'file_sharing',
+              externalDestinations: ['google_drive'],
+              estimatedVolume: 'medium',
+              riskScore: 60,
+              complianceViolations: []
             },
-            businessImpact: 'moderate',
+            complianceImpact: {
+              gdprViolations: [],
+              soxViolations: [],
+              hipaaViolations: [],
+              pciViolations: [],
+              customViolations: [],
+              overallComplianceRisk: 'minor_issues'
+            },
+            businessImpact: {
+              impactLevel: 'moderate',
+              affectedBusinessFunctions: ['marketing', 'sales'],
+              reputationRisk: 'medium',
+              financialExposure: {
+                potentialFineRange: {
+                  minimum: 0,
+                  maximum: 10000,
+                  currency: 'USD'
+                },
+                remediationCosts: {
+                  estimated: 5000,
+                  confidence: 'medium',
+                  breakdown: { 'audit': 2000, 'implementation': 3000 }
+                },
+                businessDisruptionCost: {
+                  estimated: 2000,
+                  timeframe: '1 week',
+                  confidence: 'medium'
+                }
+              },
+              operationalRisk: ['workflow_disruption'],
+              mitigationComplexity: 'moderate'
+            },
+            overallRisk: 'medium',
             recommendations: [
               'Review file sharing permissions',
               'Implement data classification',

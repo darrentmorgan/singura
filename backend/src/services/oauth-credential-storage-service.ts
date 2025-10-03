@@ -15,6 +15,7 @@ import {
 } from '@saas-xray/shared-types';
 import { GoogleAPIClientService } from './google-api-client-service';
 import { encryptedCredentialRepository } from '../database/repositories/encrypted-credential';
+import { CredentialType } from '../types/database';
 
 export class OAuthCredentialStorageService implements OAuthCredentialStorage, LiveConnectionManager {
   private credentialStore = new Map<string, GoogleOAuthCredentials>();
@@ -113,14 +114,14 @@ export class OAuthCredentialStorageService implements OAuthCredentialStorage, Li
         try {
           const dbCredential = await encryptedCredentialRepository.findByConnectionAndType(
             connectionId,
-            'access_token'
+            'access_token' as CredentialType
           );
 
           if (dbCredential) {
-            // Decrypt and parse credentials
+            // Decrypt and parse credentials (encryption_key_id is validated by repository)
             const decryptedValue = await encryptedCredentialRepository.getDecryptedValue(
               dbCredential.id,
-              dbCredential.encryption_key_id
+              dbCredential.encryption_key_id!
             );
             credentials = JSON.parse(decryptedValue) as GoogleOAuthCredentials;
 
@@ -137,7 +138,7 @@ export class OAuthCredentialStorageService implements OAuthCredentialStorage, Li
               lastUsed: new Date(),
               tokenStatus: 'active',
               scopes: credentials.scope || [],
-              expiresAt: dbCredential.expires_at
+              expiresAt: dbCredential.expires_at ?? undefined
             };
             this.connectionInfo.set(connectionId, connectionInfo);
 

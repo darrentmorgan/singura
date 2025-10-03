@@ -3,15 +3,15 @@
  * Combines database and memory storage for maximum resilience
  */
 
-import { 
-  OAuthConnectionData, 
-  StorageOperationResult, 
+import {
+  OAuthConnectionData,
+  StorageOperationResult,
   StorageMode,
-  StorageStatus 
+  StorageStatus
 } from '@saas-xray/shared-types';
 import { platformConnectionRepository } from '../database/repositories/platform-connection';
 import { oauthMemoryStorage } from './memory-storage';
-import { PlatformConnection } from '../types/database';
+import { PlatformConnection, ConnectionMetadata } from '../types/database';
 
 /**
  * Hybrid storage service that tries database first, falls back to memory
@@ -63,8 +63,11 @@ export class HybridStorageService {
       } else {
         // Update existing connection to active status
         const existingConnection = existing[0];
+        if (!existingConnection) {
+          throw new Error('Existing connection not found after query');
+        }
         const updatedConnection = await platformConnectionRepository.updateStatus(existingConnection.id, 'active');
-        savedConnection = updatedConnection || existingConnection;
+        savedConnection = updatedConnection ?? existingConnection;
         console.log(`✅ Database update successful: ${existingConnection.id} - status set to active`);
       }
 
@@ -128,14 +131,16 @@ export class HybridStorageService {
           platform_user_id: connectionData.platform_user_id,
           display_name: connectionData.display_name,
           permissions_granted: connectionData.permissions_granted,
-          metadata: connectionData.metadata,
-          platform_workspace_id: connectionData.platform_workspace_id,
+          metadata: connectionData.metadata as ConnectionMetadata,
+          platform_workspace_id: connectionData.platform_workspace_id ?? null,
           status: 'active' as any, // Set to active since OAuth was successful
           created_at: new Date(),
           updated_at: new Date(),
           last_sync_at: new Date(), // Set sync time since connection is active
           expires_at: null,
-          last_error: null
+          last_error: null,
+          webhook_url: null,
+          webhook_secret_id: null
         };
 
         return {
@@ -192,14 +197,16 @@ export class HybridStorageService {
         platform_user_id: item.data.platform_user_id,
         display_name: item.data.display_name,
         permissions_granted: item.data.permissions_granted,
-        metadata: item.data.metadata,
-        platform_workspace_id: item.data.platform_workspace_id,
+        metadata: item.data.metadata as ConnectionMetadata,
+        platform_workspace_id: item.data.platform_workspace_id ?? null,
         status: 'active' as any, // Memory connections should be active (OAuth succeeded)
         created_at: item.storedAt,
         updated_at: item.storedAt,
         last_sync_at: item.storedAt, // Set sync time for active connections
         expires_at: null,
-        last_error: null
+        last_error: null,
+        webhook_url: null,
+        webhook_secret_id: null
       }));
 
       console.log(`📊 Retrieved ${memoryConnections.length} connections from memory`);
@@ -244,14 +251,16 @@ export class HybridStorageService {
           platform_user_id: item.data.platform_user_id,
           display_name: item.data.display_name,
           permissions_granted: item.data.permissions_granted,
-          metadata: item.data.metadata,
-          platform_workspace_id: item.data.platform_workspace_id,
+          metadata: item.data.metadata as ConnectionMetadata,
+          platform_workspace_id: item.data.platform_workspace_id ?? null,
           status: 'active' as any, // OAuth completed successfully - mark as active
           created_at: item.storedAt,
           updated_at: item.storedAt,
           last_sync_at: null,
           expires_at: null,
-          last_error: null
+          last_error: null,
+          webhook_url: null,
+          webhook_secret_id: null
         }));
 
         console.log(`📊 Retrieved ${memoryConnections.length} connections from memory (database unavailable)`);
