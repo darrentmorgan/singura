@@ -10,11 +10,11 @@ import { GoogleWorkspaceEvent } from './detection-patterns';
  * Cross-platform correlation engine for automation chain detection
  */
 export interface CrossPlatformCorrelationEngine {
-  detectAutomationChains(events: MultiPlatformEvent[]): AutomationWorkflowChain[];
-  analyzeTemporalCorrelation(events: MultiPlatformEvent[], timeWindowMs: number): TemporalCorrelation[];
-  identifyUserCorrelation(events: MultiPlatformEvent[], userId: string): UserCorrelationAnalysis;
-  calculateCrossPlatformRisk(chains: AutomationWorkflowChain[]): MultiPlatformRiskAssessment;
-  generateExecutiveReport(analysis: CorrelationAnalysisResult): ExecutiveRiskReport;
+  detectAutomationChains(events: MultiPlatformEvent[]): Promise<AutomationWorkflowChain[]>;
+  analyzeTemporalCorrelation(events: MultiPlatformEvent[], timeWindowMs: number): Promise<TemporalCorrelation[]>;
+  identifyUserCorrelation(events: MultiPlatformEvent[], userId: string): Promise<UserCorrelationAnalysis>;
+  calculateCrossPlatformRisk(chains: AutomationWorkflowChain[]): Promise<MultiPlatformRiskAssessment>;
+  generateExecutiveReport(analysis: CorrelationAnalysisResult): Promise<ExecutiveRiskReport>;
 }
 
 /**
@@ -69,6 +69,7 @@ export interface AutomationWorkflowChain {
     dataExposure: DataExposureRisk;
     complianceImpact: ComplianceImpact;
     businessImpact: BusinessImpactAssessment;
+    overallRisk: 'low' | 'medium' | 'high' | 'critical';
     recommendations: string[];
   };
 }

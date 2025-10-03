@@ -160,13 +160,20 @@ export class CrossPlatformCorrelationService implements CrossPlatformCorrelation
       const timingPatterns = this.analyzeTimingPatterns(sortedEvents, timeWindowMs);
 
       if (timingPatterns.automationLikelihood > this.config.confidenceThreshold * 100) {
+        const firstEvent = sortedEvents[0];
+        const lastEvent = sortedEvents[sortedEvents.length - 1];
+
+        if (!firstEvent || !lastEvent) {
+          continue;
+        }
+
         const correlation: TemporalCorrelation = {
           correlationId: `temporal-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
           events: sortedEvents,
           timeWindow: {
-            startTime: sortedEvents[0].timestamp,
-            endTime: sortedEvents[sortedEvents.length - 1].timestamp,
-            durationMs: sortedEvents[sortedEvents.length - 1].timestamp.getTime() - sortedEvents[0].timestamp.getTime()
+            startTime: firstEvent.timestamp,
+            endTime: lastEvent.timestamp,
+            durationMs: lastEvent.timestamp.getTime() - firstEvent.timestamp.getTime()
           },
           pattern: timingPatterns.pattern,
           automationLikelihood: timingPatterns.automationLikelihood,
@@ -376,7 +383,12 @@ export class CrossPlatformCorrelationService implements CrossPlatformCorrelation
     if (events.length < 2) return 0;
 
     const timestamps = events.map(e => e.timestamp.getTime()).sort((a, b) => a - b);
-    const timeSpan = timestamps[timestamps.length - 1] - timestamps[0];
+    const lastTimestamp = timestamps[timestamps.length - 1];
+    const firstTimestamp = timestamps[0];
+
+    if (lastTimestamp === undefined || firstTimestamp === undefined) return 0;
+
+    const timeSpan = lastTimestamp - firstTimestamp;
 
     // Events clustered within a short time window indicate automation
     const clusteringThreshold = 60000; // 1 minute
@@ -427,6 +439,9 @@ export class CrossPlatformCorrelationService implements CrossPlatformCorrelation
     // Sort events chronologically
     const sortedEvents = events.sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime());
     const triggerEvent = sortedEvents[0];
+
+    if (!triggerEvent) return null;
+
     const actionEvents = sortedEvents.slice(1);
 
     // Build workflow stages
@@ -767,15 +782,57 @@ export class CrossPlatformCorrelationService implements CrossPlatformCorrelation
   }
 
   private buildRiskAssessment(events: MultiPlatformEvent[]): ChainRiskAssessment {
+    const riskScore = events.length * 15; // Simple calculation
+
     return {
-      overallRisk: 65,
-      riskFactors: {
-        dataExposure: 60,
-        permissionEscalation: 40,
-        complianceImpact: 70,
-        operationalDependency: 80
+      dataExposure: {
+        exposureId: `exposure-${Date.now()}`,
+        dataTypes: ['documents', 'messages'],
+        sensitivityLevel: 'internal' as const,
+        exposureMethod: 'api_sharing' as const,
+        externalDestinations: [...new Set(events.map(e => e.platform))],
+        estimatedVolume: 'medium' as const,
+        riskScore: riskScore,
+        complianceViolations: []
       },
-      businessImpact: 'moderate' as const,
+      complianceImpact: {
+        gdprViolations: [],
+        soxViolations: [],
+        hipaaViolations: [],
+        pciViolations: [],
+        customViolations: [],
+        overallComplianceRisk: 'compliant' as const
+      },
+      businessImpact: {
+        impactLevel: 'moderate' as const,
+        affectedBusinessFunctions: ['automation', 'data_processing'],
+        reputationRisk: 'medium' as const,
+        financialExposure: {
+          potentialFineRange: {
+            minimum: 0,
+            maximum: 10000,
+            currency: 'USD'
+          },
+          remediationCosts: {
+            estimated: 0,
+            confidence: 'low' as const,
+            breakdown: {
+              regulatory_fines: 0,
+              business_disruption: 0,
+              remediation_costs: 0,
+              legal_costs: 0
+            }
+          },
+          businessDisruptionCost: {
+            estimated: 0,
+            timeframe: '1 month',
+            confidence: 'low' as const
+          }
+        },
+        operationalRisk: [],
+        mitigationComplexity: 'moderate' as const
+      },
+      overallRisk: riskScore >= 75 ? 'critical' as const : riskScore >= 50 ? 'high' as const : riskScore >= 25 ? 'medium' as const : 'low' as const,
       recommendations: [
         'Review automation permissions',
         'Implement data classification',
@@ -808,10 +865,7 @@ export class CrossPlatformCorrelationService implements CrossPlatformCorrelation
   }
 
   private determineRiskLevel(riskAssessment: ChainRiskAssessment): 'low' | 'medium' | 'high' | 'critical' {
-    const riskScore = riskAssessment.overallRisk;
-    if (riskScore >= 80) return 'critical';
-    if (riskScore >= 60) return 'high';
-    if (riskScore >= 40) return 'medium';
-    return 'low';
+    // riskAssessment.overallRisk is already a string type
+    return riskAssessment.overallRisk;
   }
 }

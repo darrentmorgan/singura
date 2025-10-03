@@ -82,6 +82,7 @@ export interface AutomationSocketEvent extends BaseSocketEvent {
 
 export interface AutomationEventData {
   automationId: string;
+  id: string; // ML services use this instead of automationId
   name: string;
   platform: string;
   riskLevel?: string;
@@ -89,6 +90,16 @@ export interface AutomationEventData {
   changes?: string[];
   previousValues?: Record<string, unknown>;
   newValues?: Record<string, unknown>;
+
+  // ML behavioral analysis required properties
+  createdAt: Date;
+  lastTriggered?: Date;
+  permissions?: Array<{ name: string; scope: string; level: string }>;
+  type?: string;
+  actions?: Array<{ type: string; timestamp: Date; details?: Record<string, unknown> }>;
+  metadata?: Record<string, unknown>;
+  trigger?: { type: string; schedule?: string; event?: string };
+  status?: 'active' | 'inactive' | 'error' | 'unknown';
 }
 
 /**

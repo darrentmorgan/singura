@@ -50,7 +50,7 @@ async function testProductionIntegration() {
     console.log('🎉 Production discovery test completed successfully!');
     console.log('📊 Results:', {
       success: result.success,
-      automationsFound: result.discovery.automationsFound,
+      automationsFound: result.discovery.automations.length, // Use array length instead
       executionTime: `${result.discovery.metadata.executionTimeMs}ms`,
       riskScore: result.discovery.metadata.riskScore,
       platform: result.discovery.metadata.platform
@@ -59,10 +59,13 @@ async function testProductionIntegration() {
     if (result.discovery.automations.length > 0) {
       console.log('🤖 Sample automation:');
       const sample = result.discovery.automations[0];
-      console.log('   Name:', sample.name);
-      console.log('   Type:', sample.type);
-      console.log('   Risk Level:', sample.riskLevel);
-      console.log('   Platform:', sample.platform);
+
+      if (sample) {
+        console.log('   Name:', sample.name);
+        console.log('   Type:', sample.type);
+        console.log('   Risk Level:', sample.riskLevel);
+        console.log('   Platform:', sample.platform);
+      }
     }
 
     // Test coverage breakdown

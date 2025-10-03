@@ -523,15 +523,15 @@ app.get('/api/auth/callback/google', async (req: Request, res: Response) => {
 });
 
 // Connections endpoint - returns OAuth connected platforms from hybrid storage
-app.get('/api/connections', async (req: Request, res: Response) => {
+app.get('/api/connections', async (req: Request, res: Response): Promise<void> => {
   try {
     // Fetch connections from hybrid storage for the demo organization
     const organizationId = 'demo-org-id';
     const storageResult = await hybridStorage.getConnections(organizationId);
-    
+
     if (!storageResult.success) {
       console.error('Failed to fetch connections from hybrid storage:', storageResult.error);
-      return res.status(500).json({
+      res.status(500).json({
         success: false,
         error: storageResult.error || 'Failed to fetch connections',
         storageMode: storageResult.storageMode,
@@ -627,8 +627,16 @@ app.get('/api/connections/stats', async (req: Request, res: Response) => {
 });
 
 // Disconnect endpoint - removes a specific connection from database
-app.delete('/api/connections/:id', async (req: Request, res: Response) => {
-  const { id } = req.params;
+app.delete('/api/connections/:id', async (req: Request, res: Response): Promise<void> => {
+  const id = req.params.id;
+
+  if (!id) {
+    res.status(400).json({
+      success: false,
+      error: 'Connection ID is required'
+    });
+    return;
+  }
 
   try {
     // Find the connection in database
@@ -636,27 +644,29 @@ app.delete('/api/connections/:id', async (req: Request, res: Response) => {
 
     // If connection not found, return 404
     if (!connection) {
-      return res.status(404).json({
+      res.status(404).json({
         success: false,
         error: 'Connection not found',
         connectionId: id
       });
+      return;
     }
 
     // Remove the connection from database
     const deleted = await platformConnectionRepository.delete(id);
-    
+
     if (!deleted) {
-      return res.status(500).json({
+      res.status(500).json({
         success: false,
         error: 'Failed to remove connection',
         connectionId: id
       });
+      return;
     }
 
     console.log(`Disconnected platform: ${connection.platform_type}, Connection ID: ${id}`);
 
-    return res.json({
+    res.json({
       success: true,
       message: 'Connection successfully removed',
       connection: {
@@ -673,7 +683,7 @@ app.delete('/api/connections/:id', async (req: Request, res: Response) => {
     });
   } catch (error) {
     console.error('Error during connection removal:', error);
-    return res.status(500).json({
+    res.status(500).json({
       success: false,
       error: error instanceof Error ? error.message : 'Failed to remove connection',
       connectionId: id

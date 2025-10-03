@@ -15,6 +15,7 @@ import {
 } from '@saas-xray/shared-types';
 import { GoogleAPIClientService } from './google-api-client-service';
 import { encryptedCredentialRepository } from '../database/repositories/encrypted-credential';
+import { CredentialType } from '../types/database';
 
 export class OAuthCredentialStorageService implements OAuthCredentialStorage, LiveConnectionManager {
   private credentialStore = new Map<string, GoogleOAuthCredentials>();
@@ -71,9 +72,9 @@ export class OAuthCredentialStorageService implements OAuthCredentialStorage, Li
         try {
           await encryptedCredentialRepository.create({
             platform_connection_id: connectionId,
-            credential_type: 'access_token',
+            credential_type: 'access_token' as CredentialType,
             encrypted_value: JSON.stringify(credentials),
-            expires_at: credentials.expiresAt,
+            expires_at: credentials.expiresAt || undefined,
             metadata: {}
           });
           console.log('✅ OAuth credentials persisted to encrypted database:', connectionId);
@@ -113,14 +114,19 @@ export class OAuthCredentialStorageService implements OAuthCredentialStorage, Li
         try {
           const dbCredential = await encryptedCredentialRepository.findByConnectionAndType(
             connectionId,
-            'access_token'
+            'access_token' as CredentialType
           );
 
           if (dbCredential) {
-            // Decrypt and parse credentials
+            // Decrypt and parse credentials (encryption_key_id is validated by repository)
+            const encryptionKeyId = dbCredential.encryption_key_id;
+            if (!encryptionKeyId) {
+              throw new Error(`No encryption key ID found for credential ${dbCredential.id}`);
+            }
+
             const decryptedValue = await encryptedCredentialRepository.getDecryptedValue(
               dbCredential.id,
-              dbCredential.encryption_key_id
+              encryptionKeyId
             );
             credentials = JSON.parse(decryptedValue) as GoogleOAuthCredentials;
 
@@ -137,7 +143,7 @@ export class OAuthCredentialStorageService implements OAuthCredentialStorage, Li
               lastUsed: new Date(),
               tokenStatus: 'active',
               scopes: credentials.scope || [],
-              expiresAt: dbCredential.expires_at
+              expiresAt: dbCredential.expires_at ?? undefined
             };
             this.connectionInfo.set(connectionId, connectionInfo);
 

@@ -397,7 +397,17 @@ export class CorrelationOrchestratorService extends EventEmitter {
   private calculateOverallRiskScore(chains: AutomationWorkflowChain[]): number {
     if (chains.length === 0) return 0;
 
-    const totalRisk = chains.reduce((sum, chain) => sum + chain.riskAssessment.overallRisk, 0);
+    // Convert risk levels to numeric scores
+    const riskToScore = (risk: 'low' | 'medium' | 'high' | 'critical'): number => {
+      switch (risk) {
+        case 'low': return 25;
+        case 'medium': return 50;
+        case 'high': return 75;
+        case 'critical': return 100;
+      }
+    };
+
+    const totalRisk = chains.reduce((sum, chain) => sum + riskToScore(chain.riskAssessment.overallRisk), 0);
     return Math.round(totalRisk / chains.length);
   }
 
