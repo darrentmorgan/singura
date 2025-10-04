@@ -368,8 +368,9 @@ export const connectionsApi = {
 };
 
 export const oauthApi = {
-  initiate: (platform: PlatformType) => apiService.initiateOAuth(platform),
-  callback: (platform: PlatformType, code: string, state: string) => 
+  initiate: (platform: PlatformType, organizationId?: string) =>
+    apiService.initiateOAuth(platform, organizationId),
+  callback: (platform: PlatformType, code: string, state: string) =>
     apiService.handleOAuthCallback(platform, code, state),
 };
 

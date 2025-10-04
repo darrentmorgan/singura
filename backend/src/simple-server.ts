@@ -320,8 +320,14 @@ app.get('/api/auth/oauth/google/authorize', (req: Request, res: Response) => {
     // Get Clerk organization ID from query parameter
     const clerkOrgId = req.query.orgId as string;
 
+    console.log('🔍 Google OAuth authorize request:', {
+      orgId: clerkOrgId,
+      query: req.query,
+      startsWithOrg: clerkOrgId?.startsWith('org_')
+    });
+
     if (!clerkOrgId || !clerkOrgId.startsWith('org_')) {
-      console.error('Google OAuth: Missing or invalid Clerk organization ID');
+      console.error('❌ Google OAuth: Missing or invalid Clerk organization ID', { clerkOrgId });
       return res.status(400).json({
         success: false,
         error: 'Invalid organization ID',

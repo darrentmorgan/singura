@@ -118,11 +118,15 @@ export const PlatformCard: React.FC<PlatformCardProps> = ({
       // Get Clerk organization ID
       const orgId = organization?.id;
 
+      console.log('🔍 Organization context:', { organization, orgId });
+
       if (!orgId) {
+        console.error('❌ No organization ID available');
         showError('Please create or join an organization first', 'Organization Required');
         return;
       }
 
+      console.log('✅ Initiating OAuth with orgId:', orgId);
       const authUrl = await initiateOAuth(platform, orgId);
       if (authUrl) {
         // Open OAuth flow in same window for better UX
