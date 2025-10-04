@@ -902,6 +902,93 @@ app.post('/api/admin/persist-memory', async (req: Request, res: Response) => {
   }
 });
 
+// AI Platform Audit Logs endpoint - OAuth-based detection
+app.get('/api/ai-platforms/audit-logs', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { startDate, endDate, connectionId } = req.query;
+
+    if (!startDate || !endDate) {
+      res.status(400).json({
+        success: false,
+        error: 'startDate and endDate query parameters are required'
+      });
+      return;
+    }
+
+    // Get Google Workspace connection
+    // Query database directly to avoid UUID constraint issue
+    const { platformConnectionRepository } = await import('./database/repositories/platform-connection');
+    const allConnections = await platformConnectionRepository.findAll();
+    const googleConnection = allConnections.find((c: any) => c.platform_type === 'google');
+
+    if (!googleConnection) {
+      res.status(404).json({
+        success: false,
+        error: 'No Google Workspace connection found. Please connect Google Workspace first.',
+        hint: 'Visit /connections and connect your Google Workspace account'
+      });
+      return;
+    }
+
+    // Get OAuth credentials for this connection
+    const credentials = await oauthStorage.getCredentials(googleConnection.id);
+
+    if (!credentials) {
+      res.status(401).json({
+        success: false,
+        error: 'Google Workspace credentials not found',
+        connectionId: googleConnection.id
+      });
+      return;
+    }
+
+    // Use GoogleConnector to query AI platform audit logs
+    const { GoogleConnector } = await import('./connectors/google');
+    const googleConnector = new GoogleConnector();
+
+    // Authenticate
+    const authResult = await googleConnector.authenticate({
+      accessToken: credentials.accessToken,
+      refreshToken: credentials.refreshToken,
+      expiresAt: credentials.expiresAt,
+      tokenType: 'Bearer',
+      scope: Array.isArray(credentials.scope) ? credentials.scope : (credentials.scope ? [credentials.scope] : [])
+    });
+
+    if (!authResult.success) {
+      res.status(401).json({
+        success: false,
+        error: 'Failed to authenticate with Google Workspace',
+        details: authResult.error
+      });
+      return;
+    }
+
+    // Query AI platform audit logs
+    const result = await googleConnector.getAIAuditLogs({
+      startDate: new Date(startDate as string),
+      endDate: new Date(endDate as string)
+    });
+
+    res.json({
+      success: true,
+      data: result,
+      connection: {
+        id: googleConnection.id,
+        displayName: googleConnection.display_name,
+        platform: 'google'
+      }
+    });
+
+  } catch (error) {
+    console.error('Error fetching AI platform audit logs:', error);
+    res.status(500).json({
+      success: false,
+      error: error instanceof Error ? error.message : 'Failed to fetch AI platform audit logs'
+    });
+  }
+});
+
 // 404 handler
 app.use('*', (req: Request, res: Response) => {
   res.status(404).json({
