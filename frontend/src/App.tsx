@@ -8,7 +8,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Helmet, HelmetProvider } from 'react-helmet-async';
 import toast, { Toaster } from 'react-hot-toast';
-import { OrganizationProfile, CreateOrganization, SignUp } from '@clerk/clerk-react';
+import { OrganizationProfile, CreateOrganization, SignUp, UserProfile } from '@clerk/clerk-react';
 
 // Layout and Auth Components
 import DashboardLayout from '@/components/layout/DashboardLayout';
@@ -192,12 +192,14 @@ const AnalyticsPage: React.FC = () => (
 
 const SettingsPage: React.FC = () => (
   <div className="flex-1 p-6">
-    <div className="text-center py-12 space-y-4">
-      <h1 className="text-3xl font-bold text-foreground">Settings</h1>
-      <p className="text-muted-foreground">
-        Application settings and preferences coming soon.
-      </p>
-    </div>
+    <UserProfile
+      appearance={{
+        elements: {
+          rootBox: "w-full",
+          card: "shadow-xl"
+        }
+      }}
+    />
   </div>
 );
 
