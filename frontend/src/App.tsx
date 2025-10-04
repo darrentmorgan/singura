@@ -234,8 +234,8 @@ const App: React.FC = () => {
             {/* Routes */}
             <Routes>
               {/* Public Routes */}
-              <Route path="/login" element={<LoginPage />} />
-              <Route path="/sign-up" element={
+              <Route path="/login/*" element={<LoginPage />} />
+              <Route path="/sign-up/*" element={
                 <div className="min-h-screen flex items-center justify-center">
                   <SignUp
                     routing="path"
