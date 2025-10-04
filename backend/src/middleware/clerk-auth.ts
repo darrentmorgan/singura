@@ -7,6 +7,7 @@
 
 import { Request, Response, NextFunction } from 'express';
 import { clerkClient } from '@clerk/express';
+import { AuthenticatedUser } from '../security/jwt';
 
 /**
  * Clerk authentication context
@@ -22,6 +23,7 @@ export interface ClerkAuth {
  */
 export interface ClerkAuthRequest extends Request {
   auth?: ClerkAuth;
+  user?: AuthenticatedUser;
 }
 
 /**
