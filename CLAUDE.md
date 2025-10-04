@@ -585,6 +585,31 @@ When multiple solutions exist, prioritize in this order:
 
 **SaaS X-Ray** is an enterprise security platform that automatically discovers and monitors unauthorized AI agents, bots, and automations running across an organization's SaaS applications. The platform provides real-time visibility into shadow AI usage, enabling security teams to identify risks before they become compliance violations or security breaches.
 
+### Key Features (Current Implementation)
+
+**Multi-tenant Authentication (Clerk)**:
+- Organization-based access control with Clerk
+- Google OAuth sign-in integration
+- User profile management with Clerk components
+- Organization switching for multi-org access
+
+**Platform Integrations**:
+- ✅ Slack: Bot detection, app inventory, automation discovery
+- ✅ Google Workspace: Apps Script, service accounts, AI platform detection
+- 🔄 Microsoft 365: Planned (Power Platform, Graph API)
+
+**AI Platform Detection**:
+- OpenAI API usage detection in Google Workspace
+- Claude/Anthropic integration detection
+- Google Gemini usage monitoring
+- Automated pattern matching and correlation
+
+**Real-time Discovery**:
+- Live progress tracking via Socket.io
+- Progressive automation detection stages
+- Cross-platform correlation engine
+- Risk assessment and scoring
+
 ### Business Context
 - **Target Market**: Enterprise security teams, CISOs, IT Directors, Compliance Officers
 - **Problem**: Average enterprise has 50-200 unauthorized bots/automations with no visibility
@@ -604,27 +629,43 @@ When multiple solutions exist, prioritize in this order:
 
 ### Technology Stack
 
-**Frontend**:
-- **Framework**: React 18.2+ with TypeScript
-- **Build Tool**: Vite for build tooling  
-- **Styling**: TailwindCSS + shadcn/ui components
-- **Charts**: Recharts for data visualization
-- **Real-time**: Socket.io client for real-time updates
+**Frontend** (`@saas-xray/frontend`):
+- **Framework**: React 18.2+ with TypeScript 5.2+
+- **Build Tool**: Vite 5.0+ for development and build tooling
+- **Authentication**: Clerk React SDK (@clerk/clerk-react) for multi-tenant auth
+- **Styling**: TailwindCSS 3.3+ with shadcn/ui components
+- **State Management**: Zustand 4.4+ for global state
+- **Forms**: React Hook Form with Zod validation
+- **Charts**: Recharts 2.8+ for data visualization
+- **Real-time**: Socket.io-client 4.7+ for live updates
+- **Testing**: Vitest + React Testing Library + Playwright
 
-**Backend**:
-- **Runtime**: Node.js 20+ with Express.js
-- **Language**: TypeScript with shared-types architecture
-- **Types**: @saas-xray/shared-types for API contracts and data models
-- **Database**: PostgreSQL 16 with typed queries (T | null pattern)
-- **Cache**: Redis for caching and job queues
-- **Jobs**: Bull for background job processing
+**Backend** (`@saas-xray/backend`):
+- **Runtime**: Node.js 20+ with Express.js 4.18+
+- **Language**: TypeScript 5.3+ with strict mode
+- **Authentication**: Clerk Backend SDK (@clerk/backend, @clerk/express)
+- **Types**: @saas-xray/shared-types (centralized type definitions)
+- **Database**: PostgreSQL 16 with pg 8.11+ (containerized on port 5433)
+- **Cache**: Redis 4.6+ for caching and job queues (containerized on port 6379)
+- **Jobs**: Bull 4.12+ for background job processing
+- **Real-time**: Socket.io 4.7+ for WebSocket communication
 - **Repository**: Standardized Repository<T, CreateInput, UpdateInput> pattern
+- **OAuth**: Google Workspace, Slack, Microsoft 365 integrations
+- **AI Detection**: OpenAI 5.23+ for AI platform detection
+- **Security**: helmet, express-rate-limit, bcryptjs, jsonwebtoken
+
+**Shared Types** (`@saas-xray/shared-types`):
+- **9,000+ lines** of centralized TypeScript type definitions
+- **Build-first architecture**: Must compile before frontend/backend
+- **API contracts, database models, OAuth types, repository interfaces**
 
 **Infrastructure**:
-- **Containers**: Docker containers with multi-stage builds
-- **Proxy**: nginx reverse proxy
-- **Development**: Docker Compose for local development
-- **CI/CD**: GitHub Actions for CI/CD
+- **Containers**: Docker Compose for PostgreSQL (5433:5432) and Redis (6379:6379)
+- **Development Ports**:
+  - Frontend: http://localhost:4200 (Vite dev server)
+  - Backend: http://localhost:4201 (Express API)
+- **Testing**: Jest (backend), Vitest (frontend), Playwright (E2E)
+- **CI/CD**: GitHub Actions with type checking, linting, testing
 
 ### **🐳 CONTAINERIZED DATABASE INFRASTRUCTURE (CRITICAL)**
 
@@ -651,49 +692,138 @@ docker compose up -d postgres redis
 - Database migrations must run against containerized databases
 - Test isolation achieved through `saas_xray_test` database
 
-### System Architecture (TypeScript Enhanced)
+### System Architecture (Current State - Clerk Multi-tenant)
 
 ```
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   Frontend      │    │   Backend API   │    │   Detection     │
-│   Dashboard     │    │   Gateway       │    │   Engine        │
-│                 │    │                 │    │                 │
-│ • React + TS    │◄───► • Node.js + TS  │◄───► • Pattern ML    │
-│ • Shared Types  │    │ • Shared Types  │    │ • Correlation   │
-│ • Real-time UI  │    │ • REST + WS     │    │ • Risk Scoring  │
-└─────────────────┘    └─────────────────┘    └─────────────────┘
-         │                        │                        │
-         │                        │                        │
-         ▼                        ▼                        ▼
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│ 🐳 Data Store   │    │ 🐳 Queue System │    │   Connector     │
-│ (Containerized) │    │ (Containerized) │    │   Layer         │
-│ • PostgreSQL    │    │ • Redis/Bull    │    │                 │
-│ • Typed Queries │    │ • Typed Jobs    │    │ • OAuth 2.0     │
-│ • T | null      │    │ • Scheduling    │    │ • ExtendedToken │
-└─────────────────┘    └─────────────────┘    └─────────────────┘
-         ▲                        ▲                        ▲
-         │                        │                        │
-         └────────────────────────┼────────────────────────┘
-                                  │
-                  ┌─────────────────────────────┐
-                  │     @saas-xray/shared-types │
-                  │                             │
-                  │ • API Contracts (9,000+ loc)│
-                  │ • Database Models           │
-                  │ • OAuth Security Types      │
-                  │ • Repository Interfaces     │
-                  └─────────────────────────────┘
+┌─────────────────────────┐    ┌─────────────────────────┐    ┌─────────────────────────┐
+│   Frontend (Vite)       │    │   Backend API           │    │   Detection Engine      │
+│   Port: 4200            │    │   Port: 4201            │    │                         │
+│                         │    │                         │    │                         │
+│ • React 18 + TS 5.2     │◄───► • Express + TS 5.3      │◄───► • AI Platform Detection │
+│ • Clerk Auth (React)    │    │ • Clerk Auth (Backend)  │    │ • Pattern Matching      │
+│ • Zustand State         │    │ • JWT Verification      │    │ • Cross-Platform Corr.  │
+│ • shadcn/ui + Tailwind  │    │ • REST + WebSocket      │    │ • Risk Assessment       │
+│ • Socket.io Client      │    │ • Socket.io Server      │    │ • OpenAI Integration    │
+│ • Real-time Updates     │    │ • Rate Limiting         │    │                         │
+└─────────────────────────┘    └─────────────────────────┘    └─────────────────────────┘
+         │                                │                                │
+         │                                │                                │
+         ▼                                ▼                                ▼
+┌─────────────────────────┐    ┌─────────────────────────┐    ┌─────────────────────────┐
+│ 🐳 PostgreSQL           │    │ 🐳 Redis + Bull         │    │   OAuth Connectors      │
+│ Port: 5433:5432         │    │ Port: 6379:6379         │    │                         │
+│                         │    │                         │    │ • Slack Web API         │
+│ • Typed Repositories    │    │ • Background Jobs       │    │ • Google Workspace      │
+│ • T | null Pattern      │    │ • Session Cache         │    │ • Microsoft 365         │
+│ • Connection Metadata   │    │ • Rate Limit Store      │    │ • Encrypted Tokens      │
+│ • Audit Logs            │    │ • Real-time Pub/Sub     │    │ • Auto-refresh          │
+│ • Clerk Org IDs         │    │                         │    │                         │
+└─────────────────────────┘    └─────────────────────────┘    └─────────────────────────┘
+         ▲                                ▲                                ▲
+         │                                │                                │
+         └────────────────────────────────┼────────────────────────────────┘
+                                          │
+                          ┌───────────────────────────────────┐
+                          │   @saas-xray/shared-types          │
+                          │   (Centralized Type Definitions)   │
+                          │                                    │
+                          │ • 9,000+ lines of TypeScript       │
+                          │ • API Request/Response Types       │
+                          │ • Database Model Interfaces        │
+                          │ • OAuth Security Types             │
+                          │ • Repository Pattern Definitions   │
+                          │ • Clerk Auth Types                 │
+                          │ • Build-first Architecture         │
+                          └───────────────────────────────────┘
+```
+
+### Project Structure
+
+```
+saas-xray/
+├── frontend/                       # React + Vite frontend (port 4200)
+│   ├── src/
+│   │   ├── components/
+│   │   │   ├── admin/             # Admin dashboard components
+│   │   │   ├── auth/              # Clerk auth wrappers (ProtectedRoute)
+│   │   │   ├── automations/       # Automation discovery UI
+│   │   │   ├── connections/       # Platform connection cards
+│   │   │   ├── correlation/       # Cross-platform correlation views
+│   │   │   ├── dev/               # Development tools (MockDataToggle)
+│   │   │   ├── layout/            # Header, sidebar, dashboard layout
+│   │   │   ├── reports/           # Report generation components
+│   │   │   └── ui/                # shadcn/ui base components
+│   │   ├── lib/                   # Utilities (cn, date helpers)
+│   │   ├── pages/                 # Route pages (Dashboard, Connections, etc.)
+│   │   ├── services/              # API client (axios with interceptors)
+│   │   ├── stores/                # Zustand state (connections, automations, UI)
+│   │   ├── types/                 # Frontend-specific types
+│   │   └── utils/                 # Clerk API helpers
+│   └── package.json               # Vite, React, Clerk, Tailwind deps
+│
+├── backend/                       # Express API server (port 4201)
+│   ├── src/
+│   │   ├── config/                # Configuration files
+│   │   ├── connectors/            # Platform-specific connectors
+│   │   ├── controllers/           # Route controllers
+│   │   ├── database/
+│   │   │   └── repositories/      # Data access layer (T | null pattern)
+│   │   ├── jobs/                  # Bull background jobs
+│   │   ├── middleware/            # Clerk auth, rate limiting, CORS
+│   │   ├── routes/                # API route definitions
+│   │   ├── security/              # Encryption, JWT validation
+│   │   ├── services/
+│   │   │   ├── connectors/        # OAuth connector services
+│   │   │   ├── detection/         # AI platform detection algorithms
+│   │   │   └── ml-behavioral/     # ML-based behavior analysis
+│   │   ├── types/                 # Backend-specific types
+│   │   ├── simple-server.ts       # Main Express server (current)
+│   │   └── server.ts              # Production server
+│   └── package.json               # Express, Clerk, PostgreSQL, Redis deps
+│
+├── shared-types/                  # Centralized TypeScript types
+│   ├── src/
+│   │   ├── api/                   # API request/response interfaces
+│   │   ├── common/                # Shared utility types
+│   │   ├── database/              # Database model types
+│   │   └── oauth/                 # OAuth credential types
+│   └── package.json               # TypeScript with strict mode
+│
+├── docs/                          # Project documentation
+│   ├── PRD.md                     # Product Requirements Document
+│   ├── AI-PLATFORM-DETECTION-IMPLEMENTATION.md
+│   └── CLERK_*.md                 # Clerk integration docs
+│
+├── e2e/                           # Playwright E2E tests
+│   └── tests/
+│
+├── docker-compose.yml             # PostgreSQL + Redis containers
+└── package.json                   # Root workspace configuration
 ```
 
 ---
 
 ## OAuth Integration Patterns
 
-### Supported Platforms
-- **Slack** - Bot detection, app inventory, webhook monitoring
-- **Google Workspace** - Service accounts, Apps Script, OAuth apps  
-- **Microsoft 365** - Power Platform apps, Graph API activity
+### Supported Platforms (OAuth 2.0 Integrations)
+
+**Slack** (✅ Implemented):
+- OAuth Scopes: `users:read`, `team:read`, `channels:read`, `usergroups:read`, `workflow.steps:execute`, `commands`
+- Bot detection via `users.list()` API (filters `is_bot === true`)
+- App inventory and webhook monitoring
+- Real-time automation discovery
+
+**Google Workspace** (✅ Implemented):
+- OAuth Scopes: `openid`, `email`, `profile`, `script.projects.readonly`, `admin.directory.user.readonly`, `admin.reports.audit.readonly`, `drive.metadata.readonly`
+- Apps Script project detection
+- Service account discovery
+- OAuth app audit logging
+- AI platform detection (OpenAI, Claude, Gemini integrations)
+
+**Microsoft 365** (🔄 Planned):
+- Power Platform apps detection
+- Microsoft Graph API activity monitoring
+- Azure AD service principal discovery
 
 ### OAuth Security Requirements (CRITICAL)
 
@@ -1007,17 +1137,19 @@ try {
 
 ## **🎯 Success Metrics**
 
-**Migration Achievement Status:**
-- ✅ **99% TypeScript Migration Complete** - Near-perfect error reduction achieved (199+ → ~5 errors estimated)
-- ✅ **Dual OAuth Platform Integration** - Slack + Google Workspace working simultaneously
-- ✅ **Google Workspace Shadow AI Detection** - Comprehensive detection algorithm framework
+**Migration Achievement Status (Updated 2025-10-04):**
+- ✅ **Clerk Multi-tenant Authentication** - Integrated @clerk/clerk-react and @clerk/backend for enterprise auth
+- ✅ **Organization-scoped OAuth** - Platform connections tied to Clerk organization IDs
+- ✅ **Enhanced Type Safety** - TypeScript errors reduced from 199+ to 78 remaining (85% complete)
+- ✅ **Dual OAuth Platform Integration** - Slack + Google Workspace working with Clerk auth
+- ✅ **Google Workspace AI Detection** - Apps Script, service accounts, and AI platform detection
 - ✅ **Real-time Discovery System** - Socket.io progress tracking with enterprise UX
 - ✅ **Detection Algorithm Framework** - VelocityDetector, BatchOperationDetector, AIProviderDetector
-- ✅ **Shared-Types Architecture** - 10,000+ lines of centralized type definitions
+- ✅ **Shared-Types Architecture** - 9,000+ lines of centralized type definitions
 - ✅ **Repository Standardization** - All repositories use T | null pattern
-- ✅ **OAuth Security Enhancement** - ExtendedTokenResponse pattern with enhanced CORS and ngrok support
-- ✅ **Professional Discovery Experience** - Progressive stages with comprehensive automation scenarios
-- 🔄 **Production API Integration Target** - Connect detection algorithms to live Google APIs
+- ✅ **OAuth Security Enhancement** - ExtendedTokenResponse with encrypted token storage
+- ✅ **Multi-tenant Dashboard** - OrganizationSwitcher, UserProfile, Clerk components integrated
+- 🔄 **Next: Microsoft 365 Integration** - Power Platform and Graph API detection
 
 **You are succeeding when:**
 
