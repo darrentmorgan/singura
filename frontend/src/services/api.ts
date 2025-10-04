@@ -4,13 +4,13 @@
  */
 
 import axios, { AxiosInstance, AxiosError, InternalAxiosRequestConfig, AxiosResponse } from 'axios';
-import { 
-  LoginRequest, 
-  LoginResponse, 
-  RefreshTokenRequest, 
+import {
+  LoginRequest,
+  LoginResponse,
+  RefreshTokenRequest,
   RefreshTokenResponse
 } from '@saas-xray/shared-types';
-import { 
+import {
   PlatformConnection,
   ConnectionsListResponse,
   ConnectionStatsResponse,
@@ -23,6 +23,7 @@ import {
   ApiError,
   ApiResponse
 } from '@/types/api';
+import { getClerkAuthHeaders } from '@/utils/clerk-headers';
 
 // API Configuration
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:4201/api';
@@ -49,13 +50,25 @@ class ApiService {
   }
 
   private setupInterceptors() {
-    // Request interceptor to add auth token
+    // Request interceptor to add auth token and Clerk headers
     this.client.interceptors.request.use(
       (config: InternalAxiosRequestConfig) => {
         const token = this.getAccessToken();
         if (token && config.headers) {
           config.headers.Authorization = `Bearer ${token}`;
         }
+
+        // Add Clerk context headers for backend middleware
+        const clerkHeaders = getClerkAuthHeaders();
+        if (clerkHeaders && config.headers) {
+          Object.assign(config.headers, clerkHeaders);
+          console.log('🔐 Adding Clerk headers to request:', {
+            path: config.url,
+            hasOrgId: !!clerkHeaders['x-clerk-organization-id'],
+            orgId: clerkHeaders['x-clerk-organization-id']
+          });
+        }
+
         return config;
       },
       (error: AxiosError) => {

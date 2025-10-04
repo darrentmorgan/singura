@@ -579,6 +579,15 @@ app.get('/api/connections', optionalClerkAuth, async (req: Request, res: Respons
     const organizationId = authRequest.auth?.organizationId || 'demo-org-id';
 
     console.log('📊 Fetching connections for organization:', organizationId);
+    console.log('🔍 Clerk auth context:', {
+      hasAuth: !!authRequest.auth,
+      organizationId: authRequest.auth?.organizationId,
+      userId: authRequest.auth?.userId,
+      headers: {
+        'x-clerk-organization-id': req.headers['x-clerk-organization-id'],
+        'x-clerk-user-id': req.headers['x-clerk-user-id']
+      }
+    });
 
     const storageResult = await hybridStorage.getConnections(organizationId);
 
