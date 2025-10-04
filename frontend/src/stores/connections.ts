@@ -48,7 +48,7 @@ interface ConnectionsActions {
   refreshConnection: (connectionId: string) => Promise<boolean>;
   
   // OAuth flows
-  initiateOAuth: (platform: PlatformType) => Promise<string | null>;
+  initiateOAuth: (platform: PlatformType, organizationId?: string) => Promise<string | null>;
   handleOAuthCallback: (code: string, state: string) => Promise<boolean>;
   
   // Connection management
@@ -187,12 +187,12 @@ export const useConnectionsStore = create<ConnectionsStore>()(
     },
 
     // OAuth flow actions
-    initiateOAuth: async (platform: PlatformType) => {
+    initiateOAuth: async (platform: PlatformType, organizationId?: string) => {
       set({ isConnecting: true, error: null });
-      
+
       try {
-        const response = await oauthApi.initiate(platform);
-        
+        const response = await oauthApi.initiate(platform, organizationId);
+
         if (response.success && response.authorizationUrl) {
           // Store the OAuth state for callback verification
           localStorage.setItem(`oauth-state-${platform}`, response.state);

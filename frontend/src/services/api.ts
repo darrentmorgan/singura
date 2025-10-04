@@ -299,8 +299,10 @@ class ApiService {
   }
 
   // OAuth API methods
-  async initiateOAuth(platform: PlatformType): Promise<OAuthInitiateResponse> {
-    return this.request<OAuthInitiateResponse>('GET', `/auth/oauth/${platform}/authorize`);
+  async initiateOAuth(platform: PlatformType, organizationId?: string): Promise<OAuthInitiateResponse> {
+    // Include organization ID in query parameter for OAuth flow
+    const params = organizationId ? `?orgId=${organizationId}` : '';
+    return this.request<OAuthInitiateResponse>('GET', `/auth/oauth/${platform}/authorize${params}`);
   }
 
   async handleOAuthCallback(platform: PlatformType, code: string, state: string): Promise<OAuthCallbackResponse> {

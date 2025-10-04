@@ -15,6 +15,7 @@ import { platformConnectionRepository } from './database/repositories/platform-c
 import { hybridStorage } from './services/hybrid-storage';
 import { oauthCredentialStorage } from './services/oauth-credential-storage-service';
 import { GoogleOAuthRawResponse, GoogleOAuthCredentials, SlackOAuthRawResponse, SlackOAuthCredentials } from '@saas-xray/shared-types';
+import { requireClerkAuth, optionalClerkAuth, getOrganizationId, ClerkAuthRequest } from './middleware/clerk-auth';
 
 // Load environment variables
 dotenv.config();
@@ -80,9 +81,21 @@ app.post('/api/auth/login', (req: Request, res: Response) => {
   }
 });
 
-// Mock Slack OAuth endpoints
+// Slack OAuth endpoints with Clerk organization ID support
 app.get('/api/auth/oauth/slack/authorize', (req: Request, res: Response) => {
   try {
+    // Get Clerk organization ID from query parameter
+    const clerkOrgId = req.query.orgId as string;
+
+    if (!clerkOrgId || !clerkOrgId.startsWith('org_')) {
+      console.error('Slack OAuth: Missing or invalid Clerk organization ID');
+      return res.status(400).json({
+        success: false,
+        error: 'Invalid organization ID',
+        details: 'Please provide a valid Clerk organization ID'
+      });
+    }
+
     // Dynamic OAuth URL with environment variables
     const port = process.env.PORT || 4201;
     const clientId = process.env.SLACK_CLIENT_ID;
@@ -105,7 +118,7 @@ app.get('/api/auth/oauth/slack/authorize', (req: Request, res: Response) => {
         details: 'Please set the SLACK_REDIRECT_URI environment variable or configure PORT'
       });
     }
-    
+
     // Request comprehensive scopes for automation discovery
     const scopes = [
       'channels:read',
@@ -116,18 +129,22 @@ app.get('/api/auth/oauth/slack/authorize', (req: Request, res: Response) => {
       'commands'                  // For slash command detection
     ].join(',');
 
-    const authUrl = `https://slack.com/oauth/v2/authorize?client_id=${clientId}&scope=${scopes}&redirect_uri=${encodeURIComponent(redirectUri)}&state=mock-state`;
-    
+    // Create state parameter with Clerk organization ID
+    const state = `${clerkOrgId}:${Date.now()}:${Math.random().toString(36).substring(7)}`;
+
+    const authUrl = `https://slack.com/oauth/v2/authorize?client_id=${clientId}&scope=${scopes}&redirect_uri=${encodeURIComponent(redirectUri)}&state=${state}`;
+
     console.log('Slack OAuth Authorization Request:', {
       clientId: clientId.substring(0, 5) + '...' + clientId.slice(-5), // Partially mask client ID
       redirectUri,
-      port
+      port,
+      organizationId: clerkOrgId
     });
 
     return res.json({
       success: true,
       authorizationUrl: authUrl,
-      state: 'mock-state'
+      state: state
     });
   } catch (error) {
     console.error('Unexpected error in Slack OAuth authorization:', error);
@@ -150,11 +167,14 @@ app.get('/api/auth/callback/slack', async (req: Request, res: Response) => {
       return res.redirect(`${frontendUrl}/connections?success=false&platform=slack&error=invalid_parameters`);
     }
 
-    // State verification for CSRF protection
-    if (state !== 'mock-state') {
-      console.warn('OAuth state mismatch', { receivedState: state });
+    // Extract Clerk organization ID from state parameter
+    // State format: "clerkOrgId:timestamp:random"
+    const [clerkOrgId] = state.split(':');
+
+    if (!clerkOrgId || !clerkOrgId.startsWith('org_')) {
+      console.warn('Invalid Clerk organization ID in state', { state });
       const frontendUrl = process.env.CORS_ORIGIN || 'http://localhost:4200';
-      return res.redirect(`${frontendUrl}/connections?success=false&platform=slack&error=csrf_failed`);
+      return res.redirect(`${frontendUrl}/connections?success=false&platform=slack&error=invalid_org_id`);
     }
 
     // Get OAuth configuration
@@ -202,9 +222,11 @@ app.get('/api/auth/callback/slack', async (req: Request, res: Response) => {
 
     const frontendUrl = process.env.CORS_ORIGIN || 'http://localhost:4200';
 
-    // Use hybrid storage for resilient OAuth connection persistence
-    const organizationId = 'demo-org-id';
+    // Use Clerk organization ID from state parameter
+    const organizationId = clerkOrgId;
     const platformUserId = `slack-user-${userId}`;
+
+    console.log('🔐 Using Clerk organization ID:', organizationId);
 
     const connectionData = {
       organization_id: organizationId,
@@ -292,9 +314,21 @@ app.get('/api/auth/callback/slack', async (req: Request, res: Response) => {
   }
 });
 
-// Mock Google OAuth endpoints  
+// Google OAuth endpoints with Clerk organization ID support
 app.get('/api/auth/oauth/google/authorize', (req: Request, res: Response) => {
   try {
+    // Get Clerk organization ID from query parameter
+    const clerkOrgId = req.query.orgId as string;
+
+    if (!clerkOrgId || !clerkOrgId.startsWith('org_')) {
+      console.error('Google OAuth: Missing or invalid Clerk organization ID');
+      return res.status(400).json({
+        success: false,
+        error: 'Invalid organization ID',
+        details: 'Please provide a valid Clerk organization ID'
+      });
+    }
+
     // Dynamic OAuth URL with environment variables
     const port = process.env.PORT || 4201;
     const clientId = process.env.GOOGLE_CLIENT_ID;
@@ -317,7 +351,7 @@ app.get('/api/auth/oauth/google/authorize', (req: Request, res: Response) => {
         details: 'Please set the GOOGLE_REDIRECT_URI environment variable or configure PORT'
       });
     }
-    
+
     // Comprehensive scopes for Apps Script and automation discovery
     const scopes = [
       'openid',                                                                   // Basic user info
@@ -328,20 +362,24 @@ app.get('/api/auth/oauth/google/authorize', (req: Request, res: Response) => {
       'https://www.googleapis.com/auth/admin.reports.audit.readonly',            // View audit logs
       'https://www.googleapis.com/auth/drive.metadata.readonly'                  // View Drive file metadata
     ];
-    
-    const authUrl = `https://accounts.google.com/o/oauth2/auth?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${encodeURIComponent(scopes.join(' '))}&response_type=code&state=mock-state&access_type=offline&prompt=consent`;
-    
+
+    // Create state parameter with Clerk organization ID
+    const state = `${clerkOrgId}:${Date.now()}:${Math.random().toString(36).substring(7)}`;
+
+    const authUrl = `https://accounts.google.com/o/oauth2/auth?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${encodeURIComponent(scopes.join(' '))}&response_type=code&state=${state}&access_type=offline&prompt=consent`;
+
     console.log('Google OAuth Authorization Request:', {
       clientId: clientId.substring(0, 10) + '...', // Partially mask client ID
       redirectUri,
       port,
-      scopeCount: scopes.length
+      scopeCount: scopes.length,
+      organizationId: clerkOrgId
     });
 
     res.json({
       success: true,
       authorizationUrl: authUrl,
-      state: 'mock-state'
+      state: state
     });
     return;
   } catch (error) {
@@ -366,11 +404,14 @@ app.get('/api/auth/callback/google', async (req: Request, res: Response) => {
       return res.redirect(`${frontendUrl}/connections?success=false&platform=google&error=invalid_parameters`);
     }
 
-    // State verification for CSRF protection
-    if (state !== 'mock-state') {
-      console.warn('Google OAuth state mismatch', { receivedState: state });
+    // Extract Clerk organization ID from state parameter
+    // State format: "clerkOrgId:timestamp:random"
+    const [clerkOrgId] = state.split(':');
+
+    if (!clerkOrgId || !clerkOrgId.startsWith('org_')) {
+      console.warn('Invalid Clerk organization ID in state', { state });
       const frontendUrl = process.env.CORS_ORIGIN || 'http://localhost:4200';
-      return res.redirect(`${frontendUrl}/connections?success=false&platform=google&error=csrf_failed`);
+      return res.redirect(`${frontendUrl}/connections?success=false&platform=google&error=invalid_org_id`);
     }
 
     // Get OAuth configuration
@@ -443,9 +484,11 @@ app.get('/api/auth/callback/google', async (req: Request, res: Response) => {
 
     const frontendUrl = process.env.CORS_ORIGIN || 'http://localhost:4200';
 
-    // Use hybrid storage for resilient OAuth connection persistence
-    const organizationId = 'demo-org-id';
+    // Use Clerk organization ID from state parameter
+    const organizationId = clerkOrgId;
     const platformUserId = `google-user-${userEmail}`;
+
+    console.log('🔐 Using Clerk organization ID:', organizationId);
 
     const connectionData = {
       organization_id: organizationId,
@@ -523,10 +566,14 @@ app.get('/api/auth/callback/google', async (req: Request, res: Response) => {
 });
 
 // Connections endpoint - returns OAuth connected platforms from hybrid storage
-app.get('/api/connections', async (req: Request, res: Response): Promise<void> => {
+app.get('/api/connections', optionalClerkAuth, async (req: Request, res: Response): Promise<void> => {
   try {
-    // Fetch connections from hybrid storage for the demo organization
-    const organizationId = 'demo-org-id';
+    // Get organization ID from Clerk auth or fallback to demo
+    const authRequest = req as ClerkAuthRequest;
+    const organizationId = authRequest.auth?.organizationId || 'demo-org-id';
+
+    console.log('📊 Fetching connections for organization:', organizationId);
+
     const storageResult = await hybridStorage.getConnections(organizationId);
 
     if (!storageResult.success) {
@@ -585,10 +632,14 @@ app.get('/api/connections', async (req: Request, res: Response): Promise<void> =
 });
 
 // Connection stats endpoint - provides connection statistics for dashboard
-app.get('/api/connections/stats', async (req: Request, res: Response) => {
+app.get('/api/connections/stats', optionalClerkAuth, async (req: Request, res: Response) => {
   try {
-    // Fetch connections from hybrid storage for the demo organization
-    const organizationId = 'demo-org-id';
+    // Get organization ID from Clerk auth or fallback to demo
+    const authRequest = req as ClerkAuthRequest;
+    const organizationId = authRequest.auth?.organizationId || 'demo-org-id';
+
+    console.log('📊 Fetching connection stats for organization:', organizationId);
+
     const storageResult = await hybridStorage.getConnections(organizationId);
 
     const connections = storageResult.data || [];
@@ -902,8 +953,8 @@ app.post('/api/admin/persist-memory', async (req: Request, res: Response) => {
   }
 });
 
-// AI Platform Audit Logs endpoint - OAuth-based detection
-app.get('/api/ai-platforms/audit-logs', async (req: Request, res: Response): Promise<void> => {
+// AI Platform Audit Logs endpoint - OAuth-based detection with Clerk auth
+app.get('/api/ai-platforms/audit-logs', optionalClerkAuth, async (req: Request, res: Response): Promise<void> => {
   try {
     const { startDate, endDate, connectionId } = req.query;
 
@@ -915,17 +966,33 @@ app.get('/api/ai-platforms/audit-logs', async (req: Request, res: Response): Pro
       return;
     }
 
-    // Get Google Workspace connection
-    // Query database directly to avoid UUID constraint issue
+    // Get organization ID from Clerk auth or fallback to demo
+    const authRequest = req as ClerkAuthRequest;
+    const organizationId = authRequest.auth?.organizationId || 'demo-org-id';
+
+    console.log('🔍 Fetching AI platform audit logs for organization:', organizationId);
+
+    // Get Google Workspace connections for this organization
     const { platformConnectionRepository } = await import('./database/repositories/platform-connection');
-    const allConnections = await platformConnectionRepository.findAll();
-    const googleConnection = allConnections.find((c: any) => c.platform_type === 'google');
+    const orgConnections = await hybridStorage.getConnections(organizationId);
+
+    if (!orgConnections.success || !orgConnections.data) {
+      res.status(500).json({
+        success: false,
+        error: 'Failed to fetch connections for organization',
+        organizationId
+      });
+      return;
+    }
+
+    const googleConnection = orgConnections.data.find((c: any) => c.platform_type === 'google');
 
     if (!googleConnection) {
       res.status(404).json({
         success: false,
-        error: 'No Google Workspace connection found. Please connect Google Workspace first.',
-        hint: 'Visit /connections and connect your Google Workspace account'
+        error: 'No Google Workspace connection found for your organization. Please connect Google Workspace first.',
+        hint: 'Visit /connections and connect your Google Workspace account',
+        organizationId
       });
       return;
     }

@@ -4,12 +4,13 @@
  */
 
 import React from 'react';
-import { 
-  Link2, 
-  RotateCw, 
-  Unlink, 
-  AlertCircle, 
-  CheckCircle, 
+import { useOrganization } from '@clerk/clerk-react';
+import {
+  Link2,
+  RotateCw,
+  Unlink,
+  AlertCircle,
+  CheckCircle,
   Clock,
   Zap,
   ExternalLink,
@@ -106,6 +107,7 @@ export const PlatformCard: React.FC<PlatformCardProps> = ({
   className,
 }) => {
   const config = platformConfigs[platform];
+  const { organization } = useOrganization();
   const { initiateOAuth, disconnectPlatform, retryConnection, refreshConnection } = useConnectionsActions();
   const { startDiscovery } = useAutomationsActions();
   const discoveryResult = useDiscoveryByConnectionId(connection?.id || '');
@@ -113,7 +115,15 @@ export const PlatformCard: React.FC<PlatformCardProps> = ({
 
   const handleConnect = async () => {
     try {
-      const authUrl = await initiateOAuth(platform);
+      // Get Clerk organization ID
+      const orgId = organization?.id;
+
+      if (!orgId) {
+        showError('Please create or join an organization first', 'Organization Required');
+        return;
+      }
+
+      const authUrl = await initiateOAuth(platform, orgId);
       if (authUrl) {
         // Open OAuth flow in same window for better UX
         window.location.href = authUrl;
