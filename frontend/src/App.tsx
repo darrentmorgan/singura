@@ -8,6 +8,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Helmet, HelmetProvider } from 'react-helmet-async';
 import toast, { Toaster } from 'react-hot-toast';
+import { OrganizationProfile, CreateOrganization, SignUp } from '@clerk/clerk-react';
 
 // Layout and Auth Components
 import DashboardLayout from '@/components/layout/DashboardLayout';
@@ -22,7 +23,7 @@ import AutomationsPage from '@/pages/AutomationsPage';
 
 // Services and Stores
 import { websocketService } from '@/services/websocket';
-import { useIsAuthenticated } from '@/stores/auth';
+import { useAuth } from '@clerk/clerk-react';
 import { useUIActions, useNotifications, useTheme } from '@/stores/ui';
 
 // Global Error Boundary
@@ -97,7 +98,7 @@ const ThemeManager: React.FC = () => {
 
 // Connection Status Manager
 const ConnectionManager: React.FC = () => {
-  const isAuthenticated = useIsAuthenticated();
+  const { isSignedIn } = useAuth();
   const { setOnlineStatus, setWebsocketStatus } = useUIActions();
 
   useEffect(() => {
@@ -118,7 +119,7 @@ const ConnectionManager: React.FC = () => {
   }, [setOnlineStatus]);
 
   useEffect(() => {
-    if (isAuthenticated) {
+    if (isSignedIn) {
       // Connect to WebSocket when authenticated
       websocketService.connect().then(connected => {
         setWebsocketStatus(connected);
@@ -130,11 +131,11 @@ const ConnectionManager: React.FC = () => {
     }
 
     return () => {
-      if (!isAuthenticated) {
+      if (!isSignedIn) {
         websocketService.cleanup();
       }
     };
-  }, [isAuthenticated, setWebsocketStatus]);
+  }, [isSignedIn, setWebsocketStatus]);
 
   return null;
 };
@@ -234,6 +235,22 @@ const App: React.FC = () => {
             <Routes>
               {/* Public Routes */}
               <Route path="/login" element={<LoginPage />} />
+              <Route path="/sign-up" element={
+                <div className="min-h-screen flex items-center justify-center">
+                  <SignUp
+                    routing="path"
+                    path="/sign-up"
+                    signInUrl="/login"
+                    afterSignUpUrl="/dashboard"
+                    appearance={{
+                      elements: {
+                        rootBox: "w-full max-w-md",
+                        card: "shadow-xl",
+                      },
+                    }}
+                  />
+                </div>
+              } />
               <Route path="/oauth/callback" element={<OAuthCallback />} />
 
               {/* Protected Routes */}
@@ -291,6 +308,27 @@ const App: React.FC = () => {
                 <ProtectedRoute>
                   <DashboardLayout>
                     <SettingsPage />
+                  </DashboardLayout>
+                </ProtectedRoute>
+              } />
+
+              {/* Clerk Organization Routes */}
+              <Route path="/profile" element={
+                <ProtectedRoute>
+                  <DashboardLayout>
+                    <div className="flex-1 p-6">
+                      <OrganizationProfile />
+                    </div>
+                  </DashboardLayout>
+                </ProtectedRoute>
+              } />
+
+              <Route path="/create-organization" element={
+                <ProtectedRoute>
+                  <DashboardLayout>
+                    <div className="flex-1 p-6 flex items-center justify-center">
+                      <CreateOrganization afterCreateOrganizationUrl="/connections" />
+                    </div>
                   </DashboardLayout>
                 </ProtectedRoute>
               } />

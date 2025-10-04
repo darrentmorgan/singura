@@ -5,21 +5,21 @@
 
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { 
-  Shield, 
-  Search, 
-  Bell, 
-  Settings, 
-  User, 
-  LogOut, 
-  Moon, 
+import {
+  Shield,
+  Search,
+  Bell,
+  Settings,
+  User,
+  LogOut,
+  Moon,
   Sun,
   Menu,
   X
 } from 'lucide-react';
+import { useUser, useClerk, OrganizationSwitcher } from '@clerk/clerk-react';
 
 import { Button } from '@/components/ui/button';
-import { useAuthUser, useAuthActions } from '@/stores/auth';
 import { useUIActions, useTheme, useNotifications, useSidebarState } from '@/stores/ui';
 import { useConnectionsActions } from '@/stores/connections';
 import { AdminToggle } from '@/components/admin/AdminToggle';
@@ -31,21 +31,21 @@ interface HeaderProps {
 
 export const Header: React.FC<HeaderProps> = ({ className }) => {
   const navigate = useNavigate();
-  
-  // Auth state
-  const user = useAuthUser();
-  const { logout } = useAuthActions();
-  
+
+  // Clerk auth
+  const { user } = useUser();
+  const { signOut } = useClerk();
+
   // UI state
   const theme = useTheme();
   const notifications = useNotifications();
   const { isOpen: sidebarOpen } = useSidebarState();
-  const { 
-    toggleTheme, 
+  const {
+    toggleTheme,
     toggleSidebar,
     openGlobalSearch,
     showSuccess,
-    showError 
+    showError
   } = useUIActions();
 
   // Store actions
@@ -55,7 +55,7 @@ export const Header: React.FC<HeaderProps> = ({ className }) => {
 
   const handleLogout = async () => {
     try {
-      await logout();
+      await signOut();
       showSuccess('Logged out successfully', 'Goodbye!');
       navigate('/login', { replace: true });
     } catch (error) {
@@ -135,6 +135,19 @@ export const Header: React.FC<HeaderProps> = ({ className }) => {
 
         {/* Right side - Actions and User Menu */}
         <div className="flex items-center space-x-2">
+          {/* Organization Switcher */}
+          <OrganizationSwitcher
+            hidePersonal={false}
+            afterCreateOrganizationUrl="/connections"
+            afterSelectOrganizationUrl="/connections"
+            appearance={{
+              elements: {
+                rootBox: "flex items-center",
+                organizationSwitcherTrigger: "px-3 py-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800",
+              },
+            }}
+          />
+
           {/* Theme Toggle */}
           <Button
             variant="ghost"
@@ -218,14 +231,14 @@ export const Header: React.FC<HeaderProps> = ({ className }) => {
               data-testid="user-menu"
             >
               <div className="h-8 w-8 rounded-full bg-primary text-primary-foreground bg-blue-600 text-white flex items-center justify-center text-sm font-medium">
-                {user?.email?.[0]?.toUpperCase() || <User className="h-4 w-4" />}
+                {user?.firstName?.[0]?.toUpperCase() || user?.emailAddresses?.[0]?.emailAddress?.[0]?.toUpperCase() || <User className="h-4 w-4" />}
               </div>
               <div className="hidden lg:block text-left">
                 <p className="text-sm font-medium text-foreground">
-                  {user?.name || user?.email?.split('@')[0] || 'User'}
+                  {user?.fullName || user?.firstName || user?.emailAddresses?.[0]?.emailAddress?.split('@')[0] || 'User'}
                 </p>
                 <p className="text-xs text-muted-foreground">
-                  {user?.email || 'No email'}
+                  {user?.primaryEmailAddress?.emailAddress || 'No email'}
                 </p>
               </div>
             </Button>
@@ -234,10 +247,10 @@ export const Header: React.FC<HeaderProps> = ({ className }) => {
             <div className="absolute right-0 mt-2 w-56 bg-popover border rounded-md shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
               <div className="p-2 border-b">
                 <p className="font-medium text-sm text-foreground">
-                  {user?.name || user?.email?.split('@')[0] || 'User'}
+                  {user?.fullName || user?.firstName || user?.emailAddresses?.[0]?.emailAddress?.split('@')[0] || 'User'}
                 </p>
                 <p className="text-xs text-muted-foreground">
-                  {user?.email || 'No email'}
+                  {user?.primaryEmailAddress?.emailAddress || 'No email'}
                 </p>
               </div>
               

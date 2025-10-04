@@ -11,8 +11,8 @@ dotenv.config();
 
 // Test environment configuration
 const isCI = !!process.env.CI;
-const baseURL = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3000';
-const apiURL = process.env.PLAYWRIGHT_API_URL || 'http://localhost:3001';
+const baseURL = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:4200';
+const apiURL = process.env.PLAYWRIGHT_API_URL || 'http://localhost:4201';
 
 export default defineConfig({
   // Test directory and file patterns

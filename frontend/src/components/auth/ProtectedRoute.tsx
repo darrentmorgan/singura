@@ -1,14 +1,12 @@
 /**
- * Protected Route Component
- * Handles authentication checks and redirects for protected pages
+ * Protected Route Component - Clerk Integration
+ * Handles authentication checks and redirects for protected pages using Clerk
  */
 
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
+import { useAuth, useUser } from '@clerk/clerk-react';
 import { Shield, Loader2 } from 'lucide-react';
-
-import { useIsAuthenticated, useAuthUser, useAuthActions } from '@/stores/auth';
-import { useUIActions } from '@/stores/ui';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -22,32 +20,11 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   fallback,
 }) => {
   const location = useLocation();
-  const [isChecking, setIsChecking] = useState(true);
-  
-  // Auth state
-  const isAuthenticated = useIsAuthenticated();
-  const user = useAuthUser();
-  const { checkAuthStatus } = useAuthActions();
-  
-  // UI actions
-  const { showWarning } = useUIActions();
+  const { isLoaded, isSignedIn } = useAuth();
+  const { user } = useUser();
 
-  useEffect(() => {
-    const checkAuth = async () => {
-      // Check authentication status
-      checkAuthStatus();
-      
-      // Small delay to allow for auth store rehydration
-      setTimeout(() => {
-        setIsChecking(false);
-      }, 500);
-    };
-
-    checkAuth();
-  }, [checkAuthStatus]);
-
-  // Show loading state while checking authentication
-  if (isChecking) {
+  // Show loading state while Clerk is initializing
+  if (!isLoaded) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center space-y-4">
@@ -69,31 +46,27 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   }
 
   // Redirect to login if not authenticated
-  if (!isAuthenticated) {
+  if (!isSignedIn) {
     return (
       <Navigate
         to="/login"
-        state={{ 
+        state={{
           from: location,
-          redirect: location.pathname + location.search 
+          redirect: location.pathname + location.search
         }}
         replace
       />
     );
   }
 
-  // Check permissions if required
+  // Check permissions if required (using Clerk's user metadata)
   if (requirePermissions.length > 0 && user) {
+    const userPermissions = (user.publicMetadata?.permissions as string[]) || [];
     const hasRequiredPermissions = requirePermissions.every(permission =>
-      user.permissions.includes(permission)
+      userPermissions.includes(permission)
     );
 
     if (!hasRequiredPermissions) {
-      showWarning(
-        'You do not have permission to access this page',
-        'Access Denied'
-      );
-
       // Return fallback component or redirect to dashboard
       if (fallback) {
         return <>{fallback}</>;
@@ -127,13 +100,13 @@ export const withAuth = <P extends object>(
   );
 
   WrappedComponent.displayName = `withAuth(${Component.displayName || Component.name})`;
-  
+
   return WrappedComponent;
 };
 
 /**
  * Permission Check Component
- * Conditionally renders children based on user permissions
+ * Conditionally renders children based on user permissions from Clerk metadata
  */
 interface PermissionCheckProps {
   children: React.ReactNode;
@@ -148,15 +121,16 @@ export const PermissionCheck: React.FC<PermissionCheckProps> = ({
   fallback = null,
   requireAll = true,
 }) => {
-  const user = useAuthUser();
+  const { user } = useUser();
 
   if (!user || !permissions.length) {
     return <>{fallback}</>;
   }
 
+  const userPermissions = (user.publicMetadata?.permissions as string[]) || [];
   const hasPermissions = requireAll
-    ? permissions.every(permission => user.permissions.includes(permission))
-    : permissions.some(permission => user.permissions.includes(permission));
+    ? permissions.every(permission => userPermissions.includes(permission))
+    : permissions.some(permission => userPermissions.includes(permission));
 
   return hasPermissions ? <>{children}</> : <>{fallback}</>;
 };

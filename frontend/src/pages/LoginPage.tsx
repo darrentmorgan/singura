@@ -1,22 +1,13 @@
 /**
- * Login Page
- * Standalone login page with form and branding
+ * Login Page - Clerk Authentication
+ * Uses Clerk's built-in SignIn component
  */
 
 import React from 'react';
-import { Navigate } from 'react-router-dom';
-
-import { LoginForm } from '@/components/auth/LoginForm';
-import { useIsAuthenticated } from '@/stores/auth';
+import { SignIn } from '@clerk/clerk-react';
+import { Shield } from 'lucide-react';
 
 export const LoginPage: React.FC = () => {
-  const isAuthenticated = useIsAuthenticated();
-
-  // Redirect to dashboard if already authenticated
-  if (isAuthenticated) {
-    return <Navigate to="/dashboard" replace />;
-  }
-
   return (
     <div className="min-h-screen flex">
       {/* Left side - Branding/Info */}
@@ -25,9 +16,13 @@ export const LoginPage: React.FC = () => {
           <div className="space-y-6">
             {/* Hero Content */}
             <div className="space-y-4">
-              <h1 className="text-4xl font-bold text-foreground">
+              <div className="flex items-center space-x-3 mb-6">
+                <Shield className="h-10 w-10 text-primary" />
+                <h1 className="text-3xl font-bold text-foreground">SaaS X-Ray</h1>
+              </div>
+              <h2 className="text-4xl font-bold text-foreground">
                 Discover Hidden Automations
-              </h1>
+              </h2>
               <p className="text-xl text-muted-foreground leading-relaxed">
                 Gain complete visibility into your organization's automation ecosystem with SaaS X-Ray.
               </p>
@@ -99,10 +94,21 @@ export const LoginPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Right side - Login Form */}
+      {/* Right side - Clerk Sign In */}
       <div className="flex-1 flex items-center justify-center px-4 sm:px-6 lg:px-8">
         <div className="w-full max-w-md">
-          <LoginForm />
+          <SignIn
+            routing="path"
+            path="/login"
+            signUpUrl="/sign-up"
+            afterSignInUrl="/dashboard"
+            appearance={{
+              elements: {
+                rootBox: "w-full",
+                card: "shadow-xl",
+              },
+            }}
+          />
         </div>
       </div>
     </div>
