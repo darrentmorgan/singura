@@ -120,9 +120,11 @@ export async function optionalClerkAuth(
         };
 
         authRequest.user = {
-          id: userId,
+          userId,
           email: '',
-          organizationId: organizationId || userId
+          organizationId: organizationId || userId,
+          permissions: [], // Clerk permissions can be added later
+          sessionId: sessionId || ''
         };
       }
     }

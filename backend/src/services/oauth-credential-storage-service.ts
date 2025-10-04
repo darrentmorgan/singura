@@ -118,16 +118,16 @@ export class OAuthCredentialStorageService implements OAuthCredentialStorage, Li
           );
 
           if (dbCredential) {
-            // Decrypt and parse credentials (encryption_key_id is validated by repository)
-            const encryptionKeyId = dbCredential.encryption_key_id;
-            if (!encryptionKeyId) {
-              throw new Error(`No encryption key ID found for credential ${dbCredential.id}`);
+            // Decrypt and parse credentials using connection ID and credential type
+            const decryptedValue = await encryptedCredentialRepository.getDecryptedValue(
+              connectionId,
+              'access_token' as CredentialType
+            );
+
+            if (!decryptedValue) {
+              throw new Error(`Could not decrypt credentials for connection ${connectionId}`);
             }
 
-            const decryptedValue = await encryptedCredentialRepository.getDecryptedValue(
-              dbCredential.id,
-              encryptionKeyId
-            );
             credentials = JSON.parse(decryptedValue) as GoogleOAuthCredentials;
 
             // Restore to memory cache for future fast access

@@ -1014,12 +1014,16 @@ app.get('/api/ai-platforms/audit-logs', optionalClerkAuth, async (req: Request, 
     const googleConnector = new GoogleConnector();
 
     // Authenticate
+    const scopeString = Array.isArray(credentials.scope)
+      ? credentials.scope.join(' ')
+      : (credentials.scope || '');
+
     const authResult = await googleConnector.authenticate({
       accessToken: credentials.accessToken,
       refreshToken: credentials.refreshToken,
       expiresAt: credentials.expiresAt,
       tokenType: 'Bearer',
-      scope: Array.isArray(credentials.scope) ? credentials.scope : (credentials.scope ? [credentials.scope] : [])
+      scope: scopeString
     });
 
     if (!authResult.success) {

@@ -115,10 +115,11 @@ const initializeCorrelationServices = async () => {
       redirectUri: process.env.SLACK_REDIRECT_URI || '',
       scopes: ['channels:read', 'users:read', 'team:read']
     };
-    const slackCreds = {
-      access_token: '',
-      team_id: '',
-      scope: ''
+    const slackCreds: SlackOAuthCredentials = {
+      accessToken: '',
+      teamId: '',
+      scope: '',
+      tokenType: 'Bearer'
     };
     const slackOAuthService = new SlackOAuthService(slackConfig, slackCreds);
     const slackConnector = new SlackCorrelationConnector(slackOAuthService, {
