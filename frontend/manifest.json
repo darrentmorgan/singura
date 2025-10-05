@@ -1,0 +1,23 @@
+{
+  "name": "SaaS X-Ray - Automation Discovery Platform",
+  "short_name": "SaaS X-Ray",
+  "description": "Discover and monitor automations across your SaaS platforms with enterprise-grade security and compliance.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#3B82F6",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/shield.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["business", "productivity", "security"],
+  "lang": "en-US",
+  "dir": "ltr",
+  "scope": "/",
+  "prefer_related_applications": false
+}
