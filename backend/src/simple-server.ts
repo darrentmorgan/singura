@@ -758,7 +758,7 @@ app.delete('/api/connections/:id', async (req: Request, res: Response): Promise<
 });
 
 // Discovery endpoint with data provider support
-app.post('/api/connections/:id/discover', async (req: Request, res: Response) => {
+app.post('/api/connections/:id/discover', optionalClerkAuth, async (req: Request, res: Response) => {
   const { id } = req.params;
   
   try {
@@ -818,9 +818,14 @@ app.post('/api/connections/:id/discover', async (req: Request, res: Response) =>
     });
     
     await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    const result = await dataProvider.discoverAutomations(id || '');
-    
+
+    // Get organization ID from Clerk auth context
+    const authRequest = req as ClerkAuthRequest;
+    const organizationId = authRequest.auth?.organizationId || 'demo-org-id';
+
+    console.log('🔍 Discovery using organization ID:', organizationId);
+    const result = await dataProvider.discoverAutomations(id || '', organizationId);
+
     io.emit('discovery:progress', { connectionId: id, stage: 'processing', progress: 75 });
     
     // Admin event: Detection results
@@ -888,9 +893,13 @@ app.post('/api/connections/:id/discover', async (req: Request, res: Response) =>
       
       io.emit('discovery:progress', { connectionId: id, stage: 'mock_data_loading', progress: 50 });
       await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      const mockResult = await mockProvider.discoverAutomations(id || '');
-      
+
+      // Use same organization ID for mock fallback
+      const authRequest = req as ClerkAuthRequest;
+      const fallbackOrgId = authRequest.auth?.organizationId || 'demo-org-id';
+
+      const mockResult = await mockProvider.discoverAutomations(id || '', fallbackOrgId);
+
       io.emit('discovery:progress', { connectionId: id, stage: 'mock_processing', progress: 75 });
       await new Promise(resolve => setTimeout(resolve, 500));
       

@@ -40,7 +40,7 @@ export interface DiscoveryResult {
  */
 export interface DataProvider {
   getConnections(): Connection[];
-  discoverAutomations(connectionId: string): Promise<DiscoveryResult>;
+  discoverAutomations(connectionId: string, organizationId: string): Promise<DiscoveryResult>;
 }
 
 /**
@@ -75,8 +75,8 @@ export class MockDataProvider implements DataProvider {
     ];
   }
 
-  async discoverAutomations(connectionId: string): Promise<DiscoveryResult> {
-    // AI-focused mock data for demos
+  async discoverAutomations(connectionId: string, organizationId: string): Promise<DiscoveryResult> {
+    // AI-focused mock data for demos (organizationId not used for mock data)
     if (connectionId === 'conn-2' || connectionId.includes('google')) {
       return {
         success: true,
@@ -247,9 +247,9 @@ export class RealDataProvider implements DataProvider {
     }));
   }
 
-  async discoverAutomations(connectionId: string): Promise<DiscoveryResult> {
-    // Get connection from hybrid storage (same as /api/connections endpoint)
-    const organizationId = 'demo-org-id';
+  async discoverAutomations(connectionId: string, organizationId: string): Promise<DiscoveryResult> {
+    // Get connection from hybrid storage using Clerk organization ID
+    console.log('🔍 RealDataProvider.discoverAutomations called with:', { connectionId, organizationId });
     const connectionsResult = await hybridStorage.getConnections(organizationId);
 
     if (!connectionsResult.success) {
