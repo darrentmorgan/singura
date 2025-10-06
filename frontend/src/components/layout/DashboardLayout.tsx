@@ -5,10 +5,10 @@
 
 import React, { useEffect } from 'react';
 import { Outlet } from 'react-router-dom';
+import { useAuth } from '@clerk/clerk-react';
 
 import Header from './Header';
 import Sidebar from './Sidebar';
-import { useIsAuthenticated } from '@/stores/auth';
 import { useUIActions } from '@/stores/ui';
 import { useConnectionsActions } from '@/stores/connections';
 import { websocketService } from '@/services/websocket';
@@ -19,15 +19,15 @@ interface DashboardLayoutProps {
 }
 
 export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
-  const isAuthenticated = useIsAuthenticated();
-  
+  const { isSignedIn, isLoaded } = useAuth();
+
   // Actions
   const { setOnlineStatus } = useUIActions();
   const { fetchConnections, fetchConnectionStats } = useConnectionsActions();
 
   // Initialize data and connections on mount
   useEffect(() => {
-    if (!isAuthenticated) return;
+    if (!isSignedIn) return;
 
     const initializeApp = async () => {
       try {
@@ -70,10 +70,10 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
       window.removeEventListener('offline', handleOffline);
       document.removeEventListener('keydown', handleKeyDown);
     };
-  }, [isAuthenticated, fetchConnections, fetchConnectionStats, setOnlineStatus]);
+  }, [isSignedIn, fetchConnections, fetchConnectionStats, setOnlineStatus]);
 
   // Don't render layout if not authenticated (auth guard should handle this)
-  if (!isAuthenticated) {
+  if (!isLoaded || !isSignedIn) {
     return null;
   }
 

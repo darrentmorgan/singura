@@ -106,29 +106,33 @@ export async function optionalClerkAuth(
   next: NextFunction
 ): Promise<void> {
   try {
-    const sessionToken = req.headers.authorization?.replace('Bearer ', '');
+    // Try to get auth from headers even without Authorization header
+    const userId = req.headers['x-clerk-user-id'] as string;
+    const organizationId = req.headers['x-clerk-organization-id'] as string;
+    const sessionId = req.headers['x-clerk-session-id'] as string;
 
-    if (sessionToken) {
-      const userId = req.headers['x-clerk-user-id'] as string;
-      const organizationId = req.headers['x-clerk-organization-id'] as string;
-      const sessionId = req.headers['x-clerk-session-id'] as string;
+    // If we have Clerk headers, use them regardless of Authorization header
+    if (userId || organizationId) {
+      const authRequest = req as ClerkAuthRequest;
+      authRequest.auth = {
+        userId: userId || '',
+        organizationId: organizationId || userId || '',
+        sessionId
+      };
 
-      if (userId) {
-        const authRequest = req as ClerkAuthRequest;
-        authRequest.auth = {
-          userId,
-          organizationId: organizationId || userId,
-          sessionId
-        };
+      authRequest.user = {
+        userId: userId || '',
+        email: '',
+        organizationId: organizationId || userId || '',
+        permissions: [],
+        sessionId: sessionId || ''
+      };
 
-        authRequest.user = {
-          userId,
-          email: '',
-          organizationId: organizationId || userId,
-          permissions: [], // Clerk permissions can be added later
-          sessionId: sessionId || ''
-        };
-      }
+      console.log('✅ Clerk auth from headers:', {
+        userId,
+        organizationId,
+        path: req.path
+      });
     }
 
     next();

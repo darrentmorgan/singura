@@ -13,9 +13,11 @@ import devRoutes from './routes/dev-routes';
 import { getDataProvider, isDataToggleEnabled } from './services/data-provider';
 import { platformConnectionRepository } from './database/repositories/platform-connection';
 import { hybridStorage } from './services/hybrid-storage';
+import { oauthMemoryStorage } from './services/memory-storage';
 import { oauthCredentialStorage } from './services/oauth-credential-storage-service';
 import { GoogleOAuthRawResponse, GoogleOAuthCredentials, SlackOAuthRawResponse, SlackOAuthCredentials } from '@saas-xray/shared-types';
 import { requireClerkAuth, optionalClerkAuth, getOrganizationId, ClerkAuthRequest } from './middleware/clerk-auth';
+import { runMigrations } from './database/migrate';
 
 // Load environment variables
 dotenv.config();
@@ -705,32 +707,73 @@ app.delete('/api/connections/:id', async (req: Request, res: Response): Promise<
   }
 
   try {
-    // Find the connection in database
-    const connection = await platformConnectionRepository.findById(id);
+    // Try to find the connection in database first
+    let connection = await platformConnectionRepository.findById(id);
+    let deletedFromDatabase = false;
+    let deletedFromMemory = false;
 
-    // If connection not found, return 404
+    // If found in database, delete from database
+    if (connection) {
+      deletedFromDatabase = await platformConnectionRepository.delete(id);
+      if (!deletedFromDatabase) {
+        res.status(500).json({
+          success: false,
+          error: 'Failed to remove connection from database',
+          connectionId: id
+        });
+        return;
+      }
+      console.log(`✅ Deleted connection from database: ${id}`);
+    } else {
+      // Not in database, check memory storage
+      const memoryItem = oauthMemoryStorage.get(id);
+      if (memoryItem) {
+        // Create a connection object from memory data for response
+        connection = {
+          id: memoryItem.id,
+          organization_id: memoryItem.data.organization_id,
+          platform_type: memoryItem.data.platform_type as any,
+          platform_user_id: memoryItem.data.platform_user_id,
+          display_name: memoryItem.data.display_name,
+          permissions_granted: memoryItem.data.permissions_granted,
+          metadata: memoryItem.data.metadata as any,
+          platform_workspace_id: memoryItem.data.platform_workspace_id ?? null,
+          status: 'active' as any,
+          created_at: memoryItem.storedAt,
+          updated_at: memoryItem.storedAt,
+          last_sync_at: memoryItem.storedAt,
+          expires_at: null,
+          last_error: null,
+          webhook_url: null,
+          webhook_secret_id: null
+        };
+
+        // Delete from memory
+        deletedFromMemory = oauthMemoryStorage.remove(id);
+        console.log(`✅ Deleted connection from memory: ${id}`);
+      }
+    }
+
+    // If not found in either storage, return 404
     if (!connection) {
       res.status(404).json({
         success: false,
-        error: 'Connection not found',
+        error: 'Connection not found in database or memory',
         connectionId: id
       });
       return;
     }
 
-    // Remove the connection from database
-    const deleted = await platformConnectionRepository.delete(id);
-
-    if (!deleted) {
-      res.status(500).json({
-        success: false,
-        error: 'Failed to remove connection',
-        connectionId: id
-      });
-      return;
+    // Also remove OAuth credentials
+    try {
+      oauthCredentialStorage.deleteCredentials(id);
+      console.log(`✅ Deleted OAuth credentials for: ${id}`);
+    } catch (credError) {
+      console.warn(`⚠️  Failed to delete OAuth credentials for ${id}:`, credError);
+      // Don't fail the entire request if credential deletion fails
     }
 
-    console.log(`Disconnected platform: ${connection.platform_type}, Connection ID: ${id}`);
+    console.log(`✅ Disconnected platform: ${connection.platform_type}, Connection ID: ${id}`);
 
     res.json({
       success: true,
@@ -1111,20 +1154,45 @@ io.on('connection', (socket) => {
   });
 });
 
-const server = httpServer.listen(PORT, () => {
-  console.log(`🚀 SaaS X-Ray Backend running on port ${PORT}`);
-  console.log(`📍 Environment: ${NODE_ENV}`);
-  console.log(`🔗 Health check: http://localhost:${PORT}/api/health`);
-  console.log(`🔗 CORS origin: ${process.env.CORS_ORIGIN || 'http://localhost:4200'}`);
-  console.log(`⚡ Socket.io enabled for real-time discovery progress`);
-});
+// Run database migrations before starting server
+async function startServer() {
+  try {
+    // Apply pending database migrations
+    await runMigrations();
+
+    // Start the HTTP server
+    const server = httpServer.listen(PORT, () => {
+      console.log(`🚀 SaaS X-Ray Backend running on port ${PORT}`);
+      console.log(`📍 Environment: ${NODE_ENV}`);
+      console.log(`🔗 Health check: http://localhost:${PORT}/api/health`);
+      console.log(`🔗 CORS origin: ${process.env.CORS_ORIGIN || 'http://localhost:4200'}`);
+      console.log(`⚡ Socket.io enabled for real-time discovery progress`);
+    });
+
+    return server;
+  } catch (error) {
+    console.error('❌ Failed to start server:', error);
+    process.exit(1);
+  }
+}
+
+// Start server with migration support
+(async () => {
+  server = await startServer();
+})();
+
+let server: any;
 
 // Graceful shutdown
-process.on('SIGTERM', () => {
+process.on('SIGTERM', async () => {
   console.log('SIGTERM received, shutting down gracefully');
-  server.close(() => {
+  if (server) {
+    server.close(() => {
+      process.exit(0);
+    });
+  } else {
     process.exit(0);
-  });
+  }
 });
 
 export default app;

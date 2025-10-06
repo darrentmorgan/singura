@@ -28,6 +28,7 @@ import { useUIActions, useNotifications, useTheme } from '@/stores/ui';
 
 // Global Error Boundary
 import ErrorBoundary from '@/components/common/ErrorBoundary';
+import GlobalModal from '@/components/common/GlobalModal';
 
 // Global Styles
 import '@/index.css';
@@ -46,28 +47,49 @@ const queryClient = new QueryClient({
 // Notification Component
 const NotificationManager: React.FC = () => {
   const notifications = useNotifications();
-  
+  const processedNotificationsRef = React.useRef<Set<string>>(new Set());
+
   useEffect(() => {
     notifications.forEach(notification => {
+      // Skip if already processed
+      if (processedNotificationsRef.current.has(notification.id)) {
+        return;
+      }
+
+      // Mark as processed
+      processedNotificationsRef.current.add(notification.id);
+
+      // Display toast based on type
+      const message = notification.message || notification.title;
+
       if (notification.type === 'success') {
-        toast.success(notification.message, {
+        toast.success(message, {
           duration: notification.duration || 4000,
+          id: notification.id, // Use notification ID to prevent duplicates in react-hot-toast
         });
       } else if (notification.type === 'error') {
-        toast.error(notification.message, {
+        toast.error(message, {
           duration: notification.duration || 6000,
+          id: notification.id,
         });
       } else if (notification.type === 'warning') {
-        toast(notification.message, {
+        toast(message, {
           icon: '⚠️',
           duration: notification.duration || 5000,
+          id: notification.id,
         });
       } else if (notification.type === 'info') {
-        toast(notification.message, {
+        toast(message, {
           icon: 'ℹ️',
           duration: notification.duration || 4000,
+          id: notification.id,
         });
       }
+
+      // Clean up old processed IDs after 10 seconds to prevent memory leak
+      setTimeout(() => {
+        processedNotificationsRef.current.delete(notification.id);
+      }, 10000);
     });
   }, [notifications]);
 
@@ -100,6 +122,7 @@ const ThemeManager: React.FC = () => {
 const ConnectionManager: React.FC = () => {
   const { isSignedIn } = useAuth();
   const { setOnlineStatus, setWebsocketStatus } = useUIActions();
+  const wsConnectionAttemptedRef = React.useRef(false);
 
   useEffect(() => {
     // Handle online/offline status
@@ -119,18 +142,21 @@ const ConnectionManager: React.FC = () => {
   }, [setOnlineStatus]);
 
   useEffect(() => {
-    if (isSignedIn) {
-      // Connect to WebSocket when authenticated
+    if (isSignedIn && !wsConnectionAttemptedRef.current) {
+      // Connect to WebSocket when authenticated (only once)
+      wsConnectionAttemptedRef.current = true;
       websocketService.connect().then(connected => {
         setWebsocketStatus(connected);
       });
-    } else {
+    } else if (!isSignedIn) {
       // Disconnect WebSocket when not authenticated
+      wsConnectionAttemptedRef.current = false;
       websocketService.disconnect();
       setWebsocketStatus(false);
     }
 
     return () => {
+      // Cleanup only on unmount or sign-out
       if (!isSignedIn) {
         websocketService.cleanup();
       }
@@ -219,6 +245,9 @@ const App: React.FC = () => {
             <ThemeManager />
             <ConnectionManager />
             <NotificationManager />
+
+            {/* Global Modal */}
+            <GlobalModal />
 
             {/* Toast Notifications */}
             <Toaster

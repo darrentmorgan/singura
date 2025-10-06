@@ -44,26 +44,19 @@ export class WebSocketService {
     }
 
     this.isConnecting = true;
-    const { accessToken } = useAuthStore.getState();
-
-    if (!accessToken) {
-      console.warn('No access token available for WebSocket connection');
-      this.isConnecting = false;
-      return false;
-    }
 
     try {
+      // Connect without auth token - backend handles Clerk authentication via HTTP
       this.socket = io(WS_URL, {
-        auth: {
-          token: accessToken,
-        },
         transports: ['websocket'],
-        reconnection: false, // We'll handle reconnection manually
+        reconnection: true,
+        reconnectionAttempts: 5,
+        reconnectionDelay: 3000,
         timeout: 10000,
       });
 
       this.setupSocketEventHandlers();
-      
+
       return new Promise((resolve) => {
         if (!this.socket) {
           resolve(false);
@@ -76,26 +69,31 @@ export class WebSocketService {
           resolve(false);
         }, 10000);
 
-        this.socket.on('connect', () => {
+        // Use once() instead of on() to prevent duplicate event handlers
+        this.socket.once('connect', () => {
           clearTimeout(connectTimeout);
           this.isConnecting = false;
           this.reconnectAttempts = 0;
-          
+
           console.log('WebSocket connected');
           useUIStore.getState().setWebsocketStatus(true);
-          useUIStore.getState().showSuccess('Real-time updates connected');
-          
+
+          // Only show success toast on first connection (not reconnections)
+          if (this.reconnectAttempts === 0) {
+            useUIStore.getState().showSuccess('Real-time updates connected');
+          }
+
           this.startHeartbeat();
           resolve(true);
         });
 
-        this.socket.on('connect_error', (error) => {
+        this.socket.once('connect_error', (error) => {
           clearTimeout(connectTimeout);
           this.isConnecting = false;
-          
+
           console.error('WebSocket connection error:', error);
           useUIStore.getState().setWebsocketStatus(false);
-          
+
           this.scheduleReconnect();
           resolve(false);
         });
@@ -463,17 +461,6 @@ export class WebSocketService {
 
 // Export singleton instance
 export const websocketService = new WebSocketService();
-
-// Auto-connect on module load if user is authenticated
-if (typeof window !== 'undefined') {
-  // Wait for stores to be initialized
-  setTimeout(() => {
-    const { isAuthenticated } = useAuthStore.getState();
-    if (isAuthenticated) {
-      websocketService.connect();
-    }
-  }, 1000);
-}
 
 // Cleanup on page unload
 if (typeof window !== 'undefined') {

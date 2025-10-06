@@ -5,7 +5,8 @@
 
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { 
+import { useAuth } from '@clerk/clerk-react';
+import {
   LayoutDashboard,
   Link2,
   Bot,
@@ -22,7 +23,6 @@ import {
 import { Button } from '@/components/ui/button';
 import { useSidebarState, useConnectionStatus, useUIActions } from '@/stores/ui';
 import { useConnections, useActiveConnections } from '@/stores/connections';
-import { useIsAuthenticated } from '@/stores/auth';
 import { cn } from '@/lib/utils';
 
 // Platform icons mapping
@@ -53,8 +53,8 @@ interface NavItem {
 
 export const Sidebar: React.FC<SidebarProps> = ({ className }) => {
   const location = useLocation();
-  const isAuthenticated = useIsAuthenticated();
-  
+  const { isSignedIn } = useAuth();
+
   // UI state
   const { isOpen, isCollapsed } = useSidebarState();
   const { isOnline, websocketConnected } = useConnectionStatus();
@@ -65,7 +65,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ className }) => {
   const activeConnections = useActiveConnections();
 
   // Don't render if not authenticated
-  if (!isAuthenticated) {
+  if (!isSignedIn) {
     return null;
   }
 

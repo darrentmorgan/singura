@@ -54,11 +54,16 @@ export class PlatformConnectionRepository extends BaseRepository<
       );
     }
 
-    return super.create({
+    // Prepare data - pg library handles JSONB conversion automatically
+    const insertData: any = {
       ...data,
       status: 'pending',
+      // Pass objects directly - pg library converts to JSONB
+      permissions_granted: data.permissions_granted || [],
       metadata: data.metadata || {}
-    });
+    };
+
+    return super.create(insertData);
   }
 
   /**
@@ -99,7 +104,9 @@ export class PlatformConnectionRepository extends BaseRepository<
       WHERE organization_id = $1
       ORDER BY created_at DESC
     `;
+    console.log('🔍 Repository query:', { query: query.trim(), params: [organizationId] });
     const result = await this.executeQuery<PlatformConnection>(query, [organizationId]);
+    console.log('📊 Repository result:', { rowCount: result.rowCount, rows: result.rows.length, firstRow: result.rows[0]?.id });
     return result.rows;
   }
 
@@ -250,7 +257,9 @@ export class PlatformConnectionRepository extends BaseRepository<
     id: string,
     permissions: string[]
   ): Promise<PlatformConnection | null> {
-    return this.update(id, { permissions_granted: permissions });
+    return this.update(id, {
+      permissions_granted: permissions as any
+    });
   }
 
   /**
@@ -260,7 +269,9 @@ export class PlatformConnectionRepository extends BaseRepository<
     id: string,
     metadata: Record<string, any>
   ): Promise<PlatformConnection | null> {
-    return this.update(id, { metadata });
+    return this.update(id, {
+      metadata: metadata as any
+    });
   }
 
   /**

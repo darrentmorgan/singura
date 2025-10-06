@@ -3,7 +3,7 @@
  * Main page for managing platform connections
  */
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { useSearchParams } from 'react-router-dom';
 
@@ -18,6 +18,9 @@ export const ConnectionsPage: React.FC = () => {
   const { fetchConnections, fetchConnectionStats } = useConnectionsActions();
   const { showError, showSuccess } = useUIActions();
 
+  // Track if OAuth callback has been processed to prevent duplicates
+  const oauthProcessedRef = useRef(false);
+
   useEffect(() => {
     const loadInitialData = async () => {
       try {
@@ -26,20 +29,22 @@ export const ConnectionsPage: React.FC = () => {
         const platform = searchParams.get('platform');
         const error = searchParams.get('error');
 
-        if (success === 'true' && platform) {
-          // Show success message
-          const platformName = platform.charAt(0).toUpperCase() + platform.slice(1);
-          showSuccess(`${platformName} connected successfully!`, 'Platform Connected');
-          
-          // Clear the URL parameters
-          setSearchParams(new URLSearchParams());
-        } else if (success === 'false' && platform) {
-          // Show error message
-          const platformName = platform.charAt(0).toUpperCase() + platform.slice(1);
-          const errorMessage = error ? `Connection failed: ${error}` : 'Connection failed';
-          showError(`${platformName} connection failed: ${errorMessage}`, 'Connection Failed');
-          
-          // Clear the URL parameters
+        // Only process OAuth callback once
+        if ((success === 'true' || success === 'false') && platform && !oauthProcessedRef.current) {
+          oauthProcessedRef.current = true;
+
+          if (success === 'true') {
+            // Show success message
+            const platformName = platform.charAt(0).toUpperCase() + platform.slice(1);
+            showSuccess(`${platformName} connected successfully!`, 'Platform Connected');
+          } else {
+            // Show error message
+            const platformName = platform.charAt(0).toUpperCase() + platform.slice(1);
+            const errorMessage = error ? `Connection failed: ${error}` : 'Connection failed';
+            showError(`${platformName} connection failed: ${errorMessage}`, 'Connection Failed');
+          }
+
+          // Clear the URL parameters after processing
           setSearchParams(new URLSearchParams());
         }
 

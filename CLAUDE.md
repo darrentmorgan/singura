@@ -6,9 +6,126 @@
 
 **Before responding to ANY user request, you MUST:**
 
-1. **🔍 Reference SaaS X-Ray Context** - Does this relate to the existing project?
-2. **📖 Consult Documentation Strategy** - Should Context7 be used for up-to-date docs?
-3. **✅ Validate Technical Requirements** - Check TypeScript, testing, and security needs
+1. **🤖 EVALUATE SUB-AGENT DELEGATION** - Can this task be delegated to a specialized sub-agent?
+2. **🔍 Reference SaaS X-Ray Context** - Does this relate to the existing project?
+3. **📖 Consult Documentation Strategy** - Should Context7 be used for up-to-date docs?
+4. **✅ Validate Technical Requirements** - Check TypeScript, testing, and security needs
+
+---
+
+## 🤖 **MANDATORY SUB-AGENT DELEGATION PROTOCOL (CRITICAL)**
+
+### **Core Philosophy: Preserve Main Context**
+
+**RULE: The main orchestrator agent should NEVER consume context on specialized tasks.**
+
+**Goal:** Keep main context <100K tokens by delegating ALL specialized work to sub-agents.
+
+### **Sub-Agent Delegation Decision Matrix**
+
+**ALWAYS Delegate to Sub-Agent:**
+- ✅ OAuth debugging, credential issues, platform API work
+- ✅ Database schema changes, migrations, JSONB issues, query optimization
+- ✅ TypeScript errors, type coverage, shared-types integration
+- ✅ React component fixes, Clerk integration, state management
+- ✅ API endpoint changes, middleware issues, Express routes
+- ✅ Detection algorithm work, ML models, correlation engine
+- ✅ Writing tests, fixing test failures, coverage improvements
+- ✅ Security audits, encryption validation, compliance reviews
+- ✅ Code reviews after changes, pattern enforcement
+- ✅ Documentation updates, API reference changes
+- ✅ Performance optimization, query tuning, rendering issues
+- ✅ Docker issues, CI/CD failures, container orchestration
+
+**ONLY Main Agent Handles:**
+- ❌ High-level planning and architecture decisions
+- ❌ Cross-domain tasks requiring 3+ sub-agent expertise
+- ❌ Simple questions not requiring code changes
+- ❌ User clarification and requirements gathering
+
+### **Available Sub-Agents (12 Specialists)**
+
+**Location:** `.claude/agents/` (see README.md for full details)
+
+| Sub-Agent | Use For | Key Expertise |
+|-----------|---------|---------------|
+| **oauth-integration-specialist** | OAuth flows, credentials, platform APIs | Singleton pattern, Slack/Google APIs, org ID scoping |
+| **database-architect** | PostgreSQL, repositories, JSONB, migrations | T \| null pattern, JSONB objects, Docker port 5433 |
+| **typescript-guardian** | Type errors, shared-types, type coverage | 78→0 errors, shared-types imports, strict mode |
+| **react-clerk-expert** | React components, Clerk hooks, Zustand | Clerk migration, useAuth, organization context |
+| **api-middleware-specialist** | Express routes, middleware, headers | Clerk auth extraction, CORS, request handling |
+| **detection-algorithm-engineer** | AI detection, correlation, ML algorithms | 7 detection services, cross-platform correlation |
+| **test-suite-manager** | Jest/Vitest/Playwright, 80%+ coverage | 195 test files, type-safe mocks, TDD |
+| **security-compliance-auditor** | OAuth security, encryption, SOC2/GDPR | AES-256-GCM, audit logging, compliance |
+| **code-reviewer-pro** | Post-change reviews, pattern enforcement | Architecture patterns, shared-types, singletons |
+| **documentation-sync** | Docs updates, API references | 8.3K lines of docs, CLAUDE.md patterns |
+| **performance-optimizer** | Database/API/React optimization | <2s requirement, 10K+ automations support |
+| **docker-deployment-expert** | Docker, CI/CD, GitHub Actions | Container orchestration, migrations, deployments |
+
+### **Delegation Syntax**
+
+**Automatic Delegation (Preferred):**
+```
+> Fix the OAuth credential storage issue
+→ Delegates to: oauth-integration-specialist
+
+> Optimize the slow connections query
+→ Delegates to: performance-optimizer
+```
+
+**Explicit Delegation:**
+```
+> Use the typescript-guardian to fix type errors
+> Ask the database-architect to create a migration for audit_logs
+> Have the security-compliance-auditor review OAuth token encryption
+```
+
+### **If No Sub-Agent Exists**
+
+**When encountering a task with no matching sub-agent:**
+
+1. **Stop and evaluate**: Does this task warrant a sub-agent?
+2. **If yes (task will recur or is complex):**
+   ```
+   "This task requires [domain expertise]. I recommend creating a new sub-agent:
+
+   Suggested Agent:
+   - Name: [domain]-specialist
+   - Expertise: [key focus areas]
+   - Tools: [required tools]
+   - Use cases: [when to invoke]
+
+   Would you like me to create this sub-agent, or shall I handle this task directly?"
+   ```
+3. **If no (one-off simple task):** Handle directly in main context
+
+### **Enforcement Rules**
+
+**MANDATORY:**
+- ❌ Main agent NEVER directly edits OAuth/database/React code
+- ❌ Main agent NEVER runs extensive grep/read operations
+- ❌ Main agent NEVER debugs errors (delegate to debugger or specialist)
+- ❌ Main agent NEVER writes tests (delegate to test-suite-manager)
+
+**ALLOWED:**
+- ✅ Main agent plans multi-stage implementations
+- ✅ Main agent coordinates multiple sub-agents
+- ✅ Main agent answers simple questions
+- ✅ Main agent reviews sub-agent outputs and synthesizes results
+
+### **Context Budget Monitoring**
+
+**Target Context Usage:**
+- Main Agent: <100K tokens (high-level coordination)
+- Sub-Agents: Handle all specialized work (separate context windows)
+- Total Efficiency: 5-10x more work per session
+
+**When to Delegate:**
+If you're about to:
+- Read 5+ files to understand an issue → Delegate
+- Write >50 lines of code → Delegate
+- Debug across multiple layers → Delegate
+- Run complex test suites → Delegate
 
 ---
 
@@ -577,9 +694,48 @@ When multiple solutions exist, prioritize in this order:
 ## **📋 Instant Reference Card**
 
 **When ANY SaaS X-Ray request arrives:**
-1. 📖 **CONTEXT**: Reference project architecture below
-2. 🔐 **SECURITY**: Consider OAuth and compliance requirements
-3. 📚 **DOCS**: Consider Context7 for up-to-date library docs
+1. 🤖 **SUB-AGENT**: Check if task can be delegated (see matrix above) - FIRST PRIORITY
+2. 📖 **CONTEXT**: Reference project architecture below
+3. 🔐 **SECURITY**: Consider OAuth and compliance requirements
+4. 📚 **DOCS**: Consider Context7 for up-to-date library docs
+
+## **🎯 Quick Sub-Agent Mapping (Common Tasks)**
+
+**"OAuth not working / credentials missing"**
+→ `oauth-integration-specialist` (checks singletons, dual storage, org ID)
+
+**"Database error / migration needed / JSONB issue"**
+→ `database-architect` (handles PostgreSQL, port 5433, T | null patterns)
+
+**"TypeScript errors / type checking failing"**
+→ `typescript-guardian` (fixes 78 errors, shared-types imports)
+
+**"React component blank / Clerk auth issue"**
+→ `react-clerk-expert` (useAuth hooks, organization context)
+
+**"API endpoint 500 error / middleware issue"**
+→ `api-middleware-specialist` (Clerk headers, CORS, Express routes)
+
+**"Detection algorithm / AI platform detection"**
+→ `detection-algorithm-engineer` (ML models, correlation engine)
+
+**"Tests failing / need test coverage"**
+→ `test-suite-manager` (Jest/Vitest/Playwright, 80%+ requirement)
+
+**"Security review / OAuth security / encryption"**
+→ `security-compliance-auditor` (SOC2, GDPR, AES-256-GCM)
+
+**"Review my code changes"**
+→ `code-reviewer-pro` (enforces patterns, singleton usage)
+
+**"Update documentation / API changed"**
+→ `documentation-sync` (keeps 8.3K docs current)
+
+**"Slow query / dashboard lag / performance"**
+→ `performance-optimizer` (<2s requirement, optimization)
+
+**"Docker not starting / CI/CD failing"**
+→ `docker-deployment-expert` (containers, migrations, GitHub Actions)
 
 ## Project Overview
 
@@ -1094,6 +1250,71 @@ try {
 **Validated Scopes**:
 - Slack bot discovery: `users:read` + `team:read` (sufficient)
 - Google Apps Script: `script.projects.readonly` + `admin.directory.user.readonly` + `admin.reports.audit.readonly`
+
+### **6. Database Migrations Not Applied (CRITICAL - RECURRING ISSUE)**
+
+**Symptom**: 500 errors on DELETE endpoints, UUID format errors, errors keep recurring after "fixes"
+**Root Cause**: Migration files created but NEVER APPLIED to database
+**Why It Recurs**:
+- No migration tracking system
+- No automated migration runner
+- Database can be recreated from old schema
+- Manual `psql -f migration.sql` easily forgotten
+
+**The Problem:**
+```
+Error: invalid input syntax for type uuid: "google-1759721169098"
+```
+Application uses Clerk string IDs, but database still has UUID columns because migrations weren't applied.
+
+**Permanent Solution (IMPLEMENTED 2025-10-06):**
+
+1. **Migration Tracking Table** (`schema_migrations`)
+   - Records which migrations have been applied
+   - Checksums prevent tampering
+   - Execution time tracking
+   - Error logging
+
+2. **Automated Migration Runner** (`/backend/src/database/migrate.ts`)
+   - Runs on server startup BEFORE accepting traffic
+   - Scans `/migrations/*.sql` files
+   - Applies pending migrations in order
+   - Server exits if migrations fail
+
+3. **Server Integration** (`simple-server.ts`)
+   ```typescript
+   async function startServer() {
+     await runMigrations();  // ✅ REQUIRED: Migrations run first
+     const server = httpServer.listen(PORT);
+     return server;
+   }
+   ```
+
+**How to Verify Migrations Applied:**
+```bash
+export PGPASSWORD=password
+psql -h localhost -p 5433 -U postgres -d saas_xray -c "SELECT * FROM schema_migrations ORDER BY applied_at DESC;"
+```
+
+**Critical Migrations Applied:**
+- `000_create_migration_table` - Migration tracking system
+- `003_clerk_complete_migration` - UUID → VARCHAR(255) for Clerk IDs
+- `004_fix_audit_trigger_for_deletes` - Fix FK constraint on DELETE
+
+**Documentation**: `/docs/DATABASE_MIGRATION_ISSUE_ROOT_CAUSE.md`
+
+**NEVER DO THIS AGAIN:**
+- ❌ Create migration file without applying it
+- ❌ Assume Docker container persisted schema changes
+- ❌ Fix database issues without updating migration files
+- ❌ Skip migration verification after "fixing" errors
+
+**ALWAYS DO THIS:**
+- ✅ Create migration file in `/backend/migrations/`
+- ✅ Use sequential numbering (005_your_change.sql)
+- ✅ Let automated runner apply migrations on startup
+- ✅ Verify migrations in `schema_migrations` table
+- ✅ Test migrations in test database first
 
 ---
 

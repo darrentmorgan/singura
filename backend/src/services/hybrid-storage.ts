@@ -344,8 +344,8 @@ export class HybridStorageService {
             permissions_granted: item.data.permissions_granted,
             metadata: item.data.metadata,
             platform_workspace_id: item.data.platform_workspace_id
-          });
-          
+          } as any);
+
           oauthMemoryStorage.markPersisted(item.id);
           succeeded++;
           console.log(`✅ Persisted ${item.data.platform_type} connection: ${item.id}`);
