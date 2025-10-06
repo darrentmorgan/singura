@@ -32,6 +32,7 @@ Before ANY response:
 - Documentation updates → `documentation-sync`
 - Performance issues → `performance-optimizer`
 - Docker/CI/CD → `docker-deployment-expert`
+- API research/validation/best practices → `research-specialist`
 
 **ONLY Main Agent Handles:**
 - High-level architecture decisions
@@ -39,7 +40,7 @@ Before ANY response:
 - Simple questions (no code changes)
 - Requirements gathering
 
-**Sub-Agent Details**: See `.claude/agents/README.md` for full specialist descriptions.
+**Sub-Agent Details**: See `.claude/agents/README.md` for 13 specialist descriptions.
 
 ### Enforcement Rules
 - Main agent NEVER directly edits OAuth/database/React code
