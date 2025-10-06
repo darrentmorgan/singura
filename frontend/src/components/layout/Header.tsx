@@ -143,7 +143,10 @@ export const Header: React.FC<HeaderProps> = ({ className }) => {
             appearance={{
               elements: {
                 rootBox: "flex items-center",
-                organizationSwitcherTrigger: "px-3 py-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800",
+                organizationSwitcherTrigger: "px-3 py-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 text-foreground dark:text-foreground",
+                organizationPreviewTextContainer: "text-foreground dark:text-foreground",
+                organizationPreviewMainIdentifier: "text-foreground dark:text-foreground",
+                organizationPreviewSecondaryIdentifier: "text-muted-foreground dark:text-muted-foreground",
               },
             }}
           />
