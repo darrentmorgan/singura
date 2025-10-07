@@ -140,3 +140,4 @@ temp/
 # Large temporary files
 *.xml
 flattened-codebase.*
+frontend/frontend/
