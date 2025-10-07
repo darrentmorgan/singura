@@ -40,7 +40,7 @@ const TrustSection = () => {
         {/* Testimonial */}
         <div className="max-w-3xl mx-auto text-center">
           <blockquote className="text-xl md:text-2xl font-light text-foreground/90 mb-6 italic">
-            "SaaS X-Ray helped us discover shadow AI workflows we didn't even know existed.
+            "Ghostmap.ai helped us discover shadow AI workflows we didn't even know existed.
             The ROI was immediate and the insights were board-ready."
           </blockquote>
           <div className="text-sm text-muted-foreground">

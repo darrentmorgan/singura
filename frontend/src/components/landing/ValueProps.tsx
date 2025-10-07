@@ -6,17 +6,17 @@ const ValueProps = () => {
     {
       icon: Eye,
       title: "Discovery",
-      description: "Automatically identify shadow AI usage, bots, and workflows across your organization",
+      description: "Identify shadow AI usage across the organization",
     },
     {
       icon: Shield,
       title: "Risk Assessment",
-      description: "Evaluate security impact and compliance risks of unauthorized automations",
+      description: "Evaluate the security and compliance impact",
     },
     {
       icon: FileCheck,
       title: "Compliance",
-      description: "Ensure adherence to AI governance policies with enterprise-grade auditing",
+      description: "Ensure adherence to AI governance policies",
     },
   ];
 
@@ -33,8 +33,8 @@ const ValueProps = () => {
                 style={{ animationDelay: `${index * 0.1}s` }}
               >
                 <div className="mb-6">
-                  <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
-                    <Icon className="h-6 w-6 text-primary" />
+                  <div className="w-12 h-12 rounded-lg flex items-center justify-center group-hover:bg-primary/20 transition-colors" style={{ backgroundColor: 'rgba(0, 255, 255, 0.1)' }}>
+                    <Icon className="h-6 w-6" style={{ color: '#00ffff' }} />
                   </div>
                 </div>
 

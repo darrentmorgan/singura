@@ -7,14 +7,11 @@ const Footer = () => {
       <div className="container mx-auto px-6 lg:px-8">
         <div className="grid md:grid-cols-4 gap-8 mb-8">
           <div>
-            <Link to="/" className="flex items-center space-x-2 mb-4">
-              <Shield className="h-5 w-5 text-primary" />
-              <div className="text-lg font-semibold">
-                SaaS <span className="text-primary">X-Ray</span>
-              </div>
+            <Link to="/" className="text-lg font-semibold mb-4 block">
+              GHOSTMAP<span style={{ color: '#00ffff' }}>.AI</span>
             </Link>
             <p className="text-sm text-muted-foreground font-light">
-              Enterprise security platform for shadow AI and automation discovery
+              Enterprise security platform for shadow AI discovery
             </p>
           </div>
 
@@ -47,7 +44,7 @@ const Footer = () => {
         </div>
 
         <div className="pt-8 border-t border-border/50 text-center text-sm text-muted-foreground">
-          © 2025 SaaS X-Ray. All rights reserved.
+          © 2025 Ghostmap.ai. All rights reserved.
         </div>
       </div>
     </footer>

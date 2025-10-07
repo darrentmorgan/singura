@@ -28,7 +28,7 @@ const Hero = () => {
         </h1>
 
         <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto mb-12 animate-fade-in-up font-light">
-          Discover unauthorized AI agents, bots, and automations across your SaaS platforms
+          Mapping unauthorized AI agents and automation risks
         </p>
 
         <div className="flex flex-col sm:flex-row gap-4 justify-center items-center animate-fade-in-up">
@@ -46,8 +46,8 @@ const Hero = () => {
 
         {/* Scroll Indicator */}
         <div className="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce">
-          <div className="w-6 h-10 border-2 border-primary/50 rounded-full flex items-start justify-center p-2">
-            <div className="w-1.5 h-3 bg-primary rounded-full animate-glow-pulse" />
+          <div className="w-6 h-10 rounded-full flex items-start justify-center p-2" style={{ border: '2px solid rgba(0, 255, 255, 0.5)' }}>
+            <div className="w-1.5 h-3 rounded-full animate-glow-pulse" style={{ backgroundColor: '#00ffff' }} />
           </div>
         </div>
       </div>

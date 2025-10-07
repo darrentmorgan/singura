@@ -8,22 +8,22 @@ const ProductShowcase = () => {
           <h2 className="text-3xl md:text-5xl font-bold mb-4 animate-fade-in">
             Enterprise-Grade
             <br />
-            <span style={{ color: '#00ffff' }}>Automation Intelligence</span>
+            <span style={{ color: '#00ffff' }}>Security Intelligence</span>
           </h2>
           <p className="text-muted-foreground text-lg max-w-2xl mx-auto font-light animate-fade-in-up">
-            Gain complete visibility into your organization's automation landscape
+            Gain complete visibility into your organization's AI landscape
           </p>
         </div>
 
         <div className="relative max-w-6xl mx-auto animate-scale-in">
           {/* Glow effect behind image */}
-          <div className="absolute -inset-4 bg-primary/20 blur-3xl rounded-3xl" />
+          <div className="absolute -inset-4 blur-3xl rounded-3xl" style={{ backgroundColor: 'rgba(0, 255, 255, 0.2)' }} />
 
           {/* Dashboard Image */}
-          <div className="relative rounded-2xl overflow-hidden border border-primary/30 glow-border">
+          <div className="relative rounded-2xl overflow-hidden border glow-border" style={{ borderColor: 'rgba(0, 255, 255, 0.3)' }}>
             <img
               src={dashboardPreview}
-              alt="SaaS X-Ray Dashboard"
+              alt="Ghostmap.ai Dashboard"
               className="w-full h-auto"
             />
           </div>
