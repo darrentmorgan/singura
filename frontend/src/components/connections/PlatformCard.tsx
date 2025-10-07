@@ -28,7 +28,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { PlatformType, ConnectionStatus } from '@/types/api';
 import { useConnectionsActions } from '@/stores/connections';
-import { useAutomationsActions, useDiscoveryByConnectionId } from '@/stores/automations';
+import { useAutomationsActions, useDiscoveryByConnectionId, useAutomationsStore } from '@/stores/automations';
 import { useUIActions } from '@/stores/ui';
 import { cn } from '@/lib/utils';
 
@@ -190,17 +190,20 @@ export const PlatformCard: React.FC<PlatformCardProps> = ({
 
   const handleDiscoverAutomations = async () => {
     if (!connection) return;
-    
+
     try {
       showSuccess('Starting automation discovery...', 'Discovery');
       const success = await startDiscovery(connection.id);
       if (success) {
         showSuccess('Automation discovery completed successfully', 'Discovery Complete');
       } else {
-        showError('Failed to discover automations', 'Discovery Failed');
+        // Get error from store if available
+        const { error: storeError } = useAutomationsStore.getState();
+        showError(storeError || 'Failed to discover automations', 'Discovery Failed');
       }
     } catch (error) {
-      showError(`Failed to discover automations: ${error instanceof Error ? error.message : 'Unknown error'}`, 'Discovery Failed');
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      showError(`Failed to discover automations: ${errorMessage}`, 'Discovery Failed');
     }
   };
 

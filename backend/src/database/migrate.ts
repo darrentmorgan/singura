@@ -3,7 +3,7 @@
  * Automatically applies pending migrations on application startup
  */
 
-import { pool } from './pool';
+import { db } from './pool';
 import fs from 'fs';
 import path from 'path';
 import crypto from 'crypto';
@@ -56,7 +56,7 @@ function getMigrationFiles(migrationsDir: string): Migration[] {
  */
 async function getAppliedMigrations(): Promise<MigrationRecord[]> {
   try {
-    const result = await pool.query<MigrationRecord>(
+    const result = await db.query<MigrationRecord>(
       'SELECT migration_name, applied_at, checksum, success FROM schema_migrations ORDER BY id'
     );
     return result.rows;
@@ -71,40 +71,40 @@ async function getAppliedMigrations(): Promise<MigrationRecord[]> {
  */
 async function applyMigration(migration: Migration): Promise<void> {
   const startTime = Date.now();
-  
+
   try {
     console.log(`🔄 Applying migration: ${migration.name}`);
-    
+
     // Execute the migration
-    await pool.query(migration.content);
-    
+    await db.query(migration.content);
+
     const executionTime = Date.now() - startTime;
-    
+
     // Record successful migration
-    await pool.query(
+    await db.query(
       `INSERT INTO schema_migrations (migration_name, checksum, execution_time_ms, success)
        VALUES ($1, $2, $3, true)
        ON CONFLICT (migration_name) DO NOTHING`,
       [migration.name, migration.checksum, executionTime]
     );
-    
+
     console.log(`✅ Migration applied successfully: ${migration.name} (${executionTime}ms)`);
-    
+
   } catch (error) {
     const executionTime = Date.now() - startTime;
     const errorMessage = error instanceof Error ? error.message : String(error);
-    
+
     // Record failed migration
-    await pool.query(
+    await db.query(
       `INSERT INTO schema_migrations (migration_name, checksum, execution_time_ms, success, error_message)
        VALUES ($1, $2, $3, false, $4)
        ON CONFLICT (migration_name) DO NOTHING`,
       [migration.name, migration.checksum, executionTime, errorMessage]
     );
-    
+
     console.error(`❌ Migration failed: ${migration.name}`);
     console.error(`Error: ${errorMessage}`);
-    
+
     throw new Error(`Migration ${migration.name} failed: ${errorMessage}`);
   }
 }
@@ -185,4 +185,36 @@ export async function verifyMigrations(): Promise<boolean> {
     console.error('❌ Migration verification failed:', error);
     return false;
   }
+}
+
+/**
+ * CLI handler
+ */
+if (require.main === module) {
+  const command = process.argv[2] || 'migrate';
+
+  (async () => {
+    try {
+      // Initialize database connection
+      await db.initialize();
+
+      if (command === 'migrate') {
+        await runMigrations();
+      } else if (command === 'verify') {
+        const isValid = await verifyMigrations();
+        process.exit(isValid ? 0 : 1);
+      } else {
+        console.error(`Unknown command: ${command}`);
+        console.log('Usage: ts-node migrate.ts [migrate|verify]');
+        process.exit(1);
+      }
+
+      // Close database connection
+      await db.close();
+      process.exit(0);
+    } catch (error) {
+      console.error('Migration error:', error);
+      process.exit(1);
+    }
+  })();
 }

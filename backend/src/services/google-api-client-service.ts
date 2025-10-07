@@ -36,8 +36,13 @@ export class GoogleAPIClientService implements GoogleAPIClient {
   private isAuthenticated = false;
 
   constructor() {
-    // Initialize Google API clients
-    this.auth = new google.auth.OAuth2();
+    // Initialize Google API clients with OAuth credentials for token refresh
+    // CRITICAL: Client credentials are required for refreshAccessToken() to work
+    this.auth = new google.auth.OAuth2(
+      process.env.GOOGLE_CLIENT_ID,
+      process.env.GOOGLE_CLIENT_SECRET,
+      process.env.GOOGLE_REDIRECT_URI
+    );
     this.adminReports = google.admin({ version: 'reports_v1', auth: this.auth });
     this.drive = google.drive({ version: 'v3', auth: this.auth });
     this.gmail = google.gmail({ version: 'v1', auth: this.auth });
@@ -51,21 +56,35 @@ export class GoogleAPIClientService implements GoogleAPIClient {
   async initialize(credentials: GoogleOAuthCredentials): Promise<boolean> {
     try {
       this.credentials = credentials;
-      
+
+      // Handle expiresAt as either Date or string (from database)
+      const expiryDate = credentials.expiresAt
+        ? (credentials.expiresAt instanceof Date
+          ? credentials.expiresAt.getTime()
+          : new Date(credentials.expiresAt).getTime())
+        : undefined;
+
       // Set OAuth credentials for Google API client
       this.auth.setCredentials({
         access_token: credentials.accessToken,
         refresh_token: credentials.refreshToken,
         token_type: credentials.tokenType,
-        expiry_date: credentials.expiresAt?.getTime()
+        expiry_date: expiryDate
       });
+
+      // Handle expiresAt for logging (can be Date or string from database)
+      const expiresAtStr = credentials.expiresAt
+        ? (credentials.expiresAt instanceof Date
+          ? credentials.expiresAt.toISOString()
+          : credentials.expiresAt)
+        : undefined;
 
       console.log('Google API Client initialized with OAuth credentials:', {
         hasAccessToken: !!credentials.accessToken,
         hasRefreshToken: !!credentials.refreshToken,
         scopes: credentials.scope,
         domain: credentials.domain,
-        expiresAt: credentials.expiresAt?.toISOString()
+        expiresAt: expiresAtStr
       });
 
       // Validate credentials with test API call
@@ -119,9 +138,14 @@ export class GoogleAPIClientService implements GoogleAPIClient {
       }
 
       // Check if token is expired or expiring soon (within 5 minutes)
-      const expiresAt = this.credentials.expiresAt;
+      // Handle expiresAt as either Date or string (from database deserialization)
+      const expiresAt = this.credentials.expiresAt
+        ? (this.credentials.expiresAt instanceof Date
+          ? this.credentials.expiresAt
+          : new Date(this.credentials.expiresAt))
+        : null;
       const fiveMinutesFromNow = new Date(Date.now() + 5 * 60 * 1000);
-      
+
       if (expiresAt && expiresAt > fiveMinutesFromNow) {
         return true; // Token still valid
       }
@@ -331,14 +355,91 @@ export class GoogleAPIClientService implements GoogleAPIClient {
 
   /**
    * Get Google Apps Script projects for AI integration detection
+   * Uses Drive API to find Apps Script files (Apps Script API has no list method)
    */
   async getAppsScriptProjects(): Promise<GoogleAppsScriptProject[]> {
     try {
       await this.ensureAuthenticated();
 
-      // Implement Apps Script project discovery (requires Apps Script API)
-      console.log('Apps Script analysis - requires Apps Script API permissions');
-      return [];
+      console.log('📜 Searching Drive for Apps Script projects...');
+
+      // Find Apps Script projects via Drive API
+      const response = await this.drive.files.list({
+        q: "mimeType='application/vnd.google-apps.script'",
+        pageSize: 100,
+        fields: 'nextPageToken,files(id,name,mimeType,createdTime,modifiedTime,owners,shared,description)',
+        orderBy: 'modifiedTime desc',
+        spaces: 'drive'
+      });
+
+      if (!response.data.files || response.data.files.length === 0) {
+        console.log('  No Apps Script projects found in Drive');
+        return [];
+      }
+
+      console.log(`  Found ${response.data.files.length} Apps Script files`);
+
+      const projects: GoogleAppsScriptProject[] = [];
+      const script = google.script({ version: 'v1', auth: this.auth });
+
+      for (const file of response.data.files) {
+        try {
+          // Try to get script content for AI detection
+          let functions: string[] = [];
+          let hasAIIntegration = false;
+
+          try {
+            const content = await script.projects.getContent({ scriptId: file.id! });
+
+            // Extract function names from script files
+            if (content.data.files) {
+              for (const scriptFile of content.data.files) {
+                if (scriptFile.functionSet?.values) {
+                  functions.push(...scriptFile.functionSet.values.map((f: any) => f.name || 'unknown'));
+                }
+
+                // Check for AI platform API calls in source
+                if (scriptFile.source) {
+                  const source = scriptFile.source.toLowerCase();
+                  hasAIIntegration = source.includes('openai.com') ||
+                                    source.includes('anthropic.com') ||
+                                    source.includes('chatgpt') ||
+                                    source.includes('claude');
+                }
+              }
+            }
+
+            console.log(`    ✓ ${file.name}: ${functions.length} functions${hasAIIntegration ? ' (AI DETECTED)' : ''}`);
+          } catch (contentError) {
+            console.log(`    ⚠ Cannot read ${file.name} content (permission denied)`);
+          }
+
+          projects.push({
+            scriptId: file.id!,
+            title: file.name || 'Untitled Script',
+            description: file.description,
+            parentId: undefined,
+            createTime: file.createdTime ? new Date(file.createdTime) : new Date(),
+            updateTime: file.modifiedTime ? new Date(file.modifiedTime) : new Date(),
+            owner: file.owners?.[0]?.emailAddress || 'unknown',
+            functions: functions.map(name => ({
+              name,
+              description: '',
+              externalApiCalls: [],
+              riskIndicators: []
+            })),
+            triggers: [], // Would need Apps Script API to get triggers
+            permissions: [] // Would need Apps Script manifest to get permissions
+          });
+
+        } catch (projectError) {
+          console.warn(`  Error processing script ${file.id}:`, projectError);
+        }
+      }
+
+      console.log(`✅ Apps Script discovery: ${projects.length} projects analyzed`);
+      return projects;
+
     } catch (error) {
       console.error('Failed to get Apps Script projects:', error);
       return [];
@@ -395,16 +496,260 @@ export class GoogleAPIClientService implements GoogleAPIClient {
 
   /**
    * Get service accounts for AI integration detection
+   * Uses Admin Reports API to detect service account activity (IAM API not available in Workspace)
    */
   async getServiceAccounts(): Promise<GoogleServiceAccountInfo[]> {
     try {
       await this.ensureAuthenticated();
 
-      // Implement service account discovery (requires IAM API)
-      console.log('Service account analysis - requires IAM API permissions');
-      return [];
+      console.log('🤖 Searching for service account activity in audit logs...');
+
+      const serviceAccounts: GoogleServiceAccountInfo[] = [];
+
+      try {
+        // Query audit logs for service account activity
+        const response = await this.adminReports.activities.list({
+          userKey: 'all',
+          applicationName: 'token',
+          startTime: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
+          maxResults: 1000,
+          eventName: 'authorize'
+        });
+
+        const serviceAccountEmails = new Set<string>();
+
+        if (response.data.items) {
+          for (const activity of response.data.items) {
+            const email = activity.actor?.email;
+            if (email && (email.includes('.iam.gserviceaccount.com') || email.includes('.apps.googleusercontent.com'))) {
+              serviceAccountEmails.add(email);
+            }
+          }
+        }
+
+        console.log(`  Found ${serviceAccountEmails.size} unique service accounts`);
+
+        // Convert to ServiceAccountInfo format
+        for (const email of serviceAccountEmails) {
+          const name = email.split('@')[0] || 'Unknown';
+          const saName = name
+            .replace(/[-_]/g, ' ')
+            .replace(/\b\w/g, l => l.toUpperCase());
+
+          serviceAccounts.push({
+            uniqueId: Buffer.from(email).toString('base64').substring(0, 20),
+            email,
+            displayName: saName,
+            description: 'Service account detected via audit log activity',
+            projectId: email.split('@')[1]?.split('.')[0] || 'unknown',
+            createTime: new Date(Date.now() - 90 * 24 * 60 * 60 * 1000), // Estimate
+            disabledTime: undefined,
+            keys: [],
+            roles: [],
+            activityCount: 0,
+            riskAssessment: {
+              hasMultipleKeys: false,
+              hasAdminAccess: false,
+              externalIntegration: false,
+              recentActivity: false,
+              riskScore: 50
+            }
+          });
+        }
+
+        console.log(`✅ Service account discovery: ${serviceAccounts.length} accounts found`);
+
+      } catch (apiError: any) {
+        if (apiError.message?.includes('auth') || apiError.message?.includes('permission')) {
+          console.log('  ⚠ Service account discovery requires admin permissions - skipping');
+        } else {
+          throw apiError;
+        }
+      }
+
+      return serviceAccounts;
+
     } catch (error) {
       console.error('Failed to get service accounts:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Get OAuth applications authorized by user via AUDIT LOGS (non-admin approach)
+   * Uses Admin Reports API to detect OAuth authorization events
+   */
+  async getOAuthApplications(): Promise<Array<{
+    clientId: string;
+    displayText: string;
+    scopes: string[];
+    isAIPlatform: boolean;
+    platformName?: string;
+  }>> {
+    try {
+      await this.ensureAuthenticated();
+
+      console.log('🔐 Searching for OAuth applications via audit logs...');
+
+      // Use Admin Reports API to find OAuth authorization events
+      // This works for non-admin users with admin.reports.audit.readonly scope
+      // NOTE: eventName parameter doesn't accept comma-separated values - get all login events
+      const loginResponse = await this.adminReports.activities.list({
+        userKey: 'all',
+        applicationName: 'login',
+        startTime: new Date(Date.now() - 180 * 24 * 60 * 60 * 1000).toISOString(), // Last 180 days (Google's max retention)
+        maxResults: 1000
+        // Filter for oauth events in code below
+      });
+
+      const tokenResponse = await this.adminReports.activities.list({
+        userKey: 'all',
+        applicationName: 'token',
+        startTime: new Date(Date.now() - 180 * 24 * 60 * 60 * 1000).toISOString(), // Last 180 days (Google's max retention)
+        maxResults: 1000
+        // Get all token events and filter
+      });
+
+      // Combine all events
+      const allEvents = [
+        ...(loginResponse.data.items || []),
+        ...(tokenResponse.data.items || [])
+      ];
+
+      if (allEvents.length === 0) {
+        console.log('  No audit log events found');
+        return [];
+      }
+
+      console.log(`  Found ${allEvents.length} total audit events, filtering for OAuth...`);
+
+      // Extract unique OAuth apps from events
+      const oauthAppsMap = new Map<string, {
+        clientId: string;
+        displayText: string;
+        scopes: Set<string>;
+        firstSeen: Date;
+        lastSeen: Date;
+        authorizedBy: string;
+      }>();
+
+      for (const event of allEvents) {
+        if (!event.events) continue;
+
+        // Capture actor email (who authorized the app)
+        const actorEmail = event.actor?.email || 'unknown';
+
+        for (const ev of event.events) {
+          // Filter for OAuth-related events only
+          const eventName = ev.name?.toLowerCase() || '';
+          const isOAuthEvent = eventName.includes('oauth') ||
+                              eventName.includes('authorize') ||
+                              eventName.includes('token');
+
+          if (!isOAuthEvent || !ev.parameters) continue;
+
+          let clientId: string | undefined;
+          let appName: string | undefined;
+          const scopes: string[] = [];
+
+          for (const param of ev.parameters) {
+            if (param.name === 'client_id' || param.name === 'oauth_client_id') {
+              clientId = param.value;
+            }
+            if (param.name === 'app_name' || param.name === 'product_name') {
+              appName = param.value;
+            }
+            if (param.name === 'scope' || param.name === 'oauth_scopes') {
+              const scopeValues = param.multiValue || [param.value];
+              scopes.push(...scopeValues);
+            }
+          }
+
+          if (clientId) {
+            const eventTime = event.id?.time ? new Date(event.id.time) : new Date();
+
+            if (!oauthAppsMap.has(clientId)) {
+              oauthAppsMap.set(clientId, {
+                clientId,
+                displayText: appName || clientId,
+                scopes: new Set(scopes),
+                firstSeen: eventTime,
+                lastSeen: eventTime,
+                authorizedBy: actorEmail
+              });
+            } else {
+              const app = oauthAppsMap.get(clientId)!;
+              scopes.forEach(s => app.scopes.add(s));
+              const eventTime = event.id?.time ? new Date(event.id.time) : new Date();
+              if (eventTime > app.lastSeen) app.lastSeen = eventTime;
+              if (eventTime < app.firstSeen) app.firstSeen = eventTime;
+              if (appName && !app.displayText) app.displayText = appName;
+              // Keep first authorizer (don't override)
+            }
+          }
+        }
+      }
+
+      console.log(`  Discovered ${oauthAppsMap.size} unique OAuth applications`);
+
+      // Debug: Show date range of captured events
+      if (oauthAppsMap.size > 0) {
+        const allDates = Array.from(oauthAppsMap.values()).map(app => app.firstSeen);
+        const oldestDate = new Date(Math.min(...allDates.map(d => d.getTime())));
+        const newestDate = new Date(Math.max(...allDates.map(d => d.getTime())));
+        const daySpan = Math.floor((newestDate.getTime() - oldestDate.getTime()) / (24 * 60 * 60 * 1000));
+
+        console.log(`  📅 Authorization date range: ${oldestDate.toISOString().split('T')[0]} to ${newestDate.toISOString().split('T')[0]} (${daySpan} days)`);
+      }
+
+      // Convert to result format with AI detection
+      const apps = Array.from(oauthAppsMap.values()).map(app => {
+        const displayText = app.displayText.toLowerCase();
+        const clientId = app.clientId.toLowerCase();
+
+        // Detect AI platforms
+        let isAIPlatform = false;
+        let platformName: string | undefined;
+
+        if (displayText.includes('openai') || displayText.includes('chatgpt') || clientId.includes('openai')) {
+          isAIPlatform = true;
+          platformName = 'OpenAI / ChatGPT';
+          console.log(`    ✓ AI PLATFORM DETECTED: ${app.displayText} (OpenAI/ChatGPT)`);
+        } else if (displayText.includes('claude') || displayText.includes('anthropic')) {
+          isAIPlatform = true;
+          platformName = 'Claude (Anthropic)';
+          console.log(`    ✓ AI PLATFORM DETECTED: ${app.displayText} (Claude)`);
+        } else if (displayText.includes('gemini')) {
+          isAIPlatform = true;
+          platformName = 'Gemini (Google)';
+          console.log(`    ✓ AI PLATFORM DETECTED: ${app.displayText} (Gemini)`);
+        } else {
+          console.log(`    - ${app.displayText}`);
+        }
+
+        return {
+          clientId: app.clientId,
+          displayText: app.displayText,
+          scopes: Array.from(app.scopes),
+          isAIPlatform,
+          platformName,
+          authorizedBy: app.authorizedBy,
+          firstSeen: app.firstSeen,
+          lastSeen: app.lastSeen
+        };
+      });
+
+      console.log(`✅ OAuth app discovery via audit logs: ${apps.length} apps (${apps.filter(a => a.isAIPlatform).length} AI platforms)`);
+      return apps;
+
+    } catch (error: any) {
+      console.error('Failed to get OAuth applications from audit logs:', error);
+
+      // Check if it's a permission error
+      if (error.message?.includes('auth') || error.message?.includes('permission')) {
+        console.log('  ⚠ OAuth app discovery requires audit log permissions - skipping');
+      }
+
       return [];
     }
   }
@@ -622,6 +967,54 @@ export class GoogleAPIClientService implements GoogleAPIClient {
         }
       }
 
+      // 2.5. Discover OAuth Applications (CRITICAL for ChatGPT/OpenAI detection)
+      try {
+        console.log('🔐 Discovering OAuth applications...');
+        const oauthApps = await this.getOAuthApplications();
+
+        for (const app of oauthApps) {
+          const automation: AutomationEvent = {
+            id: `oauth-app-${app.clientId}`,
+            name: app.displayText,
+            type: 'integration',
+            platform: 'google',
+            status: 'active',
+            trigger: 'oauth',
+            actions: ['api_access', 'data_read'],
+            createdAt: app.firstSeen,
+            lastTriggered: app.lastSeen,
+            riskLevel: app.isAIPlatform ? 'high' : 'medium',
+            metadata: {
+              clientId: app.clientId,
+              scopes: app.scopes,
+              scopeCount: app.scopes.length,
+              isAIPlatform: app.isAIPlatform,
+              platformName: app.platformName,
+              authorizedBy: app.authorizedBy,
+              firstAuthorization: app.firstSeen?.toISOString() || new Date().toISOString(),
+              lastActivity: app.lastSeen?.toISOString() || new Date().toISOString(),
+              authorizationAge: app.firstSeen ? Math.floor((Date.now() - app.firstSeen.getTime()) / (24 * 60 * 60 * 1000)) : 0,
+              description: app.isAIPlatform
+                ? `AI Platform Integration: ${app.platformName}`
+                : 'Third-party OAuth application',
+              detectionMethod: 'oauth_tokens_api',
+              riskFactors: [
+                ...(app.isAIPlatform ? [`AI platform integration: ${app.platformName}`] : []),
+                `${app.scopes.length} OAuth scopes granted`,
+                ...(app.scopes.some(s => s.includes('drive')) ? ['Google Drive access'] : []),
+                ...(app.scopes.some(s => s.includes('gmail')) ? ['Gmail access'] : [])
+              ]
+            }
+          };
+
+          automations.push(automation);
+        }
+
+        console.log(`🔐 Found ${oauthApps.length} OAuth applications (${oauthApps.filter(a => a.isAIPlatform).length} AI platforms)`);
+      } catch (error) {
+        console.warn('OAuth app discovery failed:', error instanceof Error ? error.message : 'Unknown error');
+      }
+
       // 3. Discover Email automations (filters, rules, etc.)
       if (config.includeEmailAutomation) {
         try {
@@ -663,9 +1056,11 @@ export class GoogleAPIClientService implements GoogleAPIClient {
         totalAutomations: automations.length,
         executionTimeMs,
         breakdown: {
-          appsScript: automations.filter(a => a.type === 'workflow' && a.id.startsWith('apps-script')).length,
-          serviceAccounts: automations.filter(a => a.type === 'integration').length,
-          emailAutomations: automations.filter(a => a.type === 'workflow' && a.id.startsWith('email-automation')).length
+          appsScript: automations.filter(a => a.id.startsWith('apps-script')).length,
+          serviceAccounts: automations.filter(a => a.id.startsWith('service-account')).length,
+          oauthApps: automations.filter(a => a.id.startsWith('oauth-app')).length,
+          aiPlatforms: automations.filter(a => a.metadata?.isAIPlatform === true).length,
+          emailAutomations: automations.filter(a => a.id.startsWith('email-automation')).length
         }
       });
 

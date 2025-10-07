@@ -84,12 +84,19 @@ export class OAuthCredentialStorageService implements OAuthCredentialStorage, Li
         }
       }
 
+      // Handle expiresAt for logging (can be Date or string)
+      const expiresAtStr = credentials.expiresAt
+        ? (credentials.expiresAt instanceof Date
+          ? credentials.expiresAt.toISOString()
+          : credentials.expiresAt)
+        : undefined;
+
       console.log('OAuth credentials stored for live detection:', {
         connectionId,
         userEmail: credentials.email?.substring(0, 3) + '...',
         domain: credentials.domain,
         scopes: credentials.scope,
-        expiresAt: credentials.expiresAt?.toISOString(),
+        expiresAt: expiresAtStr,
         persisted: this.useDatabase
       });
 
@@ -235,10 +242,16 @@ export class OAuthCredentialStorageService implements OAuthCredentialStorage, Li
         return false;
       }
 
-      // Check expiration
-      if (credentials.expiresAt && credentials.expiresAt < new Date()) {
-        console.log(`Credentials expired for ${connectionId}`);
-        return false;
+      // Check expiration (handle both Date and string from database)
+      if (credentials.expiresAt) {
+        const expiryDate = credentials.expiresAt instanceof Date
+          ? credentials.expiresAt
+          : new Date(credentials.expiresAt);
+
+        if (expiryDate < new Date()) {
+          console.log(`Credentials expired for ${connectionId}`);
+          return false;
+        }
       }
 
       return true;
@@ -398,9 +411,14 @@ export class OAuthCredentialStorageService implements OAuthCredentialStorage, Li
       }
 
       // Check if refresh needed
-      const expiresAt = credentials.expiresAt;
+      // Handle expiresAt as either Date or string (from database deserialization)
+      const expiresAt = credentials.expiresAt
+        ? (credentials.expiresAt instanceof Date
+          ? credentials.expiresAt
+          : new Date(credentials.expiresAt))
+        : null;
       const fiveMinutesFromNow = new Date(Date.now() + 5 * 60 * 1000);
-      
+
       if (!expiresAt || expiresAt > fiveMinutesFromNow) {
         return true; // Still valid
       }

@@ -117,10 +117,10 @@ interface UIActions {
   updateSyncTime: () => void;
   
   // Utility actions
-  showSuccess: (message: string, title?: string) => void;
-  showError: (message: string, title?: string) => void;
-  showWarning: (message: string, title?: string) => void;
-  showInfo: (message: string, title?: string) => void;
+  showSuccess: (message: string, title?: string, options?: { action?: { label: string; onClick: () => void }; duration?: number }) => void;
+  showError: (message: string, title?: string, options?: { action?: { label: string; onClick: () => void }; duration?: number }) => void;
+  showWarning: (message: string, title?: string, options?: { action?: { label: string; onClick: () => void }; duration?: number }) => void;
+  showInfo: (message: string, title?: string, options?: { action?: { label: string; onClick: () => void }; duration?: number }) => void;
   
   // Reset
   reset: () => void;
@@ -405,39 +405,43 @@ export const useUIStore = create<UIStore>()(
       },
 
       // Utility actions
-      showSuccess: (message: string, title = 'Success') => {
+      showSuccess: (message: string, title = 'Success', options) => {
         get().addNotification({
           type: 'success',
           title,
           message,
-          duration: 4000,
+          duration: options?.duration ?? 4000,
+          action: options?.action,
         });
       },
 
-      showError: (message: string, title = 'Error') => {
+      showError: (message: string, title = 'Error', options) => {
         get().addNotification({
           type: 'error',
           title,
           message,
-          duration: 6000,
+          duration: options?.duration ?? 6000,
+          action: options?.action,
         });
       },
 
-      showWarning: (message: string, title = 'Warning') => {
+      showWarning: (message: string, title = 'Warning', options) => {
         get().addNotification({
           type: 'warning',
           title,
           message,
-          duration: 5000,
+          duration: options?.duration ?? 5000,
+          action: options?.action,
         });
       },
 
-      showInfo: (message: string, title = 'Information') => {
+      showInfo: (message: string, title = 'Information', options) => {
         get().addNotification({
           type: 'info',
           title,
           message,
-          duration: 4000,
+          duration: options?.duration ?? 4000,
+          action: options?.action,
         });
       },
 

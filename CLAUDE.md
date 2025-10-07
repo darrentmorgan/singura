@@ -125,6 +125,31 @@ DATABASE_URL=postgresql://postgres:password@localhost:5433/saas_xray
 TEST_DATABASE_URL=postgresql://postgres:password@localhost:5433/saas_xray_test
 ```
 
+### Chrome DevTools MCP Server (CRITICAL)
+
+**MANDATORY: Always run in isolated mode to enable multiple browser instances**
+
+```bash
+# Kill existing Chrome processes before starting
+ps aux | grep -i "chrome\|chromium" | grep -v grep | awk '{print $2}' | xargs kill -9
+
+# Run Chrome DevTools MCP with --isolated flag
+# This allows multiple browser instances for parallel testing
+chrome-devtools-mcp --isolated
+```
+
+**Why Isolated Mode:**
+- Prevents "browser already running" errors
+- Enables parallel test execution
+- Allows concurrent UI testing across different pages
+- Required for automated E2E workflows
+
+**Common Error Without --isolated:**
+```
+Error: The browser is already running for /Users/darrenmorgan/.cache/chrome-devtools-mcp/chrome-profile.
+Use --isolated to run multiple browser instances.
+```
+
 ### Validated OAuth Patterns
 
 **Slack Scopes**: `users:read`, `team:read`, `channels:read`

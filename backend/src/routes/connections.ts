@@ -426,36 +426,17 @@ router.post('/connections/:connectionId/discover',
         return;
       }
 
-      const startTime = Date.now();
-      
-      // Get access token for discovery
-      const accessToken = await oauthService.getValidAccessToken(connectionId!, user.userId, req);
+      // Use DiscoveryService to run discovery (handles database persistence)
+      const { discoveryService } = await import('../services/discovery-service');
 
-      // Perform discovery using the appropriate connector
-      let automations, auditLogs, permissionCheck;
-      
-      switch (connection.platform_type) {
-        case 'slack':
-          await slackConnector.authenticate({
-            accessToken,
-            tokenType: 'Bearer'
-          });
-          
-          [automations, auditLogs, permissionCheck] = await Promise.all([
-            slackConnector.discoverAutomations(),
-            slackConnector.getAuditLogs(new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)), // Last 30 days
-            slackConnector.validatePermissions()
-          ]);
-          break;
-        
-        default:
-          throw new Error(`Platform ${connection.platform_type} discovery not implemented`);
-      }
-
-      const executionTimeMs = Date.now() - startTime;
-
-      // Calculate risk score for the discovered automations
-      const riskScore = await calculateRiskScore(automations);
+      const result = await discoveryService.discoverPlatformAutomations(
+        connection,
+        {
+          organizationId: user.organizationId,
+          platformConnectionIds: [connectionId!],
+          updateExisting: true
+        }
+      );
 
       // Update connection last sync time
       await platformConnectionRepository.update(connectionId!, {
@@ -469,35 +450,17 @@ router.post('/connections/:connectionId/discover',
         req,
         {
           action: 'automation_discovery',
-          automationsFound: automations.length,
-          auditLogsFound: auditLogs.length,
-          executionTimeMs,
-          riskScore
+          automationsFound: result.automations.length,
+          auditLogsFound: result.auditLogs.length,
+          executionTimeMs: result.metadata.executionTimeMs,
+          riskScore: result.metadata.riskScore
         }
       );
 
-      const discoveryResult = {
-        platform: connection.platform_type,
-        connectionId,
-        automations,
-        auditLogs,
-        permissionCheck,
-        discoveredAt: new Date(),
-        errors: [],
-        warnings: [],
-        metadata: {
-          executionTimeMs,
-          automationsFound: automations.length,
-          auditLogsFound: auditLogs.length,
-          riskScore,
-          complianceStatus: 'compliant' // TODO: Implement compliance assessment
-        }
-      };
-
       res.json({
         success: true,
-        discovery: discoveryResult,
-        message: `Discovered ${automations.length} automations and ${auditLogs.length} audit log entries`
+        discovery: result,
+        message: `Discovered ${result.automations.length} automations and ${result.auditLogs.length} audit log entries (persisted to database)`
       });
     } catch (error) {
       console.error('Error discovering automations:', error);

@@ -11,7 +11,8 @@ import {
   ValidationError 
 } from '../../types/database';
 // Define types locally since shared-types package isn't available yet
-type QueryParameters = (string | number | boolean | Date | null | undefined)[];
+// NOTE: Includes 'any' to support JSONB columns (objects/arrays passed directly to pg library)
+type QueryParameters = (string | number | boolean | Date | null | undefined | any)[];
 
 export type DatabaseFilter<T> = {
   [K in keyof T]?: T[K] extends string 
@@ -320,18 +321,23 @@ export abstract class BaseRepository<T, CreateInput extends Record<string, unkno
 
   /**
    * Build INSERT clause from data
+   * CRITICAL: pg library requires JSON.stringify for JSONB columns (objects/arrays)
    */
   protected buildInsertClause(data: CreateInput | UpdateInput): InsertClause {
     const dataRecord = data as Record<string, unknown>;
-    
+
     const entries = Object.entries(dataRecord).filter(
       ([_, value]) => value !== undefined
     );
 
     const columns = entries.map(([key]) => key).join(', ');
-    const values: QueryParameters = entries.map(([_, value]) => 
-      value as string | number | boolean | Date | null
-    );
+    // Convert objects/arrays to JSON strings for JSONB columns (pg library requirement)
+    const values: QueryParameters = entries.map(([_, value]) => {
+      if (value !== null && typeof value === 'object') {
+        return JSON.stringify(value);
+      }
+      return value as string | number | boolean | Date | null;
+    });
     const placeholders = entries.map((_, index) => `$${index + 1}`).join(', ');
 
     return { columns, values, placeholders };
@@ -339,10 +345,11 @@ export abstract class BaseRepository<T, CreateInput extends Record<string, unkno
 
   /**
    * Build UPDATE SET clause from data
+   * CRITICAL: pg library requires JSON.stringify for JSONB columns (objects/arrays)
    */
   protected buildUpdateClause(data: UpdateInput): UpdateClause {
     const dataRecord = data as Record<string, unknown>;
-    
+
     const entries = Object.entries(dataRecord).filter(
       ([_, value]) => value !== undefined
     );
@@ -354,10 +361,14 @@ export abstract class BaseRepository<T, CreateInput extends Record<string, unkno
     const setClause = entries
       .map(([key], index) => `${key} = $${index + 1}`)
       .join(', ');
-    
-    const params: QueryParameters = entries.map(([_, value]) => 
-      value as string | number | boolean | Date | null
-    );
+
+    // Convert objects/arrays to JSON strings for JSONB columns (pg library requirement)
+    const params: QueryParameters = entries.map(([_, value]) => {
+      if (value !== null && typeof value === 'object') {
+        return JSON.stringify(value);
+      }
+      return value as string | number | boolean | Date | null;
+    });
 
     return { setClause, params };
   }

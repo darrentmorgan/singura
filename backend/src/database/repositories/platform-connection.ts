@@ -54,11 +54,11 @@ export class PlatformConnectionRepository extends BaseRepository<
       );
     }
 
-    // Prepare data - pg library handles JSONB conversion automatically
+    // Prepare data - BaseRepository.buildInsertClause handles JSONB stringification
     const insertData: any = {
       ...data,
       status: 'pending',
-      // Pass objects directly - pg library converts to JSONB
+      // Pass objects directly - buildInsertClause will stringify for JSONB columns
       permissions_granted: data.permissions_granted || [],
       metadata: data.metadata || {}
     };

@@ -355,6 +355,10 @@ class ApiService {
     return this.request<ApiResponse<AutomationDiscovery>>('GET', `/automations/${automationId}`);
   }
 
+  async getAutomationDetails(automationId: string): Promise<ApiResponse<any>> {
+    return this.request<ApiResponse<any>>('GET', `/automations/${automationId}/details`);
+  }
+
   // Health check
   async healthCheck(): Promise<ApiResponse<{ status: string, timestamp: string }>> {
     return this.request<ApiResponse<{ status: string, timestamp: string }>>('GET', '/health');
@@ -394,6 +398,7 @@ export const automationsApi = {
   getAutomations: (filters?: any) => apiService.getAutomations(filters),
   getAutomationStats: () => apiService.getAutomationStats(),
   getAutomation: (automationId: string) => apiService.getAutomation(automationId),
+  getAutomationDetails: (automationId: string) => apiService.getAutomationDetails(automationId),
 };
 
 // Export the main service for advanced usage

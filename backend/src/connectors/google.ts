@@ -138,26 +138,90 @@ export class GoogleConnector implements PlatformConnector {
     const automations: AutomationEvent[] = [];
 
     try {
-      // Discover Apps Script projects
+      // Detect account type first
+      const accountType = await this.detectAccountType();
+
+      console.log(`📊 Google account type: ${accountType.type}`);
+      console.log(`📊 Admin access: ${accountType.hasAdminAccess}`);
+      console.log(`📊 Domain: ${accountType.domain || 'Personal Gmail'}`);
+
+      if (accountType.type === 'personal') {
+        console.warn('⚠️ Personal Gmail account detected - limited discovery capabilities');
+        console.warn('   Personal accounts can only detect:');
+        console.warn('   - Apps Script projects (Drive API)');
+        console.warn('   - OAuth applications (own tokens)');
+        console.warn('   - Cannot access audit logs or service accounts');
+      }
+
+      // Apps Script projects - available for both personal and Workspace
       const appsScriptAutomations = await this.discoverAppsScriptProjects();
       automations.push(...appsScriptAutomations);
 
-      // Discover Service Accounts
-      const serviceAccountAutomations = await this.discoverServiceAccounts();
-      automations.push(...serviceAccountAutomations);
-
-      // Discover OAuth applications
+      // OAuth applications - available for both personal and Workspace
       const oauthAppAutomations = await this.discoverOAuthApplications();
       automations.push(...oauthAppAutomations);
 
-      // Discover Drive automations (shared folders, scripts)
+      // Service accounts - Workspace with admin only
+      if (accountType.type === 'workspace' && accountType.hasAdminAccess) {
+        const serviceAccountAutomations = await this.discoverServiceAccounts();
+        automations.push(...serviceAccountAutomations);
+      } else {
+        console.log('⏭️  Skipping service account discovery (requires Workspace admin)');
+      }
+
+      // Drive automations - available for both
       const driveAutomations = await this.discoverDriveAutomations();
       automations.push(...driveAutomations);
+
+      console.log(`\n✅ Total Google automations discovered: ${automations.length}\n`);
 
       return automations;
     } catch (error) {
       console.error('Error discovering Google Workspace automations:', error);
       throw new Error(`Failed to discover Google Workspace automations: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  /**
+   * Detect if this is a personal Gmail account or Google Workspace account
+   */
+  private async detectAccountType(): Promise<{
+    type: 'workspace' | 'personal';
+    domain: string | null;
+    hasAdminAccess: boolean;
+  }> {
+    if (!this.client) {
+      throw new Error('Client not authenticated');
+    }
+
+    try {
+      const oauth2 = google.oauth2({ version: 'v2', auth: this.client });
+      const userInfo = await oauth2.userinfo.get();
+
+      const domain = userInfo.data.hd; // Hosted domain (only present for Workspace)
+      const isWorkspace = !!domain;
+
+      // Test admin access
+      let hasAdminAccess = false;
+      if (isWorkspace) {
+        try {
+          const admin = google.admin({ version: 'directory_v1', auth: this.client });
+          await admin.users.list({ customer: 'my_customer', maxResults: 1 });
+          hasAdminAccess = true;
+        } catch {
+          hasAdminAccess = false;
+        }
+      }
+
+      return {
+        type: isWorkspace ? 'workspace' : 'personal',
+        domain: domain || null,
+        hasAdminAccess
+      };
+
+    } catch (error) {
+      console.error('Error detecting account type:', error);
+      throw error;
     }
   }
 
@@ -352,203 +416,688 @@ export class GoogleConnector implements PlatformConnector {
   }
 
   /**
-   * Discover Google Apps Script projects
+   * Discover Google Apps Script projects via Drive API
+   * NOTE: Apps Script API v1 does NOT have a projects.list() method
+   * We use Drive API to find Apps Script files by mimeType
    */
   private async discoverAppsScriptProjects(): Promise<AutomationEvent[]> {
     const automations: AutomationEvent[] = [];
 
     try {
-      // For MVP demo, simulate realistic Apps Script projects
-      const mockAppsScriptProjects = [
-        {
-          scriptId: 'AKfycbwHq8_123abc',
-          title: 'Sales Lead Automation',
-          description: 'Automatically processes form submissions and sends to CRM',
-          createTime: '2024-07-10T09:15:00Z',
-          updateTime: '2024-12-28T14:30:00Z',
-          parentId: '1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms',
-          parentType: 'SHEETS',
-          triggers: ['ON_FORM_SUBMIT', 'TIME_DRIVEN'],
-          functions: ['onFormSubmit', 'dailyCleanup', 'sendToCRM'],
-          permissions: ['SHEETS', 'GMAIL', 'EXTERNAL_URL']
-        },
-        {
-          scriptId: 'AKfycbwMn7_456def',
-          title: 'Email Report Generator',
-          description: 'Weekly automated reports from Google Analytics data',
-          createTime: '2024-05-22T16:45:00Z',
-          updateTime: '2024-12-30T08:22:00Z',
-          parentId: '1Hm4BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2',
-          parentType: 'DOCS',
-          triggers: ['TIME_DRIVEN'],
-          functions: ['generateWeeklyReport', 'fetchAnalyticsData', 'emailReport'],
-          permissions: ['ANALYTICS', 'GMAIL', 'DOCS', 'DRIVE']
-        },
-        {
-          scriptId: 'AKfycbwPq9_789ghi',
-          title: 'Meeting Room Scheduler',
-          description: 'Automated meeting room booking and conflict resolution',
-          createTime: '2024-09-03T11:20:00Z',
-          updateTime: '2025-01-01T16:10:00Z',
-          parentId: '1Nm9BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE3',
-          parentType: 'SHEETS',
-          triggers: ['ON_EDIT', 'ON_CHANGE'],
-          functions: ['checkAvailability', 'bookRoom', 'sendConfirmation'],
-          permissions: ['CALENDAR', 'GMAIL', 'SHEETS']
-        }
-      ];
-
-      for (const project of mockAppsScriptProjects) {
-        // Assess risk based on permissions and triggers
-        const riskAssessment = this.assessAppsScriptRisk(project);
-        
-        automations.push({
-          id: `google-script-${project.scriptId}`,
-          name: project.title,
-          type: 'workflow',
-          platform: 'google',
-          status: 'active',
-          trigger: project.triggers.includes('TIME_DRIVEN') ? 'scheduled' : 'event',
-          actions: ['execute', 'automate', 'data_processing'],
-          metadata: {
-            scriptId: project.scriptId,
-            description: project.description,
-            createTime: project.createTime,
-            updateTime: project.updateTime,
-            parentId: project.parentId,
-            parentType: project.parentType,
-            triggers: project.triggers,
-            functions: project.functions,
-            permissions: project.permissions,
-            riskFactors: riskAssessment.riskFactors
-          },
-          createdAt: new Date(project.createTime),
-          lastTriggered: new Date(project.updateTime),
-          lastModified: new Date(project.updateTime),
-          riskLevel: riskAssessment.level
-        });
+      if (!this.client) {
+        throw new Error('Google client not authenticated');
       }
+
+      const drive = google.drive({ version: 'v3', auth: this.client });
+      const script = google.script({ version: 'v1', auth: this.client });
+
+      console.log('🔍 Searching for Apps Script projects in Drive...');
+
+      // Find all Apps Script projects in Drive
+      const response = await drive.files.list({
+        q: "mimeType='application/vnd.google-apps.script'",
+        pageSize: 100,
+        fields: 'nextPageToken,files(id,name,mimeType,createdTime,modifiedTime,owners,shared,description)',
+        orderBy: 'modifiedTime desc',
+        spaces: 'drive'
+      });
+
+      if (!response.data.files || response.data.files.length === 0) {
+        console.log('No Apps Script projects found in Drive');
+        return [];
+      }
+
+      console.log(`📜 Found ${response.data.files.length} Apps Script projects`);
+
+      // Process each Apps Script project
+      for (const file of response.data.files) {
+        try {
+          // Attempt to get script content to analyze for AI platform usage
+          let hasAIPlatform = { detected: false, platforms: [] as string[], confidence: 0 };
+          let scriptPermissions: string[] = [];
+
+          try {
+            const scriptContent = await script.projects.getContent({
+              scriptId: file.id!
+            });
+
+            hasAIPlatform = this.detectAIPlatformInScript(scriptContent);
+            scriptPermissions = this.extractScriptPermissions(scriptContent);
+
+            console.log(`  ✓ Analyzed script ${file.name}:`, {
+              hasAI: hasAIPlatform.detected,
+              platforms: hasAIPlatform.platforms,
+              permissions: scriptPermissions.length
+            });
+          } catch (contentError: any) {
+            // User may not have permission to read script content
+            console.warn(`  ⚠ Cannot access content for script ${file.id}: ${contentError.message}`);
+          }
+
+          // Determine risk level
+          let riskLevel: 'low' | 'medium' | 'high' = 'medium';
+          const riskFactors: string[] = [];
+
+          if (hasAIPlatform.detected) {
+            riskLevel = 'high';
+            riskFactors.push(`Integrates with AI platforms: ${hasAIPlatform.platforms.join(', ')}`);
+          }
+
+          if (file.shared) {
+            riskFactors.push('Shared with other users');
+            if (riskLevel === 'low') riskLevel = 'medium';
+          }
+
+          // Check modification recency
+          const modifiedDate = file.modifiedTime ? new Date(file.modifiedTime) : new Date();
+          const daysSinceModified = (Date.now() - modifiedDate.getTime()) / (1000 * 60 * 60 * 24);
+
+          if (daysSinceModified < 7) {
+            riskFactors.push('Recently modified (active automation)');
+          }
+
+          automations.push({
+            id: `google-script-${file.id}`,
+            name: file.name || 'Untitled Apps Script',
+            description: file.description,
+            type: 'workflow',
+            platform: 'google',
+            status: 'active',
+            trigger: 'event',
+            actions: ['execute', 'automate'],
+            permissions: scriptPermissions,
+            metadata: {
+              scriptId: file.id,
+              driveFileId: file.id,
+              description: file.description,
+              owners: file.owners,
+              shared: file.shared,
+              hasAIPlatformIntegration: hasAIPlatform.detected,
+              aiPlatforms: hasAIPlatform.platforms,
+              aiPlatformConfidence: hasAIPlatform.confidence,
+              riskFactors,
+              detectionMethod: 'drive_api_apps_script_search'
+            },
+            createdAt: file.createdTime ? new Date(file.createdTime) : new Date(),
+            lastModified: file.modifiedTime ? new Date(file.modifiedTime) : undefined,
+            lastTriggered: file.modifiedTime ? new Date(file.modifiedTime) : null,
+            riskLevel
+          });
+
+        } catch (projectError) {
+          console.error(`Error processing Apps Script project ${file.id}:`, projectError);
+          // Continue with next project
+        }
+      }
+
+      console.log(`✅ Apps Script discovery complete: ${automations.length} projects found`);
+
     } catch (error) {
       console.error('Error discovering Apps Script projects:', error);
+      // Don't throw - return empty array and let caller handle
+      return [];
     }
 
     return automations;
   }
 
   /**
-   * Discover Google Cloud Service Accounts
+   * Detect AI platform usage in Apps Script source code
+   */
+  private detectAIPlatformInScript(projectContent: any): { detected: boolean; platforms: string[]; confidence: number } {
+    const platforms = new Set<string>();
+    let maxConfidence = 0;
+
+    if (!projectContent.data || !projectContent.data.files) {
+      return { detected: false, platforms: [], confidence: 0 };
+    }
+
+    const files = projectContent.data.files;
+
+    for (const file of files) {
+      if (!file.source) continue;
+
+      const source = file.source.toLowerCase();
+
+      // OpenAI / ChatGPT detection (HIGH CONFIDENCE)
+      if (source.includes('api.openai.com') ||
+          source.includes('openai.com/v1') ||
+          source.includes('sk-') && source.includes('openai') ||
+          source.includes('gpt-3') ||
+          source.includes('gpt-4') ||
+          source.includes('chat/completions') ||
+          source.includes('chatgpt')) {
+        platforms.add('openai');
+        maxConfidence = Math.max(maxConfidence, 95);
+      }
+
+      // Claude / Anthropic detection (HIGH CONFIDENCE)
+      if (source.includes('anthropic.com') ||
+          source.includes('claude.ai') ||
+          source.includes('claude-') ||
+          source.includes('sk-ant-')) {
+        platforms.add('claude');
+        maxConfidence = Math.max(maxConfidence, 95);
+      }
+
+      // Gemini detection
+      if (source.includes('generativelanguage.googleapis.com') ||
+          source.includes('gemini-pro') ||
+          source.includes('gemini-')) {
+        platforms.add('gemini');
+        maxConfidence = Math.max(maxConfidence, 90);
+      }
+
+      // Perplexity detection
+      if (source.includes('perplexity.ai') ||
+          source.includes('pplx-')) {
+        platforms.add('perplexity');
+        maxConfidence = Math.max(maxConfidence, 90);
+      }
+
+      // Generic AI API key patterns (LOW CONFIDENCE)
+      if ((source.includes('sk-') || source.includes('api_key')) && platforms.size === 0) {
+        platforms.add('unknown_ai_api');
+        maxConfidence = Math.max(maxConfidence, 40);
+      }
+    }
+
+    return {
+      detected: platforms.size > 0,
+      platforms: Array.from(platforms),
+      confidence: maxConfidence
+    };
+  }
+
+  /**
+   * Extract permissions/scopes from Apps Script manifest
+   */
+  private extractScriptPermissions(projectContent: any): string[] {
+    const permissions: string[] = [];
+
+    if (!projectContent.data || !projectContent.data.files) {
+      return permissions;
+    }
+
+    // Look for appsscript.json manifest file
+    const manifestFile = projectContent.data.files.find(
+      (f: any) => f.name === 'appsscript.json' || f.type === 'JSON'
+    );
+
+    if (manifestFile && manifestFile.source) {
+      try {
+        const manifest = JSON.parse(manifestFile.source);
+
+        if (manifest.oauthScopes) {
+          permissions.push(...manifest.oauthScopes);
+        }
+
+        if (manifest.urlFetchWhitelist) {
+          permissions.push(...manifest.urlFetchWhitelist.map((url: string) => `external_url:${url}`));
+        }
+      } catch (parseError) {
+        console.warn('Failed to parse Apps Script manifest:', parseError);
+      }
+    }
+
+    return permissions;
+  }
+
+  /**
+   * Discover Google Cloud Service Accounts via Audit Logs
+   * NOTE: Direct service account listing requires IAM API (not available in Workspace)
+   * We detect service accounts through their activity in audit logs
    */
   private async discoverServiceAccounts(): Promise<AutomationEvent[]> {
     const automations: AutomationEvent[] = [];
 
     try {
-      // For MVP demo, we'll detect service accounts through indirect methods
-      // In production, this would use IAM API to list service accounts
-      
-      // Simulate service account discovery based on common patterns
-      const mockServiceAccounts = [
-        {
-          name: 'zapier-integration-sa',
-          email: 'zapier-integration-sa@project-12345.iam.gserviceaccount.com',
-          displayName: 'Zapier Integration Service Account',
-          description: 'Service account used by Zapier for Google Sheets automation',
-          createdTime: '2024-06-15T10:30:00Z',
-          lastUsed: '2025-01-01T15:45:00Z',
-          keyCount: 2,
-          roles: ['roles/sheets.editor', 'roles/drive.file']
-        },
-        {
-          name: 'data-pipeline-bot',
-          email: 'data-pipeline-bot@project-12345.iam.gserviceaccount.com',
-          displayName: 'Data Pipeline Automation',
-          description: 'Automated data extraction from Google Analytics to BigQuery',
-          createdTime: '2024-08-20T14:20:00Z',
-          lastUsed: '2025-01-01T23:15:00Z',
-          keyCount: 1,
-          roles: ['roles/analytics.viewer', 'roles/bigquery.dataEditor']
-        }
+      if (!this.client) {
+        throw new Error('Google client not authenticated');
+      }
+
+      const admin = google.admin({ version: 'reports_v1', auth: this.client });
+
+      console.log('🤖 Searching for service account activity in audit logs...');
+
+      // Query token activity to find service accounts
+      const tokenResponse = await admin.activities.list({
+        userKey: 'all',
+        applicationName: 'token',
+        startTime: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(), // Last 30 days
+        maxResults: 1000,
+        eventName: 'authorize'
+      });
+
+      // Query login activity for service account authentications
+      const loginResponse = await admin.activities.list({
+        userKey: 'all',
+        applicationName: 'login',
+        startTime: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
+        maxResults: 1000
+      });
+
+      // Combine all activities
+      const allActivities = [
+        ...(tokenResponse.data.items || []),
+        ...(loginResponse.data.items || [])
       ];
 
-      for (const sa of mockServiceAccounts) {
-        // Assess risk based on permissions and usage patterns
-        const riskLevel = this.assessServiceAccountRisk(sa);
-        
+      // Group activities by service account email
+      const serviceAccountMap = new Map<string, {
+        email: string;
+        activities: any[];
+        firstSeen: Date;
+        lastSeen: Date;
+        scopes: Set<string>;
+        clientIds: Set<string>;
+      }>();
+
+      for (const activity of allActivities) {
+        const actorEmail = activity.actor?.email;
+
+        // Service account emails end with .iam.gserviceaccount.com or .apps.googleusercontent.com
+        if (actorEmail && (
+          actorEmail.includes('.iam.gserviceaccount.com') ||
+          actorEmail.includes('.apps.googleusercontent.com')
+        )) {
+          if (!serviceAccountMap.has(actorEmail)) {
+            serviceAccountMap.set(actorEmail, {
+              email: actorEmail,
+              activities: [],
+              firstSeen: new Date(activity.id.time),
+              lastSeen: new Date(activity.id.time),
+              scopes: new Set(),
+              clientIds: new Set()
+            });
+          }
+
+          const saData = serviceAccountMap.get(actorEmail)!;
+          saData.activities.push(activity);
+
+          // Update time range
+          const activityTime = new Date(activity.id.time);
+          if (activityTime < saData.firstSeen) saData.firstSeen = activityTime;
+          if (activityTime > saData.lastSeen) saData.lastSeen = activityTime;
+
+          // Extract scopes and client IDs from event parameters
+          if (activity.events) {
+            for (const event of activity.events) {
+              if (event.parameters) {
+                for (const param of event.parameters) {
+                  if (param.name === 'scope' || param.name === 'oauth_scopes') {
+                    const scopes = param.multiValue || [param.value];
+                    scopes.forEach((scope: string) => saData.scopes.add(scope));
+                  }
+                  if (param.name === 'client_id' || param.name === 'oauth_client_id') {
+                    saData.clientIds.add(param.value);
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+
+      if (serviceAccountMap.size === 0) {
+        console.log('No service accounts found in audit logs');
+        return [];
+      }
+
+      console.log(`🤖 Discovered ${serviceAccountMap.size} service accounts via audit logs`);
+
+      // Convert service account data to AutomationEvent format
+      for (const [email, saData] of serviceAccountMap.entries()) {
+        // Determine service account name
+        const saName = email.split('@')[0]
+          .replace(/[-_]/g, ' ')
+          .replace(/\b\w/g, l => l.toUpperCase());
+
+        // Assess risk
+        const riskAssessment = this.assessServiceAccountRiskFromActivity({
+          email,
+          activityCount: saData.activities.length,
+          scopes: Array.from(saData.scopes),
+          daysSinceLastSeen: (Date.now() - saData.lastSeen.getTime()) / (1000 * 60 * 60 * 24)
+        });
+
         automations.push({
-          id: `google-sa-${sa.name}`,
-          name: sa.displayName,
+          id: `google-sa-${Buffer.from(email).toString('base64').substring(0, 20)}`,
+          name: `Service Account: ${saName}`,
+          description: 'Automated service account detected via audit logs',
           type: 'integration',
           platform: 'google',
           status: 'active',
           trigger: 'api_key',
-          actions: ['data_access', 'api_calls', 'file_operations'],
+          actions: ['data_access', 'api_calls', 'authentication'],
+          permissions: Array.from(saData.scopes),
           metadata: {
-            email: sa.email,
-            description: sa.description,
-            keyCount: sa.keyCount,
-            roles: sa.roles,
-            lastUsed: sa.lastUsed,
-            projectId: 'project-12345'
+            email,
+            activityCount: saData.activities.length,
+            firstSeen: saData.firstSeen.toISOString(),
+            lastSeen: saData.lastSeen.toISOString(),
+            scopeCount: saData.scopes.size,
+            clientIdCount: saData.clientIds.size,
+            scopes: Array.from(saData.scopes),
+            clientIds: Array.from(saData.clientIds),
+            detectionMethod: 'audit_log_analysis',
+            riskFactors: riskAssessment.riskFactors
           },
-          createdAt: new Date(sa.createdTime),
-          lastTriggered: new Date(sa.lastUsed),
-          riskLevel: riskLevel.level
+          createdAt: saData.firstSeen,
+          lastTriggered: saData.lastSeen,
+          lastModified: saData.lastSeen,
+          riskLevel: riskAssessment.level
         });
       }
-    } catch (error) {
-      console.error('Error discovering Google Service Accounts:', error);
+
+      console.log(`✅ Service account discovery complete: ${automations.length} accounts found`);
+
+    } catch (error: any) {
+      console.error('Error discovering service accounts:', error);
+
+      // Service account discovery requires admin permissions
+      // Don't throw - just return empty array and log warning
+      if (error.message?.includes('auth') || error.message?.includes('permission')) {
+        console.warn('⚠ Service account discovery requires admin permissions - skipping');
+        return [];
+      }
+
+      return [];
     }
 
     return automations;
   }
 
   /**
-   * Discover OAuth applications
+   * Assess service account risk based on activity patterns
+   */
+  private assessServiceAccountRiskFromActivity(sa: {
+    email: string;
+    activityCount: number;
+    scopes: string[];
+    daysSinceLastSeen: number;
+  }): { level: 'low' | 'medium' | 'high'; score: number; riskFactors: string[] } {
+    let riskScore = 0;
+    const riskFactors: string[] = [];
+
+    // High activity = higher risk
+    if (sa.activityCount > 100) {
+      riskScore += 20;
+      riskFactors.push(`High activity: ${sa.activityCount} events in 30 days`);
+    } else if (sa.activityCount > 50) {
+      riskScore += 10;
+      riskFactors.push(`Moderate activity: ${sa.activityCount} events`);
+    }
+
+    // Check for sensitive scopes
+    const sensitiveScopePatterns = [
+      'admin', 'directory', 'drive', 'gmail',
+      'calendar', 'contacts', 'sheets', 'docs'
+    ];
+
+    const sensitiveScopes = sa.scopes.filter(scope =>
+      sensitiveScopePatterns.some(pattern => scope.toLowerCase().includes(pattern))
+    );
+
+    if (sensitiveScopes.length > 5) {
+      riskScore += 30;
+      riskFactors.push(`Excessive sensitive permissions: ${sensitiveScopes.length} scopes`);
+    } else if (sensitiveScopes.length > 0) {
+      riskScore += 15;
+      riskFactors.push(`Sensitive data access: ${sensitiveScopes.slice(0, 3).join(', ')}`);
+    }
+
+    // Recent activity indicates active automation
+    if (sa.daysSinceLastSeen < 1) {
+      riskScore += 10;
+      riskFactors.push('Active within last 24 hours');
+    } else if (sa.daysSinceLastSeen < 7) {
+      riskScore += 5;
+      riskFactors.push('Active within last week');
+    }
+
+    // Detect third-party integrations by email patterns
+    const thirdPartyPatterns = ['zapier', 'integromat', 'make', 'automate', 'n8n', 'tray'];
+    const isThirdParty = thirdPartyPatterns.some(pattern =>
+      sa.email.toLowerCase().includes(pattern)
+    );
+
+    if (isThirdParty) {
+      riskScore += 20;
+      riskFactors.push('Third-party automation platform detected');
+    }
+
+    // Determine risk level
+    let level: 'low' | 'medium' | 'high';
+    if (riskScore >= 50) level = 'high';
+    else if (riskScore >= 25) level = 'medium';
+    else level = 'low';
+
+    return { level, score: riskScore, riskFactors };
+  }
+
+  /**
+   * Discover OAuth applications with AI platform detection
    */
   private async discoverOAuthApplications(): Promise<AutomationEvent[]> {
     const automations: AutomationEvent[] = [];
 
     try {
-      // OAuth app discovery would require Admin SDK Directory API
-      // with admin permissions to list authorized applications
-      const admin = google.admin({ version: 'directory_v1', auth: this.client! });
-      
-      // This requires admin privileges
+      if (!this.client) {
+        throw new Error('Google client not authenticated');
+      }
+
+      const admin = google.admin({ version: 'directory_v1', auth: this.client });
+
+      console.log('🔐 Searching for OAuth applications...');
+
       try {
+        // List OAuth tokens for the authenticated user
         const response = await admin.tokens.list({
           userKey: 'me'
         });
 
-        if (response.data.items) {
-          for (const token of response.data.items) {
-            automations.push({
-              id: `google-oauth-${token.clientId}`,
-              name: token.displayText || 'OAuth Application',
-              type: 'integration',
-              platform: 'google',
-              status: 'active',
-              trigger: 'api_call',
-              actions: ['access', 'authenticate'],
-              metadata: {
-                clientId: token.clientId,
-                scopes: token.scopes,
-                displayText: token.displayText,
-                anonymous: token.anonymous,
-                nativeApp: token.nativeApp
-              },
-              createdAt: new Date(),
-              lastTriggered: null
-            });
-          }
+        if (!response.data.items || response.data.items.length === 0) {
+          console.log('No OAuth applications found');
+          return [];
         }
-      } catch (adminError) {
-        // User doesn't have admin permissions, skip OAuth app discovery
-        console.log('Admin permissions not available for OAuth app discovery');
+
+        console.log(`🔐 Found ${response.data.items.length} OAuth applications`);
+
+        for (const token of response.data.items) {
+          // Detect if this is an AI platform
+          const aiDetection = this.detectAIPlatformFromOAuth(token);
+
+          // Assess risk based on scopes and AI platform status
+          const riskAssessment = this.assessOAuthAppRisk(token, aiDetection);
+
+          automations.push({
+            id: `google-oauth-${token.clientId}`,
+            name: token.displayText || `OAuth App: ${token.clientId}`,
+            description: aiDetection.detected
+              ? `${aiDetection.platformName} AI Platform Integration`
+              : 'Third-party OAuth application',
+            type: 'integration',
+            platform: 'google',
+            status: 'active',
+            trigger: 'api_call',
+            actions: ['access', 'authenticate', 'data_read'],
+            permissions: token.scopes || [],
+            metadata: {
+              clientId: token.clientId,
+              scopes: token.scopes,
+              scopeCount: token.scopes?.length || 0,
+              displayText: token.displayText,
+              anonymous: token.anonymous,
+              nativeApp: token.nativeApp,
+              isAIPlatform: aiDetection.detected,
+              aiPlatformType: aiDetection.platform,
+              aiPlatformName: aiDetection.platformName,
+              aiPlatformConfidence: aiDetection.confidence,
+              detectionMethod: 'oauth_tokens_api',
+              riskFactors: riskAssessment.riskFactors
+            },
+            createdAt: new Date(), // Token API doesn't provide creation date
+            lastTriggered: null,
+            riskLevel: riskAssessment.level
+          });
+        }
+
+        console.log(`✅ OAuth app discovery complete: ${automations.length} apps found`);
+
+      } catch (adminError: any) {
+        // Check if it's a permission error
+        if (adminError.message?.includes('auth') || adminError.message?.includes('permission')) {
+          console.log('⚠ OAuth app discovery requires admin permissions - skipping');
+        } else {
+          console.error('OAuth app discovery error:', adminError);
+        }
       }
+
     } catch (error) {
-      console.error('Error discovering Google OAuth applications:', error);
+      console.error('Error discovering OAuth applications:', error);
     }
 
     return automations;
+  }
+
+  /**
+   * Detect AI platforms from OAuth application metadata
+   */
+  private detectAIPlatformFromOAuth(token: any): {
+    detected: boolean;
+    platform: string | null;
+    platformName: string | null;
+    confidence: number;
+  } {
+    const displayText = (token.displayText || '').toLowerCase();
+    const clientId = (token.clientId || '').toLowerCase();
+
+    // OpenAI / ChatGPT detection (HIGH CONFIDENCE) - THIS IS THE KEY ONE
+    if (displayText.includes('openai') ||
+        displayText.includes('chatgpt') ||
+        displayText.includes('gpt-') ||
+        clientId.includes('openai') ||
+        clientId.includes('chatgpt')) {
+      return {
+        detected: true,
+        platform: 'openai',
+        platformName: 'OpenAI / ChatGPT',
+        confidence: 95
+      };
+    }
+
+    // Claude / Anthropic detection (HIGH CONFIDENCE)
+    if (displayText.includes('claude') ||
+        displayText.includes('anthropic') ||
+        clientId.includes('anthropic') ||
+        clientId.includes('claude')) {
+      return {
+        detected: true,
+        platform: 'claude',
+        platformName: 'Claude (Anthropic)',
+        confidence: 95
+      };
+    }
+
+    // Gemini detection (Google's own AI)
+    if (displayText.includes('gemini') ||
+        displayText.includes('generativelanguage') ||
+        clientId.includes('gemini')) {
+      return {
+        detected: true,
+        platform: 'gemini',
+        platformName: 'Gemini (Google)',
+        confidence: 90
+      };
+    }
+
+    // Perplexity detection
+    if (displayText.includes('perplexity') ||
+        clientId.includes('perplexity')) {
+      return {
+        detected: true,
+        platform: 'perplexity',
+        platformName: 'Perplexity AI',
+        confidence: 90
+      };
+    }
+
+    // Generic AI assistant patterns (MEDIUM CONFIDENCE)
+    const aiKeywords = ['ai', 'gpt', 'chat', 'assistant', 'bot', 'copilot'];
+    const hasAIKeyword = aiKeywords.some(keyword =>
+      displayText.includes(keyword) || clientId.includes(keyword)
+    );
+
+    if (hasAIKeyword) {
+      return {
+        detected: true,
+        platform: 'unknown_ai',
+        platformName: 'Unknown AI Platform',
+        confidence: 60
+      };
+    }
+
+    return {
+      detected: false,
+      platform: null,
+      platformName: null,
+      confidence: 0
+    };
+  }
+
+  /**
+   * Assess OAuth app risk based on scopes and AI platform status
+   */
+  private assessOAuthAppRisk(
+    token: any,
+    aiDetection: { detected: boolean; platform: string | null }
+  ): { level: 'low' | 'medium' | 'high'; score: number; riskFactors: string[] } {
+    let riskScore = 0;
+    const riskFactors: string[] = [];
+
+    const scopes = token.scopes || [];
+
+    // AI platforms are automatically higher risk
+    if (aiDetection.detected) {
+      riskScore += 30;
+      riskFactors.push(`AI platform integration: ${aiDetection.platform}`);
+    }
+
+    // Sensitive scope detection
+    const sensitiveScopePatterns = [
+      { pattern: 'drive', severity: 15, name: 'Google Drive access' },
+      { pattern: 'gmail', severity: 20, name: 'Gmail access' },
+      { pattern: 'calendar', severity: 10, name: 'Calendar access' },
+      { pattern: 'contacts', severity: 15, name: 'Contacts access' },
+      { pattern: 'admin', severity: 30, name: 'Admin privileges' },
+      { pattern: 'directory', severity: 25, name: 'Directory access' }
+    ];
+
+    for (const { pattern, severity, name } of sensitiveScopePatterns) {
+      const matchingScopes = scopes.filter((scope: string) =>
+        scope.toLowerCase().includes(pattern)
+      );
+
+      if (matchingScopes.length > 0) {
+        riskScore += severity;
+        riskFactors.push(`${name}: ${matchingScopes.length} scope(s)`);
+      }
+    }
+
+    // Excessive scopes
+    if (scopes.length > 10) {
+      riskScore += 15;
+      riskFactors.push(`Excessive permissions: ${scopes.length} scopes`);
+    }
+
+    // Determine risk level
+    let level: 'low' | 'medium' | 'high';
+    if (riskScore >= 50) level = 'high';
+    else if (riskScore >= 25) level = 'medium';
+    else level = 'low';
+
+    return { level, score: riskScore, riskFactors };
   }
 
   /**

@@ -2,6 +2,9 @@
  * Google OAuth Service
  * Implements OAuth 2.0 authentication flow for Google Workspace
  * Follows patterns established in slack-oauth-service.ts
+ *
+ * TODO: Add test coverage for actor email extraction when Jest/TypeScript config is refactored
+ * See: .claude/TEST_COVERAGE_EXCEPTIONS.md
  */
 
 import { google, Auth } from 'googleapis';
@@ -108,11 +111,18 @@ export class GoogleOAuthService {
         credentials.domain = userInfo.domain;
       }
 
+      // Handle expiresAt for logging (can be Date or string)
+      const expiresAtStr = credentials.expiresAt
+        ? (credentials.expiresAt instanceof Date
+          ? credentials.expiresAt.toISOString()
+          : credentials.expiresAt)
+        : undefined;
+
       console.log('Google OAuth tokens exchanged successfully:', {
         hasAccessToken: !!credentials.accessToken,
         hasRefreshToken: !!credentials.refreshToken,
         scopeCount: credentials.scope.length,
-        expiresAt: credentials.expiresAt?.toISOString(),
+        expiresAt: expiresAtStr,
         userEmail: credentials.email ? credentials.email.substring(0, 3) + '...' : 'unknown',
         domain: credentials.domain || 'personal'
       });
@@ -149,8 +159,15 @@ export class GoogleOAuthService {
         expiresAt: credentials.expiry_date ? new Date(credentials.expiry_date) : undefined
       };
 
+      // Handle expiresAt for logging (can be Date or string)
+      const newExpiresAtStr = refreshedCredentials.expiresAt
+        ? (refreshedCredentials.expiresAt instanceof Date
+          ? refreshedCredentials.expiresAt.toISOString()
+          : refreshedCredentials.expiresAt)
+        : undefined;
+
       console.log('Google OAuth tokens refreshed successfully:', {
-        newExpiresAt: refreshedCredentials.expiresAt?.toISOString(),
+        newExpiresAt: newExpiresAtStr,
         hasNewRefreshToken: !!credentials.refresh_token,
         scopeCount: refreshedCredentials.scope.length
       });

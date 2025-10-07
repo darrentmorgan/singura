@@ -57,8 +57,8 @@ export class DiscoveryService {
 
   constructor() {
     this.connectors = new Map<PlatformType, PlatformConnector>([
-      ['slack', slackConnector]
-      // ['google', googleConnector],  // Comment out until implemented
+      ['slack', slackConnector],
+      ['google', googleConnector]  // ✅ ENABLED: Real Google Workspace discovery
       // ['microsoft', microsoftConnector]  // Comment out until implemented
     ]);
   }

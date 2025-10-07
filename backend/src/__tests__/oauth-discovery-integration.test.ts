@@ -14,6 +14,7 @@ import { GoogleOAuthCredentials, SlackOAuthCredentials } from '@saas-xray/shared
 describe('OAuth Discovery Integration', () => {
   let oauthStorage: OAuthCredentialStorageService;
   let dataProvider: RealDataProvider;
+  const testOrgId = 'test-organization-123';
 
   beforeEach(() => {
     oauthStorage = new OAuthCredentialStorageService();
@@ -156,7 +157,7 @@ describe('OAuth Discovery Integration', () => {
 
       // Attempt discovery without stored OAuth credentials
       await expect(async () => {
-        await dataProvider.discoverAutomations(connectionId!);
+        await dataProvider.discoverAutomations(connectionId!, testOrgId);
       }).rejects.toThrow(/No OAuth credentials found/);
     });
 
@@ -209,7 +210,7 @@ describe('OAuth Discovery Integration', () => {
       // Note: Discovery will still fail without real Google API setup,
       // but it should reach the credential retrieval stage successfully
       try {
-        await dataProvider.discoverAutomations(connectionId!);
+        await dataProvider.discoverAutomations(connectionId!, testOrgId);
       } catch (error) {
         // Expected to fail at API call stage, not credential retrieval
         const errorMessage = error instanceof Error ? error.message : String(error);

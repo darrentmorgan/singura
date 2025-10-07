@@ -253,6 +253,63 @@ export class WebSocketService {
       useUIStore.getState().showError(`Discovery failed: ${data.error}`);
     });
 
+    this.socket.on('discovery:failed', (data: {
+      connectionId: string,
+      error: string,
+      errorCategory?: string,
+      technicalError?: string
+    }) => {
+      console.error('Discovery failed:', data);
+
+      // Update discovery progress to failed state
+      useAutomationsStore.getState().updateDiscoveryProgress(data.connectionId, {
+        connectionId: data.connectionId,
+        stage: 'failed',
+        progress: 100,
+        message: data.error,
+      });
+
+      // Set error in automations store for display
+      useAutomationsStore.getState().setError(data.error);
+
+      // Show user-friendly error notification
+      if (data.errorCategory === 'authentication') {
+        useUIStore.getState().showError(
+          data.error,
+          'Connection Expired',
+          {
+            action: {
+              label: 'Reconnect',
+              onClick: () => {
+                // Navigate to connections page to reconnect
+                window.location.href = '/connections';
+              }
+            }
+          }
+        );
+      } else if (data.errorCategory === 'permission') {
+        useUIStore.getState().showError(
+          data.error,
+          'Permission Error',
+          {
+            action: {
+              label: 'Reconnect',
+              onClick: () => {
+                window.location.href = '/connections';
+              }
+            }
+          }
+        );
+      } else {
+        useUIStore.getState().showError(data.error, 'Discovery Failed');
+      }
+
+      // Log technical details in development mode
+      if (import.meta.env.DEV && data.technicalError) {
+        console.error('Technical error details:', data.technicalError);
+      }
+    });
+
     this.socket.on('automation:added', (data: { automation: AutomationDiscovery }) => {
       console.log('New automation discovered:', data.automation);
       useAutomationsStore.getState().addAutomation(data.automation);

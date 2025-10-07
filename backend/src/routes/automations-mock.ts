@@ -6,8 +6,52 @@
 import { Router, Request, Response } from 'express';
 import { getDataProvider } from '../services/data-provider';
 import { isMockDataEnabledRuntime } from './dev-routes';
+import { discoveredAutomationRepository } from '../database/repositories/discovered-automation';
+import { DiscoveredAutomation } from '../types/database';
+import { oauthScopeEnrichmentService } from '../services/oauth-scope-enrichment.service';
+import { optionalClerkAuth, ClerkAuthRequest } from '../middleware/clerk-auth';
+import { platformConnectionRepository } from '../database/repositories/platform-connection';
+
+interface UserPayload {
+  userId: string;
+  organizationId: string;
+}
 
 const router = Router();
+
+/**
+ * Calculate risk level based on platform metadata
+ */
+function calculateRiskLevel(metadata: any): 'low' | 'medium' | 'high' | 'critical' {
+  // AI platforms are automatically HIGH risk
+  if (metadata.isAIPlatform === true) {
+    return 'high';
+  }
+
+  // Calculate from risk factors
+  const riskFactors = metadata.riskFactors || [];
+  const riskFactorCount = riskFactors.length;
+
+  if (riskFactorCount >= 5) return 'critical';
+  if (riskFactorCount >= 3) return 'high';
+  if (riskFactorCount >= 1) return 'medium';
+  return 'low';
+}
+
+/**
+ * Calculate numeric risk score (0-100)
+ */
+function calculateRiskScore(metadata: any): number {
+  if (metadata.isAIPlatform === true) {
+    return 85; // High risk for AI platforms
+  }
+
+  const riskFactors = metadata.riskFactors || [];
+  const baseScore = 30;
+  const factorScore = riskFactors.length * 15;
+
+  return Math.min(100, baseScore + factorScore);
+}
 
 // Mock automation data
 const mockAutomations = [
@@ -204,17 +248,65 @@ router.get('/', async (req: Request, res: Response): Promise<void> => {
 
     // Use data provider based on toggle state
     const dataProvider = getDataProvider(useMockData);
-    
+
     // Get automations from selected data provider
-    // For now, mock automations as data provider doesn't have getAutomations method yet
-    let automations: typeof mockAutomations;
+    let automations: any[];
     if (useMockData) {
       automations = mockAutomations;
       console.log('Using MockDataProvider - 5 mock automations returned');
     } else {
-      // Real data provider would return empty or real automations
-      automations = [];
-      console.log('Using RealDataProvider - no real automations yet (development)');
+      // Get real automations from database
+      const user = req.user as UserPayload | undefined;
+      if (!user?.organizationId) {
+        res.status(401).json({
+          success: false,
+          error: 'UNAUTHORIZED',
+          message: 'Organization ID required'
+        });
+        return;
+      }
+
+      const dbResult = await discoveredAutomationRepository.findManyCustom({
+        organization_id: user.organizationId,
+        is_active: true
+      });
+
+      // Map database automations to API format
+      automations = dbResult.data.map((da: DiscoveredAutomation & { platform_type?: string | null; platform_metadata?: any }) => {
+        // Extract platform_metadata JSONB
+        const platformMetadata = da.platform_metadata || {};
+
+        return {
+          id: da.id,
+          name: da.name,
+          description: da.description || '',
+          type: da.automation_type,
+          platform: da.platform_type || 'unknown', // Enriched from platform_connection JOIN
+          status: da.status || 'unknown',
+          riskLevel: calculateRiskLevel(platformMetadata),
+          createdAt: platformMetadata.firstAuthorization || da.first_discovered_at?.toISOString() || da.created_at.toISOString(),
+          lastTriggered: platformMetadata.lastActivity || da.last_triggered_at?.toISOString() || '',
+          permissions: platformMetadata.scopes || [],
+          createdBy: platformMetadata.authorizedBy ||
+            (da.owner_info && typeof da.owner_info === 'object' && 'email' in da.owner_info
+              ? String(da.owner_info.email)
+              : 'unknown'),
+          metadata: {
+            riskScore: calculateRiskScore(platformMetadata),
+            riskFactors: platformMetadata.riskFactors || [],
+            recommendations: [],
+            platformName: platformMetadata.platformName,
+            isAIPlatform: platformMetadata.isAIPlatform || false,
+            clientId: platformMetadata.clientId,
+            detectionMethod: platformMetadata.detectionMethod,
+            authorizationAge: platformMetadata.authorizationAge,
+            firstAuthorization: platformMetadata.firstAuthorization,
+            lastActivity: platformMetadata.lastActivity
+          }
+        };
+      });
+
+      console.log(`Using RealDataProvider - ${automations.length} automations from database`);
     }
 
     const { 
@@ -329,14 +421,42 @@ router.get('/stats', async (req: Request, res: Response): Promise<void> => {
       stats = mockStats;
       console.log('Using MockDataProvider - mock stats returned');
     } else {
-      // Real data provider would return real stats or empty stats
+      // Get real stats from database
+      const user = req.user as UserPayload | undefined;
+      if (!user?.organizationId) {
+        res.status(401).json({
+          success: false,
+          error: 'UNAUTHORIZED',
+          message: 'Organization ID required'
+        });
+        return;
+      }
+
+      const dbStats = await discoveredAutomationRepository.getStatsByOrganization(user.organizationId);
+      const platformStats = await discoveredAutomationRepository.getByPlatformForOrganization(user.organizationId);
+
+      // Map platform stats to object
+      const byPlatform = platformStats.reduce((acc: Record<string, number>, p: any) => {
+        acc[p.platform_type] = parseInt(p.count);
+        return acc;
+      }, {
+        slack: 0,
+        google: 0,
+        microsoft: 0,
+        hubspot: 0,
+        salesforce: 0,
+        notion: 0,
+        asana: 0,
+        jira: 0
+      } as Record<string, number>);
+
       stats = {
-        totalAutomations: 0,
+        totalAutomations: parseInt(dbStats.total_automations) || 0,
         byStatus: {
-          active: 0,
-          inactive: 0,
-          error: 0,
-          unknown: 0
+          active: parseInt(dbStats.active) || 0,
+          inactive: parseInt(dbStats.inactive) || 0,
+          error: parseInt(dbStats.error) || 0,
+          unknown: parseInt(dbStats.unknown) || 0
         },
         byRiskLevel: {
           low: 0,
@@ -345,23 +465,14 @@ router.get('/stats', async (req: Request, res: Response): Promise<void> => {
           critical: 0
         },
         byType: {
-          bot: 0,
-          workflow: 0,
-          integration: 0,
-          webhook: 0
+          bot: parseInt(dbStats.bots) || 0,
+          workflow: parseInt(dbStats.workflows) || 0,
+          integration: parseInt(dbStats.integrations) || 0,
+          webhook: parseInt(dbStats.webhooks) || 0
         },
-        byPlatform: {
-          slack: 0,
-          google: 0,
-          microsoft: 0,
-          hubspot: 0,
-          salesforce: 0,
-          notion: 0,
-          asana: 0,
-          jira: 0
-        }
+        byPlatform
       };
-      console.log('Using RealDataProvider - empty stats returned (development)');
+      console.log(`Using RealDataProvider - stats from database: ${stats.totalAutomations} total automations`);
     }
 
     res.json({
@@ -374,6 +485,226 @@ router.get('/stats', async (req: Request, res: Response): Promise<void> => {
       success: false,
       error: 'FETCH_STATS_FAILED',
       message: 'Failed to retrieve automation statistics'
+    });
+  }
+});
+
+/**
+ * GET /automations/:id/details
+ * Get detailed information about a specific automation with enriched OAuth scopes
+ */
+router.get('/:id/details', optionalClerkAuth, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { id } = req.params;
+    const authRequest = req as ClerkAuthRequest;
+    const user = authRequest.user;
+
+    // Check runtime toggle state for data provider selection
+    const useMockData = (() => {
+      try {
+        // In development, check runtime toggle state
+        if (process.env.NODE_ENV === 'development') {
+          return isMockDataEnabledRuntime();
+        }
+        // In production, never use mock data
+        return false;
+      } catch (error) {
+        // Fallback to environment variable
+        console.warn('Runtime toggle check failed, using environment variable:', error);
+        return process.env.USE_MOCK_DATA === 'true';
+      }
+    })();
+
+    console.log('Automation Details API - Data Provider Selection:', {
+      environment: process.env.NODE_ENV,
+      runtimeToggle: process.env.NODE_ENV === 'development' ? 'checked' : 'disabled',
+      useMockData,
+      automationId: id,
+      endpoint: '/api/automations/:id/details'
+    });
+
+    // Return mock data if enabled
+    if (useMockData) {
+      const mockAutomation = mockAutomations.find(a => a.id === id);
+
+      if (!mockAutomation) {
+        res.status(404).json({
+          success: false,
+          error: 'Mock automation not found'
+        });
+        return;
+      }
+
+      // Return mock data in the same format as real data
+      res.json({
+        success: true,
+        automation: {
+          id: mockAutomation.id,
+          name: mockAutomation.name,
+          description: mockAutomation.description,
+          type: mockAutomation.type,
+          platform: mockAutomation.platform,
+          status: mockAutomation.status,
+          createdAt: mockAutomation.createdAt,
+          authorizedBy: mockAutomation.createdBy,
+          lastActivity: mockAutomation.lastTriggered,
+          authorizationAge: 'N/A (Mock Data)',
+          connection: null,
+          permissions: {
+            total: mockAutomation.permissions.length,
+            enriched: mockAutomation.permissions.map(permission => ({
+              scopeUrl: permission,
+              serviceName: 'Mock Service',
+              displayName: permission,
+              description: `Mock permission: ${permission}`,
+              accessLevel: 'read_write',
+              riskScore: mockAutomation.metadata.riskScore,
+              riskLevel: mockAutomation.riskLevel,
+              dataTypes: ['Mock Data'],
+              alternatives: 'N/A - Mock Data',
+              gdprImpact: 'N/A - Mock Data'
+            })),
+            riskAnalysis: {
+              overallRisk: mockAutomation.metadata.riskScore,
+              riskLevel: mockAutomation.riskLevel,
+              highestRisk: mockAutomation.permissions.length > 0 ? {
+                scope: mockAutomation.permissions[0],
+                score: mockAutomation.metadata.riskScore
+              } : null,
+              breakdown: mockAutomation.permissions.map(permission => ({
+                scope: permission,
+                riskScore: mockAutomation.metadata.riskScore,
+                contribution: Math.floor(100 / mockAutomation.permissions.length)
+              }))
+            }
+          },
+          metadata: {
+            isAIPlatform: false,
+            platformName: mockAutomation.platform,
+            clientId: `mock-client-${mockAutomation.id}`,
+            detectionMethod: 'Mock Detection',
+            riskFactors: mockAutomation.metadata.riskFactors
+          }
+        }
+      });
+      return;
+    }
+
+    // Real data path: Check for valid user and organization
+    if (!user?.organizationId) {
+      res.status(401).json({
+        success: false,
+        error: 'Unauthorized - Organization ID required'
+      });
+      return;
+    }
+
+    // Get automation from database with platform_type via JOIN
+    const automationResult = await discoveredAutomationRepository.findManyCustom({
+      organization_id: user.organizationId
+    });
+
+    const automation = automationResult.data.find(a => a.id === id);
+
+    if (!automation) {
+      res.status(404).json({
+        success: false,
+        error: 'Automation not found'
+      });
+      return;
+    }
+
+    // Extract platform metadata
+    const platformMetadata = (automation.platform_metadata as any) || {};
+    const scopes: string[] = Array.isArray(platformMetadata.scopes) ? platformMetadata.scopes : [];
+
+    // Enrich OAuth scopes with library metadata
+    let enrichedScopes: any[] = [];
+    let permissionRisk: any = null;
+
+    if (scopes.length > 0) {
+      const platform = automation.platform_type || 'google';
+      enrichedScopes = await oauthScopeEnrichmentService.enrichScopes(scopes, platform);
+
+      if (enrichedScopes.length > 0) {
+        permissionRisk = oauthScopeEnrichmentService.calculatePermissionRisk(enrichedScopes);
+      }
+    }
+
+    // Get platform connection info for additional context
+    const connection = await platformConnectionRepository.findById(automation.platform_connection_id);
+
+    // Build enhanced response
+    const response = {
+      success: true,
+      automation: {
+        id: automation.id,
+        name: automation.name,
+        description: automation.description,
+        type: automation.automation_type,
+        platform: automation.platform_type || 'unknown',
+        status: automation.status,
+        createdAt: platformMetadata.firstAuthorization || automation.first_discovered_at?.toISOString(),
+        authorizedBy: platformMetadata.authorizedBy || 'unknown',
+        lastActivity: platformMetadata.lastActivity,
+        authorizationAge: platformMetadata.authorizationAge,
+
+        // Connection info
+        connection: connection ? {
+          id: connection.id,
+          displayName: connection.display_name,
+          platform: connection.platform_type,
+          status: connection.status
+        } : null,
+
+        // Enriched permissions with risk analysis
+        permissions: {
+          total: enrichedScopes.length,
+          enriched: enrichedScopes.map(scope => ({
+            scopeUrl: scope.scopeUrl,
+            serviceName: scope.serviceName,
+            displayName: scope.displayName,
+            description: scope.description,
+            accessLevel: scope.accessLevel,
+            riskScore: scope.riskScore,
+            riskLevel: scope.riskLevel,
+            dataTypes: scope.dataTypes,
+            alternatives: scope.alternatives,
+            gdprImpact: scope.gdprImpact
+          })),
+          riskAnalysis: permissionRisk ? {
+            overallRisk: permissionRisk.totalScore,
+            riskLevel: permissionRisk.riskLevel,
+            highestRisk: permissionRisk.highestRiskScope ? {
+              scope: permissionRisk.highestRiskScope.displayName,
+              score: permissionRisk.highestRiskScope.riskScore
+            } : null,
+            breakdown: permissionRisk.scopeBreakdown.map((item: any) => ({
+              scope: item.scope.displayName,
+              riskScore: item.scope.riskScore,
+              contribution: item.contribution
+            }))
+          } : null
+        },
+
+        // Metadata
+        metadata: {
+          isAIPlatform: platformMetadata.isAIPlatform || false,
+          platformName: platformMetadata.platformName,
+          clientId: platformMetadata.clientId,
+          detectionMethod: platformMetadata.detectionMethod,
+          riskFactors: platformMetadata.riskFactors || []
+        }
+      }
+    };
+
+    res.json(response);
+
+  } catch (error) {
+    console.error('Error fetching automation details:', error);
+    res.status(500).json({
+      success: false,
+      error: error instanceof Error ? error.message : 'Failed to fetch automation details'
     });
   }
 });

@@ -16,8 +16,9 @@ import {
 const router = Router();
 
 // In-memory toggle state storage (development only)
+// Default to FALSE (use real database data) unless explicitly enabled
 let currentToggleState: MockDataToggleState = {
-  enabled: process.env.USE_MOCK_DATA === 'true',
+  enabled: process.env.USE_MOCK_DATA === 'true', // Will be false if not set or set to anything other than 'true'
   environment: (process.env.NODE_ENV as any) || 'development',
   lastModified: new Date(),
   modifiedBy: 'environment-variable',

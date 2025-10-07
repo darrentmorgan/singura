@@ -18,8 +18,9 @@ describe('Google OAuth AI Detection Integration', () => {
     await connector.authenticate({
       accessToken: process.env.GOOGLE_TEST_ACCESS_TOKEN!,
       refreshToken: process.env.GOOGLE_TEST_REFRESH_TOKEN!,
+      tokenType: 'Bearer',
       expiresAt: new Date(Date.now() + 3600000),
-      scope: ['https://www.googleapis.com/auth/admin.reports.audit.readonly']
+      scope: 'https://www.googleapis.com/auth/admin.reports.audit.readonly'
     });
   });
 
