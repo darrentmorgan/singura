@@ -143,6 +143,14 @@ const ConnectionManager: React.FC = () => {
   }, [setOnlineStatus]);
 
   useEffect(() => {
+    // Skip WebSocket connection on public pages (landing page)
+    const isPublicPage = window.location.pathname === '/';
+
+    if (isPublicPage) {
+      // Don't connect WebSocket on landing page
+      return;
+    }
+
     if (isSignedIn && !wsConnectionAttemptedRef.current) {
       // Connect to WebSocket when authenticated (only once)
       wsConnectionAttemptedRef.current = true;
