@@ -1,0 +1,49 @@
+# Backend
+backend/
+
+# Shared Types (will be installed via npm workspaces)
+shared-types/dist/
+shared-types/node_modules/
+
+# Development
+*.log
+.env
+.env.local
+.env.development
+.DS_Store
+
+# Testing
+coverage/
+*.test.ts
+*.test.tsx
+*.spec.ts
+*.spec.tsx
+__tests__/
+e2e/
+tests/
+
+# Documentation
+docs/
+*.md
+!README.md
+
+# Docker
+docker-compose*.yml
+Dockerfile
+.dockerignore
+
+# Git
+.git/
+.github/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Misc
+node_modules/
+.cache/
+temp/
+tmp/
