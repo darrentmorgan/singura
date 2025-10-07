@@ -1,0 +1,277 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema#",
+  "title": "MCP Server → Agent Delegation Map",
+  "description": "Maps MCP servers to specialized sub-agents to reduce main orchestrator context usage",
+  "version": "1.0.0",
+  "context_optimization": {
+    "main_agent_mcp_servers": 0,
+    "estimated_context_savings": "~92k tokens (74% reduction)",
+    "target_main_agent_context": "< 50k tokens"
+  },
+  "mcp_delegation_map": {
+    "Context7": {
+      "description": "Library documentation and code examples",
+      "agents": ["documentation-expert", "general-purpose"],
+      "primary": "documentation-expert",
+      "use_cases": [
+        "Library API references",
+        "Code examples lookup",
+        "Framework documentation",
+        "Package version information"
+      ],
+      "routing_triggers": [
+        "search docs",
+        "library documentation",
+        "API reference",
+        "how to use",
+        "package docs"
+      ]
+    },
+    "supabase": {
+      "description": "Supabase database operations and migrations",
+      "agents": ["backend-architect", "database-optimizer", "data-engineer"],
+      "primary": "backend-architect",
+      "use_cases": [
+        "Database migrations",
+        "Schema design",
+        "RPC function management",
+        "Query optimization",
+        "Data pipelines"
+      ],
+      "routing_triggers": [
+        "database",
+        "migration",
+        "supabase",
+        "schema",
+        "RPC",
+        "SQL query"
+      ]
+    },
+    "chrome-devtools": {
+      "description": "Chrome DevTools browser automation and debugging",
+      "agents": ["qa-expert", "test-automator"],
+      "primary": "qa-expert",
+      "use_cases": [
+        "E2E testing",
+        "Visual QA",
+        "Browser automation",
+        "Performance profiling",
+        "Network debugging"
+      ],
+      "routing_triggers": [
+        "browser test",
+        "E2E test",
+        "Chrome DevTools",
+        "visual test",
+        "browser automation",
+        "screenshot",
+        "performance trace"
+      ]
+    },
+    "playwright": {
+      "description": "Playwright browser automation for testing",
+      "agents": ["qa-expert", "test-automator"],
+      "primary": "test-automator",
+      "use_cases": [
+        "Test automation",
+        "Cross-browser testing",
+        "Browser debugging",
+        "Visual regression testing"
+      ],
+      "routing_triggers": [
+        "playwright",
+        "test automation",
+        "browser test",
+        "visual regression"
+      ]
+    },
+    "firecrawl-mcp": {
+      "description": "Web scraping and content extraction",
+      "agents": ["web-scraper", "general-purpose"],
+      "primary": "web-scraper",
+      "model": "haiku",
+      "use_cases": [
+        "Web scraping",
+        "Content extraction",
+        "URL crawling",
+        "Website research",
+        "Competitor data gathering"
+      ],
+      "routing_triggers": [
+        "scrape",
+        "crawl",
+        "extract from web",
+        "fetch URL",
+        "web content",
+        "website data"
+      ]
+    },
+    "clickup": {
+      "description": "ClickUp task and project management",
+      "agents": ["task-coordinator", "product-manager"],
+      "primary": "task-coordinator",
+      "model_routing": {
+        "task-coordinator": "haiku (simple task operations)",
+        "product-manager": "sonnet (strategic planning)"
+      },
+      "use_cases": [
+        "Task creation and updates (task-coordinator)",
+        "Project planning and strategy (product-manager)",
+        "Roadmap management (product-manager)",
+        "Team coordination (task-coordinator)",
+        "Simple task queries (task-coordinator)"
+      ],
+      "routing_triggers": [
+        "clickup",
+        "create task",
+        "update task",
+        "project plan",
+        "roadmap",
+        "task management",
+        "assign task"
+      ],
+      "routing_logic": "Use task-coordinator (Haiku) for CRUD operations, product-manager (Sonnet) for strategy"
+    }
+  },
+  "delegation_rules": {
+    "main_orchestrator": {
+      "mcp_access": "NONE",
+      "strategy": "ALWAYS_DELEGATE",
+      "fallback_agent": "general-purpose",
+      "max_context_budget": "50k tokens"
+    },
+    "routing_priority": [
+      "1. Check routing_triggers for keyword match",
+      "2. Use primary agent for that MCP server",
+      "3. Fallback to general-purpose if no match",
+      "4. Agent returns concise summary (not full MCP response)"
+    ],
+    "anti_patterns": [
+      "❌ Main agent calling MCP tools directly",
+      "❌ Loading all MCP servers 'just in case'",
+      "❌ Passing full MCP responses back to main agent",
+      "❌ Sub-agents reading 20+ files (use focused queries)"
+    ],
+    "best_practices": [
+      "✅ Main agent delegates based on task keywords",
+      "✅ Sub-agents load only required MCP servers",
+      "✅ Return summaries, not raw data",
+      "✅ Use parallel delegation for independent tasks"
+    ]
+  },
+  "agent_configurations": {
+    "documentation-expert": {
+      "mcp_servers": ["Context7"],
+      "config_file": ".claude/agents/configs/documentation-expert.json",
+      "context_budget": "Moderate (docs can be large)",
+      "response_format": "Concise summary with code examples"
+    },
+    "qa-expert": {
+      "mcp_servers": ["chrome-devtools", "playwright"],
+      "config_file": ".claude/agents/configs/qa-expert.json",
+      "context_budget": "High (screenshots/traces)",
+      "response_format": "Test results + screenshot analysis"
+    },
+    "test-automator": {
+      "mcp_servers": ["chrome-devtools", "playwright"],
+      "config_file": ".claude/agents/configs/test-automator.json",
+      "context_budget": "Moderate",
+      "response_format": "Test code + execution summary"
+    },
+    "backend-architect": {
+      "mcp_servers": ["supabase"],
+      "config_file": ".claude/agents/configs/backend-architect.json",
+      "context_budget": "Moderate",
+      "response_format": "Migration SQL + schema summary"
+    },
+    "database-optimizer": {
+      "mcp_servers": ["supabase"],
+      "config_file": ".claude/agents/configs/database-optimizer.json",
+      "context_budget": "Low (focused queries)",
+      "response_format": "Optimized query + performance metrics"
+    },
+    "general-purpose": {
+      "mcp_servers": ["firecrawl-mcp", "Context7"],
+      "config_file": ".claude/agents/configs/general-purpose.json",
+      "context_budget": "Variable",
+      "response_format": "Task-dependent summary"
+    },
+    "product-manager": {
+      "mcp_servers": ["clickup"],
+      "config_file": ".claude/agents/configs/product-manager.json",
+      "context_budget": "Low",
+      "response_format": "Task IDs + plan summary"
+    },
+    "data-engineer": {
+      "mcp_servers": ["supabase"],
+      "config_file": ".claude/agents/configs/data-engineer.json",
+      "context_budget": "Moderate",
+      "response_format": "Pipeline code + data summary"
+    },
+    "web-scraper": {
+      "mcp_servers": ["firecrawl-mcp"],
+      "model": "haiku",
+      "custom_agent": "~/.claude/agents/utilities/web-scraper.md",
+      "context_budget": "Low (extraction only)",
+      "response_format": "Structured data (JSON/CSV/Markdown)",
+      "use_for": "Web scraping, content extraction, URL discovery"
+    },
+    "data-extractor": {
+      "mcp_servers": [],
+      "model": "haiku",
+      "custom_agent": "~/.claude/agents/utilities/data-extractor.md",
+      "context_budget": "Low (file parsing)",
+      "response_format": "Extracted/converted data",
+      "use_for": "CSV/JSON parsing, format conversion, simple data cleanup"
+    },
+    "task-coordinator": {
+      "mcp_servers": ["clickup"],
+      "model": "haiku",
+      "custom_agent": "~/.claude/agents/business/task-coordinator.md",
+      "context_budget": "Low (CRUD operations)",
+      "response_format": "Task IDs + operation summary",
+      "use_for": "ClickUp task CRUD, simple coordination (NOT strategy)"
+    }
+  },
+  "example_delegations": [
+    {
+      "user_request": "How do I use React useEffect hook?",
+      "routing": "documentation-expert (Context7)",
+      "reason": "Matches 'how to use' + library docs trigger",
+      "expected_response": "Concise explanation + code example from React docs"
+    },
+    {
+      "user_request": "Run E2E tests for login flow",
+      "routing": "qa-expert (chrome-devtools, playwright)",
+      "reason": "Matches 'E2E test' trigger",
+      "expected_response": "Test results + screenshots + issues found"
+    },
+    {
+      "user_request": "Create Supabase migration for new table",
+      "routing": "backend-architect (supabase)",
+      "reason": "Matches 'migration' + 'supabase' triggers",
+      "expected_response": "Migration SQL file + RLS policies + summary"
+    },
+    {
+      "user_request": "Scrape product prices from competitor site",
+      "routing": "general-purpose (firecrawl-mcp)",
+      "reason": "Matches 'scrape' trigger",
+      "expected_response": "Extracted data + summary table"
+    },
+    {
+      "user_request": "Create ClickUp tasks for sprint planning",
+      "routing": "product-manager (clickup)",
+      "reason": "Matches 'create task' + 'clickup' triggers",
+      "expected_response": "Task IDs + sprint plan summary"
+    }
+  ],
+  "monitoring": {
+    "metrics_to_track": [
+      "Main agent context usage (target: < 50k tokens)",
+      "Delegation success rate",
+      "Average response time",
+      "Sub-agent context utilization"
+    ],
+    "log_location": ".claude/mcp-delegation.log"
+  }
+}

@@ -10,6 +10,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Loader2, CheckCircle } from 'lucide-react';
 import { createClient } from '@supabase/supabase-js';
+import { burstMicro, celebrate } from '@/lib/confetti';
 
 // Supabase client for direct frontend access
 const supabase = createClient(
@@ -72,6 +73,9 @@ export const WaitlistModal = ({ open, onOpenChange }: WaitlistModalProps) => {
       setSuccess(true);
       setLoading(false);
 
+      // Trigger celebration confetti
+      celebrate();
+
       // Auto-close after 2 seconds
       setTimeout(() => {
         onOpenChange(false);
@@ -88,6 +92,12 @@ export const WaitlistModal = ({ open, onOpenChange }: WaitlistModalProps) => {
       setLoading(false);
       console.error('Waitlist submission error:', err);
     }
+  };
+
+  const handleButtonClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    // Micro-burst on click (purely cosmetic, doesn't affect submit)
+    burstMicro();
+    // Form submit will be triggered by type="submit"
   };
 
   return (
@@ -165,8 +175,10 @@ export const WaitlistModal = ({ open, onOpenChange }: WaitlistModalProps) => {
 
               <Button
                 type="submit"
+                data-testid="waitlist-submit"
                 disabled={loading || !email}
                 className="w-full h-11 bg-primary text-primary-foreground hover:bg-primary/90"
+                onClick={handleButtonClick}
               >
                 {loading ? (
                   <>

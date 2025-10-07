@@ -585,6 +585,9 @@ export class GoogleAPIClientService implements GoogleAPIClient {
     scopes: string[];
     isAIPlatform: boolean;
     platformName?: string;
+    authorizedBy: string;
+    firstSeen: Date;
+    lastSeen: Date;
   }>> {
     try {
       await this.ensureAuthenticated();
