@@ -1,9 +1,12 @@
 import { Button } from "@/components/ui/button";
 import heroNetwork from "@/assets/hero-network.jpg";
 import { ArrowRight } from "lucide-react";
-import { Link } from "react-router-dom";
 
-const Hero = () => {
+interface HeroProps {
+  onJoinWaitlist: () => void;
+}
+
+const Hero = ({ onJoinWaitlist }: HeroProps) => {
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
       {/* Background Image with Overlay */}
@@ -32,15 +35,14 @@ const Hero = () => {
         </p>
 
         <div className="flex flex-col sm:flex-row gap-4 justify-center items-center animate-fade-in-up">
-          <a href="#platform">
-            <Button
-              size="lg"
-              className="font-medium px-8 h-12 bg-primary text-primary-foreground hover:bg-primary/90"
-            >
-              SEE IT IN ACTION
-              <ArrowRight className="ml-2 h-4 w-4" />
-            </Button>
-          </a>
+          <Button
+            size="lg"
+            onClick={onJoinWaitlist}
+            className="font-medium px-8 h-12 bg-primary text-primary-foreground hover:bg-primary/90"
+          >
+            JOIN WAITLIST
+            <ArrowRight className="ml-2 h-4 w-4" />
+          </Button>
         </div>
       </div>
     </section>

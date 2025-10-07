@@ -1,8 +1,11 @@
 import { Button } from "@/components/ui/button";
-import { Shield } from "lucide-react";
 import { Link } from "react-router-dom";
 
-const Navigation = () => {
+interface NavigationProps {
+  onJoinWaitlist: () => void;
+}
+
+const Navigation = ({ onJoinWaitlist }: NavigationProps) => {
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 border-b border-border/50 bg-background/80 backdrop-blur-xl">
       <div className="container mx-auto px-6 lg:px-8">
@@ -21,14 +24,13 @@ const Navigation = () => {
             <a href="#contact" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
               CONTACT
             </a>
-            <Link to="/login">
-              <Button
-                size="sm"
-                className="bg-primary text-primary-foreground hover:bg-primary/90 font-medium"
-              >
-                GET STARTED
-              </Button>
-            </Link>
+            <Button
+              size="sm"
+              onClick={onJoinWaitlist}
+              className="bg-primary text-primary-foreground hover:bg-primary/90 font-medium"
+            >
+              JOIN WAITLIST
+            </Button>
           </div>
 
           <div className="w-32 md:hidden" />
