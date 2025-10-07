@@ -123,6 +123,20 @@ temp/
 *.backup
 .vercel
 
-# Test screenshots
+# Test screenshots and artifacts
 .playwright-mcp/
-*.png
+.artifacts/
+
+# Screenshots should be in docs/screenshots/ if needed for docs
+# Root-level screenshots are ignored
+/*.png
+/*.jpg
+/*.jpeg
+/*.gif
+
+# Archived reports (generated during development)
+/docs/archived-reports/
+
+# Large temporary files
+*.xml
+flattened-codebase.*
