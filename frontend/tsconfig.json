@@ -23,7 +23,8 @@
     /* Path mapping */
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "@saas-xray/shared-types": ["../shared-types/src"]
     }
   },
   "include": ["src"],

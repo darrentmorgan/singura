@@ -8,6 +8,7 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
+      '@saas-xray/shared-types': path.resolve(__dirname, '../shared-types/src'),
     },
   },
   server: {
