@@ -4,7 +4,7 @@
  */
 
 import React, { useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Helmet, HelmetProvider } from 'react-helmet-async';
 import toast, { Toaster } from 'react-hot-toast';
@@ -16,6 +16,7 @@ import ProtectedRoute from '@/components/auth/ProtectedRoute';
 import OAuthCallback from '@/components/auth/OAuthCallback';
 
 // Pages
+import LandingPage from '@/pages/LandingPage';
 import LoginPage from '@/pages/LoginPage';
 import DashboardPage from '@/pages/DashboardPage';
 import ConnectionsPage from '@/pages/ConnectionsPage';
@@ -142,6 +143,14 @@ const ConnectionManager: React.FC = () => {
   }, [setOnlineStatus]);
 
   useEffect(() => {
+    // Skip WebSocket connection on public pages (landing page)
+    const isPublicPage = window.location.pathname === '/';
+
+    if (isPublicPage) {
+      // Don't connect WebSocket on landing page
+      return;
+    }
+
     if (isSignedIn && !wsConnectionAttemptedRef.current) {
       // Connect to WebSocket when authenticated (only once)
       wsConnectionAttemptedRef.current = true;
@@ -265,6 +274,7 @@ const App: React.FC = () => {
             {/* Routes */}
             <Routes>
               {/* Public Routes */}
+              <Route path="/" element={<LandingPage />} />
               <Route path="/login/*" element={<LoginPage />} />
               <Route path="/sign-up/*" element={
                 <div className="min-h-screen flex items-center justify-center">
@@ -285,7 +295,6 @@ const App: React.FC = () => {
               <Route path="/oauth/callback" element={<OAuthCallback />} />
 
               {/* Protected Routes */}
-              <Route path="/" element={<Navigate to="/dashboard" replace />} />
               
               <Route path="/dashboard" element={
                 <ProtectedRoute>
