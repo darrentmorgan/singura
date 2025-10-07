@@ -150,8 +150,8 @@ const defaultLayout: UIState['layout'] = {
 const initialState: UIState = {
   theme: {
     mode: 'light',
-    primaryColor: '#3B82F6',
-    accentColor: '#10B981',
+    primaryColor: '#5B8FC7', // Muted shadow blue to match index.css
+    accentColor: '#5B8FC7', // Muted shadow blue to match index.css
   },
   sidebarOpen: true,
   sidebarCollapsed: false,

@@ -104,16 +104,16 @@ const ThemeManager: React.FC = () => {
   useEffect(() => {
     // Apply theme to document
     const root = document.documentElement;
-    
+
     if (theme.mode === 'dark') {
       root.classList.add('dark');
     } else {
       root.classList.remove('dark');
     }
 
-    // Apply theme colors as CSS custom properties
-    root.style.setProperty('--primary', theme.primaryColor);
-    root.style.setProperty('--accent', theme.accentColor);
+    // Don't override CSS variables - let index.css handle colors
+    // The theme store hex values break Tailwind's hsl(var(--primary)) function
+    // Colors are properly defined in index.css for both light and dark modes
   }, [theme]);
 
   return null;

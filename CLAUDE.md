@@ -150,6 +150,8 @@ Error: The browser is already running for /Users/darrenmorgan/.cache/chrome-devt
 Use --isolated to run multiple browser instances.
 ```
 
+**See Also**: `.claude/PATTERNS.md` - Browser Testing MCP Patterns (Chrome DevTools vs Playwright decision tree)
+
 ### Validated OAuth Patterns
 
 **Slack Scopes**: `users:read`, `team:read`, `channels:read`
@@ -204,7 +206,7 @@ await client.bots.list();   // Does not exist!
 
 ### Quick Links
 - **Architecture Details**: `.claude/ARCHITECTURE.md` - System architecture, tech stack, project structure
-- **Code Patterns**: `.claude/PATTERNS.md` - Singleton usage, OAuth flows, repository patterns, type definitions
+- **Code Patterns**: `.claude/PATTERNS.md` - Singleton usage, OAuth flows, repository patterns, browser testing (Chrome DevTools MCP vs Playwright)
 - **Critical Pitfalls**: `.claude/PITFALLS.md` - All 6 pitfalls with examples and solutions
 - **Sub-Agents**: `.claude/agents/README.md` - 12 specialist sub-agents
 - **API Reference**: `docs/API_REFERENCE.md` - Complete API documentation

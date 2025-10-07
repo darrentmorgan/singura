@@ -619,6 +619,192 @@ describe('UserService', () => {
 
 ---
 
+## Browser Testing MCP Patterns
+
+### Tool Selection: Chrome DevTools MCP vs Playwright MCP
+
+**DEFAULT TOOL**: Chrome DevTools MCP (`mcp__chrome-devtools`)
+
+**RULE**: Use Chrome DevTools MCP for all browser interactions unless you need Playwright's specific E2E capabilities.
+
+### Chrome DevTools MCP (Primary Tool)
+
+**Use for:**
+- Screenshots and visual verification
+- UI debugging and development
+- Form interactions and testing
+- Console log inspection
+- Network request monitoring
+- Live DOM inspection
+- Navigation and page state verification
+
+**Key Features:**
+```typescript
+// Screenshot capture
+await mcp__chrome-devtools__take_screenshot({
+  filename: 'landing-page.png',
+  fullPage: true
+});
+
+// Form filling
+await mcp__chrome-devtools__fill_form({
+  fields: [
+    { name: 'email', value: 'test@example.com', type: 'textbox' },
+    { name: 'password', value: 'test123', type: 'textbox' }
+  ]
+});
+
+// Console monitoring
+const messages = await mcp__chrome-devtools__list_console_messages({
+  onlyErrors: true
+});
+
+// Network inspection
+const requests = await mcp__chrome-devtools__list_network_requests();
+```
+
+**CRITICAL: Isolated Mode Requirement**
+
+Always run Chrome DevTools MCP in isolated mode to enable multiple browser instances:
+
+```bash
+# Kill existing Chrome processes first
+ps aux | grep -i "chrome\|chromium" | grep -v grep | awk '{print $2}' | xargs kill -9
+
+# Run with --isolated flag
+chrome-devtools-mcp --isolated
+```
+
+**Why Isolated Mode:**
+- Prevents "browser already running" errors
+- Enables parallel test execution
+- Allows concurrent UI testing across different pages
+- Required for automated E2E workflows
+
+**Common Error Without --isolated:**
+```
+Error: The browser is already running for /Users/username/.cache/chrome-devtools-mcp/chrome-profile.
+Use --isolated to run multiple browser instances.
+```
+
+### Playwright MCP (Specialized Tool)
+
+**ONLY use for:**
+- Complex E2E test suites with multiple scenarios
+- Accessibility tree-based element selection (when Chrome DevTools snapshot fails)
+- Multi-browser testing (Chrome, Firefox, Safari)
+- CI/CD automated testing pipelines
+- Advanced test automation features (fixtures, test isolation)
+
+**Example: When Playwright is appropriate**
+```typescript
+// Complex E2E flow requiring Playwright's advanced features
+await mcp__playwright__browser_navigate({ url: 'http://localhost:4200' });
+await mcp__playwright__browser_fill_form({
+  fields: [
+    { name: 'Search', ref: 'input[role="searchbox"]', value: 'automation', type: 'textbox' }
+  ]
+});
+await mcp__playwright__browser_click({
+  element: 'Submit button',
+  ref: 'button[type="submit"]'
+});
+await mcp__playwright__browser_wait_for({ text: 'Results loaded' });
+```
+
+### Decision Tree
+
+```
+User wants to interact with browser
+  │
+  ├─ Taking screenshots? → Chrome DevTools MCP
+  ├─ Debugging UI issues? → Chrome DevTools MCP
+  ├─ Filling forms? → Chrome DevTools MCP
+  ├─ Checking console logs? → Chrome DevTools MCP
+  ├─ Monitoring network? → Chrome DevTools MCP
+  ├─ Simple navigation? → Chrome DevTools MCP
+  │
+  └─ Complex E2E test suite with multiple scenarios? → Playwright MCP
+     └─ Multi-browser testing? → Playwright MCP
+        └─ CI/CD pipeline automation? → Playwright MCP
+```
+
+### Examples: Common Tasks
+
+**Taking Screenshots (Chrome DevTools)**
+```typescript
+// ✅ CORRECT: Use Chrome DevTools for screenshots
+await mcp__chrome-devtools__take_screenshot({
+  filename: 'dashboard-view.png',
+  fullPage: true
+});
+
+// Element-specific screenshot
+await mcp__chrome-devtools__take_screenshot({
+  filename: 'hero-section.png',
+  element: 'Hero section',
+  fullPage: false
+});
+```
+
+**Form Testing (Chrome DevTools)**
+```typescript
+// ✅ CORRECT: Use Chrome DevTools for form interactions
+await mcp__chrome-devtools__navigate_page({
+  url: 'http://localhost:4200/login'
+});
+
+await mcp__chrome-devtools__fill_form({
+  fields: [
+    { name: 'email', value: 'test@example.com', type: 'textbox' },
+    { name: 'password', value: 'test123', type: 'textbox' }
+  ]
+});
+
+await mcp__chrome-devtools__click({
+  selector: 'button[type="submit"]'
+});
+```
+
+**Debugging Console Errors (Chrome DevTools)**
+```typescript
+// ✅ CORRECT: Use Chrome DevTools for console inspection
+const errors = await mcp__chrome-devtools__list_console_messages({
+  onlyErrors: true
+});
+
+console.log('Found console errors:', errors);
+```
+
+**Network Request Monitoring (Chrome DevTools)**
+```typescript
+// ✅ CORRECT: Use Chrome DevTools for network monitoring
+await mcp__chrome-devtools__navigate_page({
+  url: 'http://localhost:4200/dashboard'
+});
+
+const requests = await mcp__chrome-devtools__list_network_requests();
+const apiCalls = requests.filter(r => r.url.includes('/api/'));
+console.log('API calls made:', apiCalls.length);
+```
+
+### Anti-Patterns
+
+**❌ INCORRECT: Using Playwright for simple screenshots**
+```typescript
+// Don't do this - overhead is unnecessary
+await mcp__playwright__browser_navigate({ url: 'http://localhost:4200' });
+await mcp__playwright__browser_take_screenshot({ filename: 'page.png' });
+```
+
+**✅ CORRECT: Use Chrome DevTools instead**
+```typescript
+await mcp__chrome-devtools__navigate_page({ url: 'http://localhost:4200' });
+await mcp__chrome-devtools__take_screenshot({ filename: 'page.png' });
+```
+
+---
+
 ## Performance Optimization Patterns
 
 ### Database Query Optimization
