@@ -8,7 +8,7 @@ const Footer = () => {
         <div className="grid md:grid-cols-4 gap-8 mb-8">
           <div>
             <Link to="/" className="text-lg font-semibold mb-4 block">
-              GHOSTMAP<span style={{ color: '#00ffff' }}>.AI</span>
+              GHOSTMAP<span className="text-primary">.AI</span>
             </Link>
             <p className="text-sm text-muted-foreground font-light">
               Enterprise security platform for shadow AI discovery

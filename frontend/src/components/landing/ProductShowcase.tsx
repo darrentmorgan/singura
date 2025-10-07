@@ -8,7 +8,7 @@ const ProductShowcase = () => {
           <h2 className="text-3xl md:text-5xl font-bold mb-4 animate-fade-in">
             Enterprise-Grade
             <br />
-            <span style={{ color: '#00ffff' }}>Security Intelligence</span>
+            <span className="text-primary">Security Intelligence</span>
           </h2>
           <p className="text-muted-foreground text-lg max-w-2xl mx-auto font-light animate-fade-in-up">
             Gain complete visibility into your organization's AI landscape
@@ -17,10 +17,10 @@ const ProductShowcase = () => {
 
         <div className="relative max-w-6xl mx-auto animate-scale-in">
           {/* Glow effect behind image */}
-          <div className="absolute -inset-4 blur-3xl rounded-3xl" style={{ backgroundColor: 'rgba(0, 255, 255, 0.2)' }} />
+          <div className="absolute -inset-4 blur-3xl rounded-3xl bg-primary/20" />
 
           {/* Dashboard Image */}
-          <div className="relative rounded-2xl overflow-hidden border glow-border" style={{ borderColor: 'rgba(0, 255, 255, 0.3)' }}>
+          <div className="relative rounded-2xl overflow-hidden border glow-border border-primary/30">
             <img
               src={dashboardPreview}
               alt="Ghostmap.ai Dashboard"
@@ -31,15 +31,15 @@ const ProductShowcase = () => {
           {/* Feature Annotations */}
           <div className="mt-12 grid md:grid-cols-3 gap-6">
             <div className="text-center">
-              <div className="text-3xl font-bold mb-2" style={{ color: '#00ffff' }}>99.9%</div>
+              <div className="text-3xl font-bold mb-2 text-primary">99.9%</div>
               <div className="text-sm text-muted-foreground font-light">Discovery Accuracy</div>
             </div>
             <div className="text-center">
-              <div className="text-3xl font-bold mb-2" style={{ color: '#00ffff' }}>&lt;60s</div>
+              <div className="text-3xl font-bold mb-2 text-primary">&lt;60s</div>
               <div className="text-sm text-muted-foreground font-light">First Discovery</div>
             </div>
             <div className="text-center">
-              <div className="text-3xl font-bold mb-2" style={{ color: '#00ffff' }}>0.1%</div>
+              <div className="text-3xl font-bold mb-2 text-primary">0.1%</div>
               <div className="text-sm text-muted-foreground font-light">False Positive Rate</div>
             </div>
           </div>

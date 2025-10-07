@@ -24,7 +24,7 @@ const Hero = () => {
         <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold tracking-tight mb-6 animate-fade-in">
           Expose the Shadow
           <br />
-          <span className="glow-text" style={{ color: '#00ffff' }}>AI Network</span>
+          <span className="glow-text text-primary">AI Network</span>
         </h1>
 
         <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto mb-12 animate-fade-in-up font-light">
@@ -35,20 +35,12 @@ const Hero = () => {
           <a href="#platform">
             <Button
               size="lg"
-              className="font-medium px-8 h-12"
-              style={{ backgroundColor: '#00ffff', color: '#000000' }}
+              className="font-medium px-8 h-12 bg-primary text-primary-foreground hover:bg-primary/90"
             >
               SEE IT IN ACTION
               <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
           </a>
-        </div>
-
-        {/* Scroll Indicator */}
-        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce">
-          <div className="w-6 h-10 rounded-full flex items-start justify-center p-2" style={{ border: '2px solid rgba(0, 255, 255, 0.5)' }}>
-            <div className="w-1.5 h-3 rounded-full animate-glow-pulse" style={{ backgroundColor: '#00ffff' }} />
-          </div>
         </div>
       </div>
     </section>

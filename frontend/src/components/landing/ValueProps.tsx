@@ -33,8 +33,8 @@ const ValueProps = () => {
                 style={{ animationDelay: `${index * 0.1}s` }}
               >
                 <div className="mb-6">
-                  <div className="w-12 h-12 rounded-lg flex items-center justify-center group-hover:bg-primary/20 transition-colors" style={{ backgroundColor: 'rgba(0, 255, 255, 0.1)' }}>
-                    <Icon className="h-6 w-6" style={{ color: '#00ffff' }} />
+                  <div className="w-12 h-12 rounded-lg flex items-center justify-center group-hover:bg-primary/20 transition-colors bg-primary/10">
+                    <Icon className="h-6 w-6 text-primary" />
                   </div>
                 </div>
 
