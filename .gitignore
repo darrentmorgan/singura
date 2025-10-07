@@ -122,3 +122,7 @@ temp/
 *.bak
 *.backup
 .vercel
+
+# Test screenshots
+.playwright-mcp/
+*.png
