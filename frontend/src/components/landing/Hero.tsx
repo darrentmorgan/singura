@@ -24,7 +24,7 @@ const Hero = () => {
         <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold tracking-tight mb-6 animate-fade-in">
           Expose the Shadow
           <br />
-          <span className="text-primary glow-text">AI Network</span>
+          <span className="glow-text" style={{ color: '#00ffff' }}>AI Network</span>
         </h1>
 
         <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto mb-12 animate-fade-in-up font-light">
@@ -32,22 +32,14 @@ const Hero = () => {
         </p>
 
         <div className="flex flex-col sm:flex-row gap-4 justify-center items-center animate-fade-in-up">
-          <Link to="/login">
-            <Button
-              size="lg"
-              className="bg-primary text-primary-foreground hover:bg-primary/90 font-medium group px-8 h-12"
-            >
-              START FREE TRIAL
-              <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
-            </Button>
-          </Link>
           <a href="#platform">
             <Button
               size="lg"
-              variant="outline"
-              className="border-primary/50 text-foreground hover:bg-primary/10 font-medium px-8 h-12"
+              className="font-medium px-8 h-12"
+              style={{ backgroundColor: '#00ffff', color: '#000000' }}
             >
               SEE IT IN ACTION
+              <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
           </a>
         </div>

@@ -46,22 +46,22 @@
     --card-foreground: 0 0% 98%;
     --popover: 0 0% 7%;
     --popover-foreground: 0 0% 98%;
-    --primary: 180 95% 55%; /* Cyan/teal accent */
+    --primary: 180 100% 50%; /* Bright cyan - more vibrant */
     --primary-foreground: 0 0% 5%;
     --secondary: 0 0% 12%;
     --secondary-foreground: 0 0% 98%;
     --muted: 0 0% 15%;
     --muted-foreground: 0 0% 60%;
-    --accent: 180 95% 55%;
+    --accent: 180 100% 50%;
     --accent-foreground: 0 0% 5%;
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 98%;
     --border: 0 0% 20%;
     --input: 0 0% 20%;
-    --ring: 180 95% 55%;
+    --ring: 180 100% 50%;
 
     /* Custom landing page tokens */
-    --glow-primary: 180 95% 55%;
+    --glow-primary: 180 100% 50%;
     --glow-secondary: 190 85% 65%;
     --surface-elevated: 0 0% 10%;
     --surface-depth: 0 0% 6%;

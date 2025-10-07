@@ -13,7 +13,7 @@ const CTASection = () => {
           <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6">
             Ready to Expose Your
             <br />
-            <span className="text-primary glow-text">Shadow AI Network?</span>
+            <span className="glow-text" style={{ color: '#00ffff' }}>Shadow AI Network?</span>
           </h2>
 
           <p className="text-lg text-muted-foreground mb-10 font-light">
@@ -26,7 +26,8 @@ const CTASection = () => {
             <Link to="/login">
               <Button
                 size="lg"
-                className="bg-primary text-primary-foreground hover:bg-primary/90 font-medium group px-8 h-12"
+                className="font-medium group px-8 h-12"
+                style={{ backgroundColor: '#00ffff', color: '#000000' }}
               >
                 Start Free Trial
                 <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
@@ -38,6 +39,7 @@ const CTASection = () => {
                 size="lg"
                 variant="outline"
                 className="border-primary/50 text-foreground hover:bg-primary/10 font-medium px-8 h-12"
+                style={{ borderColor: 'rgba(0, 255, 255, 0.5)' }}
               >
                 Schedule Demo
               </Button>

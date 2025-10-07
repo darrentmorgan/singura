@@ -8,7 +8,7 @@ const ProductShowcase = () => {
           <h2 className="text-3xl md:text-5xl font-bold mb-4 animate-fade-in">
             Enterprise-Grade
             <br />
-            <span className="text-primary">Automation Intelligence</span>
+            <span style={{ color: '#00ffff' }}>Automation Intelligence</span>
           </h2>
           <p className="text-muted-foreground text-lg max-w-2xl mx-auto font-light animate-fade-in-up">
             Gain complete visibility into your organization's automation landscape
