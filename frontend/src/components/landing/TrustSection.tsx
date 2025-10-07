@@ -28,9 +28,10 @@ const TrustSection = () => {
               <Badge
                 key={index}
                 variant="outline"
-                className="px-6 py-3 border-primary/30 bg-card hover:bg-primary/10 transition-colors"
+                className="px-6 py-3 bg-card hover:bg-primary/10 transition-colors"
+                style={{ borderColor: 'rgba(0, 255, 255, 0.3)' }}
               >
-                <Icon className="h-4 w-4 mr-2 text-primary" />
+                <Icon className="h-4 w-4 mr-2" style={{ color: '#00ffff' }} />
                 {item.label}
               </Badge>
             );

@@ -38,8 +38,8 @@ const CTASection = () => {
               <Button
                 size="lg"
                 variant="outline"
-                className="border-primary/50 text-foreground hover:bg-primary/10 font-medium px-8 h-12"
-                style={{ borderColor: 'rgba(0, 255, 255, 0.5)' }}
+                className="font-medium px-8 h-12 text-foreground hover:text-foreground"
+                style={{ borderColor: 'rgba(0, 255, 255, 0.5)', backgroundColor: 'transparent' }}
               >
                 Schedule Demo
               </Button>

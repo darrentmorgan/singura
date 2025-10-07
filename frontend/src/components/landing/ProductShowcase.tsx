@@ -31,15 +31,15 @@ const ProductShowcase = () => {
           {/* Feature Annotations */}
           <div className="mt-12 grid md:grid-cols-3 gap-6">
             <div className="text-center">
-              <div className="text-3xl font-bold text-primary mb-2">99.9%</div>
+              <div className="text-3xl font-bold mb-2" style={{ color: '#00ffff' }}>99.9%</div>
               <div className="text-sm text-muted-foreground font-light">Discovery Accuracy</div>
             </div>
             <div className="text-center">
-              <div className="text-3xl font-bold text-primary mb-2">&lt;60s</div>
+              <div className="text-3xl font-bold mb-2" style={{ color: '#00ffff' }}>&lt;60s</div>
               <div className="text-sm text-muted-foreground font-light">First Discovery</div>
             </div>
             <div className="text-center">
-              <div className="text-3xl font-bold text-primary mb-2">0.1%</div>
+              <div className="text-3xl font-bold mb-2" style={{ color: '#00ffff' }}>0.1%</div>
               <div className="text-sm text-muted-foreground font-light">False Positive Rate</div>
             </div>
           </div>
