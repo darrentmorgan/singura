@@ -7,3 +7,4 @@ export * from './user';
 export * from './automation';
 export * from './connection';
 export * from './audit-log';
+export * from './feedback';

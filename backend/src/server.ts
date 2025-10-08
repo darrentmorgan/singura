@@ -12,6 +12,7 @@ import authRoutes from './routes/auth';
 import connectionRoutes from './routes/connections';
 import automationRoutes from './routes/automations';
 import correlationRoutes from './routes/correlation';
+import feedbackRoutes from './routes/feedback';
 
 // Load environment variables
 dotenv.config();
@@ -54,6 +55,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api', connectionRoutes);
 app.use('/api/automations', automationRoutes);
 app.use('/api/correlation', correlationRoutes);
+app.use('/api/feedback', feedbackRoutes);
 
 // 404 handler
 app.use('*', (req, res) => {
