@@ -10,18 +10,27 @@ import { VelocityDetectorService } from './velocity-detector.service';
 import { BatchOperationDetectorService } from './batch-operation-detector.service';
 import { OffHoursDetectorService } from './off-hours-detector.service';
 import { AIProviderDetectorService } from './ai-provider-detector.service';
+import { TimingVarianceDetectorService } from './timing-variance-detector.service';
+import { PermissionEscalationDetectorService } from './permission-escalation-detector.service';
+import { DataVolumeDetectorService } from './data-volume-detector.service';
 
 export class DetectionEngineService {
   private velocityDetector: VelocityDetectorService;
   private batchOperationDetector: BatchOperationDetectorService;
   private offHoursDetector: OffHoursDetectorService;
   private aiProviderDetector: AIProviderDetectorService;
+  private timingVarianceDetector: TimingVarianceDetectorService;
+  private permissionEscalationDetector: PermissionEscalationDetectorService;
+  private dataVolumeDetector: DataVolumeDetectorService;
 
-  constructor() {
+  constructor(private organizationId?: string) {
     this.velocityDetector = new VelocityDetectorService();
     this.batchOperationDetector = new BatchOperationDetectorService();
     this.offHoursDetector = new OffHoursDetectorService();
     this.aiProviderDetector = new AIProviderDetectorService();
+    this.timingVarianceDetector = new TimingVarianceDetectorService();
+    this.permissionEscalationDetector = new PermissionEscalationDetectorService();
+    this.dataVolumeDetector = new DataVolumeDetectorService();
   }
 
   async detectShadowAI(
@@ -81,12 +90,27 @@ export class DetectionEngineService {
       }
     }));
 
+    // NEW: Timing variance detection (catches throttled bots)
+    const timingVariancePatterns = this.timingVarianceDetector.detectSuspiciousTimingPatterns(events);
+
+    // NEW: Permission escalation detection (detects privilege creep)
+    const permissionEscalationPatterns = await this.permissionEscalationDetector.detectEscalation(events);
+
+    // NEW: Data volume detection (catches exfiltration)
+    const dataVolumePatterns = await this.dataVolumeDetector.detectExfiltration(
+      events,
+      this.organizationId || 'unknown'
+    );
+
     // Combine all patterns and indicators
     const activityPatterns = [
-      ...velocityPatterns, 
-      ...batchOperationPatterns, 
+      ...velocityPatterns,
+      ...batchOperationPatterns,
       ...offHoursPatterns,
-      ...aiActivityPatterns
+      ...aiActivityPatterns,
+      ...timingVariancePatterns,
+      ...permissionEscalationPatterns,
+      ...dataVolumePatterns
     ];
 
     const riskIndicators = [
