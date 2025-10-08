@@ -1,219 +1,184 @@
-# SaaS X-Ray Development Guidelines
+# SaaS X-Ray Development - Quick Reference
 
-## CRITICAL PROTOCOL - Read First
+## 🚨 CRITICAL: Pre-Action Checklist (MANDATORY)
 
-### Pre-Action Checklist (MANDATORY)
-Before ANY response:
-1. **Evaluate Sub-Agent Delegation** - Can this be delegated? (See matrix below)
-2. **Reference Project Context** - Is this SaaS X-Ray related?
-3. **Check Documentation** - Need up-to-date library docs? (Use Context7)
-4. **Validate Requirements** - TypeScript, testing, security requirements met?
+**Before ANY response, check:**
+1. **Delegate?** → See matrix below (if YES → Task tool immediately)
+2. **SaaS X-Ray context?** → Use project patterns/pitfalls
+3. **Need docs?** → Context7 for up-to-date library info
+4. **Standards?** → TypeScript strict, TDD, security-first
 
 ---
 
-## Sub-Agent Delegation Protocol
+## Sub-Agent Delegation Matrix
 
-### Core Philosophy: Preserve Main Context
-**RULE**: Main orchestrator NEVER consumes context on specialized tasks.
-**GOAL**: Keep main context <100K tokens by delegating ALL specialized work.
+### ALWAYS Delegate (Automatic)
+| Trigger Keywords | Agent | Notes |
+|-----------------|-------|-------|
+| OAuth/credentials/platform APIs | `oauth-integration-specialist` | Never handle directly |
+| Database/migrations/JSONB/queries | `database-architect` | Has Supabase MCP |
+| TypeScript errors/types | `typescript-guardian` | Type coverage expert |
+| React/Clerk/Zustand | `react-clerk-expert` | Frontend specialist |
+| API/middleware | `api-middleware-specialist` | Backend API expert |
+| Detection/ML/correlation | `detection-algorithm-engineer` | Algorithm specialist |
+| Tests/coverage/failures | `test-suite-manager` | Testing expert |
+| Security/encryption/compliance | `security-compliance-auditor` | Security specialist |
+| Code reviews | `code-reviewer-pro` | Quality assurance |
+| Documentation | `documentation-sync` | Doc updates |
+| Performance | `performance-optimizer` | Performance tuning |
+| Docker/CI/CD | `docker-deployment-expert` | DevOps specialist |
+| API research/validation | `research-specialist` | Research & validation |
 
-### Delegation Decision Matrix
-
-**ALWAYS Delegate (Automatic):**
-- OAuth/credentials/platform APIs → `oauth-integration-specialist`
-- Database/migrations/JSONB/queries → `database-architect`
-- TypeScript errors/type coverage → `typescript-guardian`
-- React/Clerk/Zustand issues → `react-clerk-expert`
-- API endpoints/middleware → `api-middleware-specialist`
-- Detection algorithms/ML/correlation → `detection-algorithm-engineer`
-- Tests/coverage/failures → `test-suite-manager`
-- Security/encryption/compliance → `security-compliance-auditor`
-- Code reviews → `code-reviewer-pro`
-- Documentation updates → `documentation-sync`
-- Performance issues → `performance-optimizer`
-- Docker/CI/CD → `docker-deployment-expert`
-- API research/validation/best practices → `research-specialist`
-
-**ONLY Main Agent Handles:**
-- High-level architecture decisions
-- Cross-domain tasks (3+ sub-agent expertise)
+### Main Agent ONLY Handles
+- High-level architecture decisions (cross-domain, 3+ agents)
 - Simple questions (no code changes)
 - Requirements gathering
 
-**Sub-Agent Details**: See `.claude/agents/README.md` for 13 specialist descriptions.
+**Details**: See `.claude/agents/README.md` for 13 specialist descriptions
 
-### Enforcement Rules
-- Main agent NEVER directly edits OAuth/database/React code
-- Main agent NEVER runs extensive grep/read operations
-- Main agent NEVER debugs errors (delegate to specialist)
-- Main agent NEVER writes tests (delegate to test-suite-manager)
+### Enforcement (VIOLATION = FAILURE)
+- ❌ NEVER edit OAuth/database/React code directly
+- ❌ NEVER read > 5 files (delegate instead)
+- ❌ NEVER debug errors (delegate to specialist)
+- ❌ NEVER write tests (delegate to test-suite-manager)
+- ✅ ALWAYS check `.claude/agents/delegation-map.json` first
+- ✅ ALWAYS use Task tool for code changes
 
----
-
-## Core Development Beliefs
-
-### Philosophy
-- **Type-First** - All code MUST be fully typed (TypeScript strict mode)
-- **Shared-Types Architecture** - Use `@saas-xray/shared-types` for all contracts
-- **Test-First** - 80% coverage minimum, 100% for OAuth/security
-- **Security-First** - OAuth and compliance in every decision
-- **Singleton Pattern** - Stateful services MUST use singleton export pattern
-
-### Workflow: Types → Tests → Code (TDD)
-1. **Type Validation** - `npx tsc --noEmit` MUST pass first
-2. **Test Verification** - Run tests, add new tests BEFORE implementation
-3. **Code Integration** - Only integrate after types and tests validate
-4. **Immediate Commit** - Commit after successful integration
-
-**Failure Protocol**: ANY failure → IMMEDIATE REVERT
+**Examples**: See `.claude/docs/DELEGATION_EXAMPLES.md`
 
 ---
 
-## SaaS X-Ray Quick Reference
+## SaaS X-Ray Tech Stack
 
-### Project Overview
-**Enterprise security platform** for discovering unauthorized AI agents, bots, and automations across SaaS applications.
+**Platform**: Enterprise security for discovering unauthorized AI agents/bots
+- **Frontend**: React 18, TS 5.2, Vite, Clerk, Zustand, TailwindCSS
+- **Backend**: Node 20, Express, TS 5.3, Clerk, PostgreSQL (port 5433), Redis (6379)
+- **Shared**: `@saas-xray/shared-types` (9,000+ lines centralized types)
 
-**Tech Stack**:
-- Frontend: React 18 + TypeScript 5.2 + Vite + Clerk Auth + Zustand + TailwindCSS
-- Backend: Node.js 20 + Express + TypeScript 5.3 + Clerk + PostgreSQL (port 5433) + Redis (port 6379)
-- Shared: `@saas-xray/shared-types` (9,000+ lines of centralized types)
+**Features**: Multi-tenant auth, Slack ✅, Google Workspace ✅, Microsoft 365 🔄, real-time discovery, AI detection
 
-**Current Features**:
-- Multi-tenant auth (Clerk organization-based)
-- Platform integrations: Slack ✅, Google Workspace ✅, Microsoft 365 🔄
-- Real-time discovery (Socket.io)
-- AI platform detection (OpenAI, Claude, Gemini)
-- Cross-platform correlation engine
+---
 
-### Critical Architecture Patterns
+## Critical Patterns (Must Follow)
 
-**1. Singleton Services (Prevents State Loss)**
+### 1. Singleton Services (Prevents State Loss)
 ```typescript
-// Service file exports singleton
+// Export singleton from service file
 export const oauthCredentialStorage = new OAuthCredentialStorageService();
-
-// All consumers import singleton
-import { oauthCredentialStorage } from './oauth-credential-storage-service';
 ```
+**Why**: Prevents instance state loss (See `.claude/PITFALLS.md` #1)
 
-**2. Dual Storage Architecture**
-- Connection metadata → `hybridStorage` (database + memory)
+### 2. Dual Storage Architecture
+- Connection metadata → `hybridStorage` (DB + memory)
 - OAuth credentials → `oauthCredentialStorage` (singleton)
 - SAME connection ID for both
 
-**3. Repository Pattern (T | null)**
+### 3. Repository Pattern
 ```typescript
 interface Repository<T> {
   findById(id: string): Promise<T | null>;  // Standardized null handling
 }
 ```
 
-**4. Shared-Types Import Pattern**
+### 4. Shared-Types Imports
 ```typescript
 import { OAuthCredentials, User } from '@saas-xray/shared-types';
 ```
 
-### Docker Infrastructure (CRITICAL)
+### 5. Docker Setup
 ```bash
-# PostgreSQL: port 5433:5432
-# Redis: port 6379:6379
 docker compose up -d postgres redis
-
-# Database URLs
+# PostgreSQL: 5433:5432 | Redis: 6379:6379
 DATABASE_URL=postgresql://postgres:password@localhost:5433/saas_xray
-TEST_DATABASE_URL=postgresql://postgres:password@localhost:5433/saas_xray_test
 ```
 
-### Chrome DevTools MCP Server (CRITICAL)
-
-**MANDATORY: Always run in isolated mode to enable multiple browser instances**
-
+### 6. Chrome DevTools MCP (MANDATORY)
 ```bash
-# Kill existing Chrome processes before starting
+# ALWAYS run with --isolated flag
 ps aux | grep -i "chrome\|chromium" | grep -v grep | awk '{print $2}' | xargs kill -9
-
-# Run Chrome DevTools MCP with --isolated flag
-# This allows multiple browser instances for parallel testing
 chrome-devtools-mcp --isolated
 ```
+**Why**: Enables parallel browser instances (See `.claude/PATTERNS.md` - Browser Testing)
 
-**Why Isolated Mode:**
-- Prevents "browser already running" errors
-- Enables parallel test execution
-- Allows concurrent UI testing across different pages
-- Required for automated E2E workflows
+---
 
-**Common Error Without --isolated:**
-```
-Error: The browser is already running for /Users/darrenmorgan/.cache/chrome-devtools-mcp/chrome-profile.
-Use --isolated to run multiple browser instances.
-```
-
-**See Also**: `.claude/PATTERNS.md` - Browser Testing MCP Patterns (Chrome DevTools vs Playwright decision tree)
-
-### Validated OAuth Patterns
+## Validated OAuth Patterns
 
 **Slack Scopes**: `users:read`, `team:read`, `channels:read`
 **Google Scopes**: `script.projects.readonly`, `admin.directory.user.readonly`, `admin.reports.audit.readonly`
 
-**Slack API Methods (Validated)**:
+**Slack API (Validated)**:
 ```typescript
-// ✅ CORRECT: users.list() with is_bot filter
+// ✅ CORRECT
 const users = await client.users.list();
 const bots = users.members.filter(u => u.is_bot === true);
 
-// ❌ WRONG: These methods DON'T EXIST
-await client.apps.list();   // Does not exist!
-await client.bots.list();   // Does not exist!
+// ❌ WRONG - These DON'T EXIST
+await client.apps.list();   // ❌
+await client.bots.list();   // ❌
 ```
 
 ---
 
-## Quality Gates
+## TDD Workflow (Mandatory)
 
-### Commit Requirements (Enforced by CI/CD)
-- ✅ TypeScript compilation passes (`tsc --noEmit`)
+1. **Type Validation** → `npx tsc --noEmit` MUST pass first
+2. **Test Verification** → Run tests, add new tests BEFORE implementation
+3. **Code Integration** → Only integrate after types + tests validate
+4. **Immediate Commit** → Commit after successful integration
+
+**Failure Protocol**: ANY failure → IMMEDIATE REVERT
+
+---
+
+## Quality Gates (CI/CD Enforced)
+
+**Commit Requirements**:
+- ✅ TypeScript compiles (`tsc --noEmit`)
 - ✅ All tests pass (unit + integration + e2e)
-- ✅ 80% test coverage for new code
-- ✅ No `@ts-ignore` statements
+- ✅ 80% coverage for new code (100% OAuth/security)
+- ✅ No `@ts-ignore`
 - ✅ Shared-types build successful
 - ✅ Proper shared-types imports
-- ✅ Security tests pass for OAuth changes
 
-### Testing Requirements
-- **Backend**: Unit, integration, DB migration, OAuth, security, rate limiting tests
-- **Frontend**: Component, interaction, state, API client, validation, error boundary tests
-- **E2E**: Complete OAuth flows, discovery workflows, correlation tests
+**Testing Coverage**:
+- Backend: Unit, integration, DB migration, OAuth, security, rate limiting
+- Frontend: Component, interaction, state, API client, validation, error boundary
+- E2E: OAuth flows, discovery workflows, correlation
+
+**Details**: See `.claude/docs/QUALITY_GATES.md`
 
 ---
 
 ## Critical Pitfalls (MUST AVOID)
 
-### Top 6 Learned Pitfalls
-1. **Service Instance State Loss** - Use singleton exports (See `.claude/PITFALLS.md` #1)
-2. **Slack API Method Validation** - Methods like `apps.list()` don't exist (See `.claude/PITFALLS.md` #2)
-3. **Dual Storage Architecture** - Link connection metadata and OAuth tokens (See `.claude/PITFALLS.md` #3)
-4. **Database Persistence Fallback** - Docker containers may fail (See `.claude/PITFALLS.md` #4)
-5. **OAuth Scope Research** - Research BEFORE implementing (See `.claude/PITFALLS.md` #5)
-6. **Database Migrations Not Applied** - Automated migration runner required (See `.claude/PITFALLS.md` #6)
+**Top 6 Learned Lessons**:
+1. Service Instance State Loss → Use singleton exports
+2. Slack API Method Validation → Methods like `apps.list()` don't exist
+3. Dual Storage Architecture → Link connection metadata + OAuth tokens
+4. Database Persistence Fallback → Docker containers may fail
+5. OAuth Scope Research → Research BEFORE implementing
+6. Database Migrations Not Applied → Automated runner required
 
-**Full Details**: See `.claude/PITFALLS.md` for complete examples and solutions.
+**Full Details**: See `.claude/PITFALLS.md` with examples and solutions
 
 ---
 
-## Documentation Structure
+## Documentation Index
 
-### Quick Links
-- **Architecture Details**: `.claude/ARCHITECTURE.md` - System architecture, tech stack, project structure
-- **Code Patterns**: `.claude/PATTERNS.md` - Singleton usage, OAuth flows, repository patterns, browser testing (Chrome DevTools MCP vs Playwright)
-- **Critical Pitfalls**: `.claude/PITFALLS.md` - All 6 pitfalls with examples and solutions
-- **Sub-Agents**: `.claude/agents/README.md` - 12 specialist sub-agents
-- **API Reference**: `docs/API_REFERENCE.md` - Complete API documentation
-- **Testing Guide**: `docs/guides/TESTING.md` - Test strategy and standards
+**Core Docs**:
+- **Architecture**: `.claude/ARCHITECTURE.md` - System design, tech stack
+- **Patterns**: `.claude/PATTERNS.md` - Singleton, OAuth, repository, browser testing
+- **Pitfalls**: `.claude/PITFALLS.md` - All 6 pitfalls with solutions
+- **Sub-Agents**: `.claude/agents/README.md` - 13 specialists
+- **Delegation Examples**: `.claude/docs/DELEGATION_EXAMPLES.md` - Full scenarios
+- **Agent Response Format**: `.claude/docs/AGENT_RESPONSE_FORMAT.md` - Standards
+- **Quality Gates**: `.claude/docs/QUALITY_GATES.md` - Detailed requirements
+- **API Reference**: `docs/API_REFERENCE.md` - Complete API docs
+- **Testing Guide**: `docs/guides/TESTING.md` - Test strategy
 
-### Context7 Library IDs
-- Node.js/Express: `/websites/expressjs`
+**Context7 Library IDs**:
+- Node/Express: `/websites/expressjs`
 - React: `/reactjs/react.dev`
 - TypeScript: `/websites/typescriptlang`
 - PostgreSQL: `/websites/postgresql`
@@ -222,29 +187,29 @@ await client.bots.list();   // Does not exist!
 
 ---
 
-## Success Metrics
+## Success Indicators
 
-### Current Status (85% Complete)
-- ✅ Clerk multi-tenant authentication
-- ✅ Organization-scoped OAuth (Slack + Google Workspace)
-- ✅ TypeScript errors: 199+ → 78 remaining
-- ✅ Shared-types architecture (9,000+ lines)
-- ✅ Repository standardization (T | null pattern)
-- ✅ Real-time discovery system
+**Current Status (85% Complete)**:
+- ✅ Clerk multi-tenant auth
+- ✅ Org-scoped OAuth (Slack + Google)
+- ✅ TypeScript: 199+ → 78 errors remaining
+- ✅ Shared-types architecture (9K+ lines)
+- ✅ Repository standardization
+- ✅ Real-time discovery
 - ✅ Automated migration runner
 - 🔄 Next: Microsoft 365 integration
 
-### You Are Succeeding When
-- Sub-agent delegation used effectively (main context <100K tokens)
-- TypeScript error count decreasing (target: 0)
-- All new code uses shared-types imports
+**You're Succeeding When**:
+- Sub-agent delegation used (main context <100K tokens)
+- TypeScript errors decreasing (target: 0)
+- Shared-types imports everywhere
 - OAuth security patterns followed
-- Test coverage maintained at 80%+
-- Live OAuth connections working with real workspaces
+- 80%+ test coverage maintained
+- Live OAuth working
 
-### You Are Failing When
+**You're Failing When**:
 - Main agent consuming context on specialized tasks
-- Security requirements ignored
-- Code changes without tests
+- Security ignored
+- Code without tests
 - TypeScript standards violated
-- OAuth integrations lack security
+- OAuth lacks security
