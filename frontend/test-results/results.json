@@ -1,0 +1,1372 @@
+{
+  "config": {
+    "configFile": "/Users/darrenmorgan/AI_Projects/saas-xray/frontend/playwright.config.ts",
+    "rootDir": "/Users/darrenmorgan/AI_Projects/saas-xray/frontend/tests/e2e",
+    "forbidOnly": false,
+    "fullyParallel": true,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {},
+    "preserveOutput": "always",
+    "reporter": [
+      [
+        "html",
+        {
+          "outputFolder": "test-results/html"
+        }
+      ],
+      [
+        "json",
+        {
+          "outputFile": "test-results/results.json"
+        }
+      ],
+      [
+        "list",
+        null
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "quiet": false,
+    "projects": [
+      {
+        "outputDir": "/Users/darrenmorgan/AI_Projects/saas-xray/frontend/test-results/artifacts",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {},
+        "id": "chromium",
+        "name": "chromium",
+        "testDir": "/Users/darrenmorgan/AI_Projects/saas-xray/frontend/tests/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Users/darrenmorgan/AI_Projects/saas-xray/frontend/test-results/artifacts",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {},
+        "id": "firefox",
+        "name": "firefox",
+        "testDir": "/Users/darrenmorgan/AI_Projects/saas-xray/frontend/tests/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Users/darrenmorgan/AI_Projects/saas-xray/frontend/test-results/artifacts",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {},
+        "id": "webkit",
+        "name": "webkit",
+        "testDir": "/Users/darrenmorgan/AI_Projects/saas-xray/frontend/tests/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Users/darrenmorgan/AI_Projects/saas-xray/frontend/test-results/artifacts",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {},
+        "id": "Mobile Chrome",
+        "name": "Mobile Chrome",
+        "testDir": "/Users/darrenmorgan/AI_Projects/saas-xray/frontend/tests/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Users/darrenmorgan/AI_Projects/saas-xray/frontend/test-results/artifacts",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {},
+        "id": "Mobile Safari",
+        "name": "Mobile Safari",
+        "testDir": "/Users/darrenmorgan/AI_Projects/saas-xray/frontend/tests/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Users/darrenmorgan/AI_Projects/saas-xray/frontend/test-results/artifacts",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {},
+        "id": "Tablet",
+        "name": "Tablet",
+        "testDir": "/Users/darrenmorgan/AI_Projects/saas-xray/frontend/tests/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      }
+    ],
+    "shard": null,
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.56.0",
+    "workers": 6,
+    "webServer": {
+      "command": "npm run dev",
+      "url": "http://localhost:8080",
+      "reuseExistingServer": true,
+      "timeout": 120000
+    }
+  },
+  "suites": [
+    {
+      "title": "waitlist.spec.ts",
+      "file": "waitlist.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Waitlist Signup Flow",
+          "file": "waitlist.spec.ts",
+          "line": 8,
+          "column": 6,
+          "specs": [
+            {
+              "title": "should display landing page correctly",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "90c188d746fc87c78b58-f9364080dd863a953d0e",
+              "file": "waitlist.spec.ts",
+              "line": 15,
+              "column": 3
+            },
+            {
+              "title": "should open waitlist modal when clicking CTA button",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "90c188d746fc87c78b58-9d630f078e3680e8928b",
+              "file": "waitlist.spec.ts",
+              "line": 30,
+              "column": 3
+            },
+            {
+              "title": "should validate required email field",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "90c188d746fc87c78b58-cf3072fadc2924d9feb8",
+              "file": "waitlist.spec.ts",
+              "line": 46,
+              "column": 3
+            },
+            {
+              "title": "should successfully submit waitlist form with valid data",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "90c188d746fc87c78b58-0634b5cbff2d856cc9d3",
+              "file": "waitlist.spec.ts",
+              "line": 68,
+              "column": 3
+            },
+            {
+              "title": "should handle duplicate email gracefully",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "90c188d746fc87c78b58-45a810bc2a511e4c706e",
+              "file": "waitlist.spec.ts",
+              "line": 109,
+              "column": 3
+            },
+            {
+              "title": "should be responsive on mobile devices",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "90c188d746fc87c78b58-08c9e6d24cb691d87d11",
+              "file": "waitlist.spec.ts",
+              "line": 148,
+              "column": 3
+            },
+            {
+              "title": "should check for console errors",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "90c188d746fc87c78b58-c0661a5aecfcc4569e5c",
+              "file": "waitlist.spec.ts",
+              "line": 177,
+              "column": 3
+            },
+            {
+              "title": "should navigate to login page",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "90c188d746fc87c78b58-f80578ba8dcdbdefeee5",
+              "file": "waitlist.spec.ts",
+              "line": 207,
+              "column": 3
+            },
+            {
+              "title": "should display landing page correctly",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "90c188d746fc87c78b58-501d5076b6165e2cd6c8",
+              "file": "waitlist.spec.ts",
+              "line": 15,
+              "column": 3
+            },
+            {
+              "title": "should open waitlist modal when clicking CTA button",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "90c188d746fc87c78b58-fec059a7f2c3e7411df5",
+              "file": "waitlist.spec.ts",
+              "line": 30,
+              "column": 3
+            },
+            {
+              "title": "should validate required email field",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "90c188d746fc87c78b58-24ea0432e12176f80570",
+              "file": "waitlist.spec.ts",
+              "line": 46,
+              "column": 3
+            },
+            {
+              "title": "should successfully submit waitlist form with valid data",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "90c188d746fc87c78b58-5ba5109968c19899318d",
+              "file": "waitlist.spec.ts",
+              "line": 68,
+              "column": 3
+            },
+            {
+              "title": "should handle duplicate email gracefully",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "90c188d746fc87c78b58-f156ac6b26b098c17df1",
+              "file": "waitlist.spec.ts",
+              "line": 109,
+              "column": 3
+            },
+            {
+              "title": "should be responsive on mobile devices",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "90c188d746fc87c78b58-7f54f79c00f0fdc6c0f7",
+              "file": "waitlist.spec.ts",
+              "line": 148,
+              "column": 3
+            },
+            {
+              "title": "should check for console errors",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "90c188d746fc87c78b58-283cb7a06b3934d73ff0",
+              "file": "waitlist.spec.ts",
+              "line": 177,
+              "column": 3
+            },
+            {
+              "title": "should navigate to login page",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "90c188d746fc87c78b58-62e74185ca4c9510d687",
+              "file": "waitlist.spec.ts",
+              "line": 207,
+              "column": 3
+            },
+            {
+              "title": "should display landing page correctly",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "webkit",
+                  "projectName": "webkit",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "90c188d746fc87c78b58-40845db47236a76ef0b9",
+              "file": "waitlist.spec.ts",
+              "line": 15,
+              "column": 3
+            },
+            {
+              "title": "should open waitlist modal when clicking CTA button",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "webkit",
+                  "projectName": "webkit",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "90c188d746fc87c78b58-e7a52a17da4a6edd1ca5",
+              "file": "waitlist.spec.ts",
+              "line": 30,
+              "column": 3
+            },
+            {
+              "title": "should validate required email field",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "webkit",
+                  "projectName": "webkit",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "90c188d746fc87c78b58-e915ecf7e48b379b6d91",
+              "file": "waitlist.spec.ts",
+              "line": 46,
+              "column": 3
+            },
+            {
+              "title": "should successfully submit waitlist form with valid data",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "webkit",
+                  "projectName": "webkit",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "90c188d746fc87c78b58-c55679940d9d3d938472",
+              "file": "waitlist.spec.ts",
+              "line": 68,
+              "column": 3
+            },
+            {
+              "title": "should handle duplicate email gracefully",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "webkit",
+                  "projectName": "webkit",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "90c188d746fc87c78b58-a447289b7f269b825c95",
+              "file": "waitlist.spec.ts",
+              "line": 109,
+              "column": 3
+            },
+            {
+              "title": "should be responsive on mobile devices",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "webkit",
+                  "projectName": "webkit",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "90c188d746fc87c78b58-38ad2edb4dc621a0d6e1",
+              "file": "waitlist.spec.ts",
+              "line": 148,
+              "column": 3
+            },
+            {
+              "title": "should check for console errors",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "webkit",
+                  "projectName": "webkit",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "90c188d746fc87c78b58-22056925bd8c55216723",
+              "file": "waitlist.spec.ts",
+              "line": 177,
+              "column": 3
+            },
+            {
+              "title": "should navigate to login page",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "webkit",
+                  "projectName": "webkit",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "90c188d746fc87c78b58-ce1a3ce79c5ef446b0d5",
+              "file": "waitlist.spec.ts",
+              "line": 207,
+              "column": 3
+            },
+            {
+              "title": "should display landing page correctly",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Chrome",
+                  "projectName": "Mobile Chrome",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "90c188d746fc87c78b58-f862e5592f6bc6c6b476",
+              "file": "waitlist.spec.ts",
+              "line": 15,
+              "column": 3
+            },
+            {
+              "title": "should open waitlist modal when clicking CTA button",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Chrome",
+                  "projectName": "Mobile Chrome",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "90c188d746fc87c78b58-8c86b99410b476861328",
+              "file": "waitlist.spec.ts",
+              "line": 30,
+              "column": 3
+            },
+            {
+              "title": "should validate required email field",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Chrome",
+                  "projectName": "Mobile Chrome",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "90c188d746fc87c78b58-3f57e6fb470b738500ec",
+              "file": "waitlist.spec.ts",
+              "line": 46,
+              "column": 3
+            },
+            {
+              "title": "should successfully submit waitlist form with valid data",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Chrome",
+                  "projectName": "Mobile Chrome",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "90c188d746fc87c78b58-d77823ad02eb9e9470a2",
+              "file": "waitlist.spec.ts",
+              "line": 68,
+              "column": 3
+            },
+            {
+              "title": "should handle duplicate email gracefully",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Chrome",
+                  "projectName": "Mobile Chrome",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "90c188d746fc87c78b58-954f5e77d177dac8ee19",
+              "file": "waitlist.spec.ts",
+              "line": 109,
+              "column": 3
+            },
+            {
+              "title": "should be responsive on mobile devices",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Chrome",
+                  "projectName": "Mobile Chrome",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "90c188d746fc87c78b58-6658a0a6139cc06af30d",
+              "file": "waitlist.spec.ts",
+              "line": 148,
+              "column": 3
+            },
+            {
+              "title": "should check for console errors",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Chrome",
+                  "projectName": "Mobile Chrome",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "90c188d746fc87c78b58-d9c1a0d49b3b225de484",
+              "file": "waitlist.spec.ts",
+              "line": 177,
+              "column": 3
+            },
+            {
+              "title": "should navigate to login page",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Chrome",
+                  "projectName": "Mobile Chrome",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "90c188d746fc87c78b58-fef3d5efda953c6acb01",
+              "file": "waitlist.spec.ts",
+              "line": 207,
+              "column": 3
+            },
+            {
+              "title": "should display landing page correctly",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Safari",
+                  "projectName": "Mobile Safari",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "90c188d746fc87c78b58-c9e9027ddcf755970985",
+              "file": "waitlist.spec.ts",
+              "line": 15,
+              "column": 3
+            },
+            {
+              "title": "should open waitlist modal when clicking CTA button",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Safari",
+                  "projectName": "Mobile Safari",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "90c188d746fc87c78b58-1fadca924ebd02a192e2",
+              "file": "waitlist.spec.ts",
+              "line": 30,
+              "column": 3
+            },
+            {
+              "title": "should validate required email field",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Safari",
+                  "projectName": "Mobile Safari",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "90c188d746fc87c78b58-861502e57388b647e0ac",
+              "file": "waitlist.spec.ts",
+              "line": 46,
+              "column": 3
+            },
+            {
+              "title": "should successfully submit waitlist form with valid data",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Safari",
+                  "projectName": "Mobile Safari",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "90c188d746fc87c78b58-e70088e53cf42e655cb9",
+              "file": "waitlist.spec.ts",
+              "line": 68,
+              "column": 3
+            },
+            {
+              "title": "should handle duplicate email gracefully",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Safari",
+                  "projectName": "Mobile Safari",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "90c188d746fc87c78b58-a9ad130a0c7f1a132023",
+              "file": "waitlist.spec.ts",
+              "line": 109,
+              "column": 3
+            },
+            {
+              "title": "should be responsive on mobile devices",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Safari",
+                  "projectName": "Mobile Safari",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "90c188d746fc87c78b58-4fe6da7c872947cbf8dc",
+              "file": "waitlist.spec.ts",
+              "line": 148,
+              "column": 3
+            },
+            {
+              "title": "should check for console errors",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Safari",
+                  "projectName": "Mobile Safari",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "90c188d746fc87c78b58-df44ed7970507d7684d8",
+              "file": "waitlist.spec.ts",
+              "line": 177,
+              "column": 3
+            },
+            {
+              "title": "should navigate to login page",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Safari",
+                  "projectName": "Mobile Safari",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "90c188d746fc87c78b58-ea5c52f190c06b47e790",
+              "file": "waitlist.spec.ts",
+              "line": 207,
+              "column": 3
+            },
+            {
+              "title": "should display landing page correctly",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Tablet",
+                  "projectName": "Tablet",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "90c188d746fc87c78b58-873ba866081ca44608e5",
+              "file": "waitlist.spec.ts",
+              "line": 15,
+              "column": 3
+            },
+            {
+              "title": "should open waitlist modal when clicking CTA button",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Tablet",
+                  "projectName": "Tablet",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "90c188d746fc87c78b58-ec0c2ec5cfff8b929fb4",
+              "file": "waitlist.spec.ts",
+              "line": 30,
+              "column": 3
+            },
+            {
+              "title": "should validate required email field",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Tablet",
+                  "projectName": "Tablet",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "90c188d746fc87c78b58-c88ea866e372be50a770",
+              "file": "waitlist.spec.ts",
+              "line": 46,
+              "column": 3
+            },
+            {
+              "title": "should successfully submit waitlist form with valid data",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Tablet",
+                  "projectName": "Tablet",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "90c188d746fc87c78b58-9cd259c47d5ca59773a4",
+              "file": "waitlist.spec.ts",
+              "line": 68,
+              "column": 3
+            },
+            {
+              "title": "should handle duplicate email gracefully",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Tablet",
+                  "projectName": "Tablet",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "90c188d746fc87c78b58-50cfb7c2e0c69828bc82",
+              "file": "waitlist.spec.ts",
+              "line": 109,
+              "column": 3
+            },
+            {
+              "title": "should be responsive on mobile devices",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Tablet",
+                  "projectName": "Tablet",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "90c188d746fc87c78b58-2538d14e518de81f2ee8",
+              "file": "waitlist.spec.ts",
+              "line": 148,
+              "column": 3
+            },
+            {
+              "title": "should check for console errors",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Tablet",
+                  "projectName": "Tablet",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "90c188d746fc87c78b58-f95d7c73395111fead7d",
+              "file": "waitlist.spec.ts",
+              "line": 177,
+              "column": 3
+            },
+            {
+              "title": "should navigate to login page",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Tablet",
+                  "projectName": "Tablet",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "90c188d746fc87c78b58-57d8574d91c423f7efa5",
+              "file": "waitlist.spec.ts",
+              "line": 207,
+              "column": 3
+            }
+          ]
+        },
+        {
+          "title": "Landing Page Accessibility",
+          "file": "waitlist.spec.ts",
+          "line": 227,
+          "column": 6,
+          "specs": [
+            {
+              "title": "should have proper heading hierarchy",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "90c188d746fc87c78b58-8875e10e28fa6f68831c",
+              "file": "waitlist.spec.ts",
+              "line": 228,
+              "column": 3
+            },
+            {
+              "title": "should have accessible form labels",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "90c188d746fc87c78b58-c46536b464cf1dceb80b",
+              "file": "waitlist.spec.ts",
+              "line": 241,
+              "column": 3
+            },
+            {
+              "title": "should have proper heading hierarchy",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "90c188d746fc87c78b58-07361bb0a01e773a787c",
+              "file": "waitlist.spec.ts",
+              "line": 228,
+              "column": 3
+            },
+            {
+              "title": "should have accessible form labels",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "90c188d746fc87c78b58-6a673b00759f40937f83",
+              "file": "waitlist.spec.ts",
+              "line": 241,
+              "column": 3
+            },
+            {
+              "title": "should have proper heading hierarchy",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "webkit",
+                  "projectName": "webkit",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "90c188d746fc87c78b58-f749cb428ed3d2ad6d5a",
+              "file": "waitlist.spec.ts",
+              "line": 228,
+              "column": 3
+            },
+            {
+              "title": "should have accessible form labels",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "webkit",
+                  "projectName": "webkit",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "90c188d746fc87c78b58-cffdd735072767fb7978",
+              "file": "waitlist.spec.ts",
+              "line": 241,
+              "column": 3
+            },
+            {
+              "title": "should have proper heading hierarchy",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Chrome",
+                  "projectName": "Mobile Chrome",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "90c188d746fc87c78b58-f358662d5011ad192e2c",
+              "file": "waitlist.spec.ts",
+              "line": 228,
+              "column": 3
+            },
+            {
+              "title": "should have accessible form labels",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Chrome",
+                  "projectName": "Mobile Chrome",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "90c188d746fc87c78b58-84ed4636056695593458",
+              "file": "waitlist.spec.ts",
+              "line": 241,
+              "column": 3
+            },
+            {
+              "title": "should have proper heading hierarchy",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Safari",
+                  "projectName": "Mobile Safari",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "90c188d746fc87c78b58-f28d4a95e8b5368f9879",
+              "file": "waitlist.spec.ts",
+              "line": 228,
+              "column": 3
+            },
+            {
+              "title": "should have accessible form labels",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Safari",
+                  "projectName": "Mobile Safari",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "90c188d746fc87c78b58-a5a6dfb9f43d44a86af6",
+              "file": "waitlist.spec.ts",
+              "line": 241,
+              "column": 3
+            },
+            {
+              "title": "should have proper heading hierarchy",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Tablet",
+                  "projectName": "Tablet",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "90c188d746fc87c78b58-0c64c9770a517a00ec0e",
+              "file": "waitlist.spec.ts",
+              "line": 228,
+              "column": 3
+            },
+            {
+              "title": "should have accessible form labels",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Tablet",
+                  "projectName": "Tablet",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "90c188d746fc87c78b58-13214367d5bb48306e44",
+              "file": "waitlist.spec.ts",
+              "line": 241,
+              "column": 3
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2025-10-08T06:46:12.298Z",
+    "duration": 125.75399999999996,
+    "expected": 0,
+    "skipped": 60,
+    "unexpected": 0,
+    "flaky": 0
+  }
+}

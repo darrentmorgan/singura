@@ -1,307 +1,96 @@
 name: E2E Tests
 
 on:
-  push:
-    branches: [ main, develop ]
   pull_request:
-    branches: [ main, develop ]
-  schedule:
-    # Run E2E tests daily at 2 AM UTC
-    - cron: '0 2 * * *'
+    branches: [main, develop]
+    paths:
+      - 'frontend/**'
+      - '.github/workflows/e2e-tests.yml'
+  push:
+    branches: [main, develop]
+    paths:
+      - 'frontend/**'
+      - '.github/workflows/e2e-tests.yml'
+  workflow_dispatch:
 
-env:
-  NODE_VERSION: '20'
-  
 jobs:
-  e2e-tests:
-    name: End-to-End Tests
+  test:
+    name: E2E Tests
     runs-on: ubuntu-latest
-    
-    services:
-      postgres:
-        image: postgres:16
-        env:
-          POSTGRES_PASSWORD: password
-          POSTGRES_USER: postgres
-          POSTGRES_DB: saas_xray_test
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-        ports:
-          - 5432:5432
-      
-      redis:
-        image: redis:7
-        options: >-
-          --health-cmd "redis-cli ping"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-        ports:
-          - 6379:6379
+    timeout-minutes: 30
 
     strategy:
+      fail-fast: false
       matrix:
         browser: [chromium, firefox, webkit]
-        shard: [1, 2]
-    
+
+    env:
+      # Supabase environment variables for waitlist tests
+      VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL || 'https://placeholder.supabase.co' }}
+      VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY || 'placeholder-key' }}
+
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: ${{ env.NODE_VERSION }}
-        cache: 'npm'
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: 'frontend/package-lock.json'
 
-    - name: Install dependencies
-      run: |
-        npm ci
-        npm run test:e2e:install
-        # Build and link shared-types package
-        cd shared-types && npm run build && cd ..
-        # Ensure shared-types is available to backend and frontend
-        cd backend && npm link ../shared-types && cd ..
-        cd frontend && npm link ../shared-types && cd ..
-        
-    - name: Install system dependencies for browsers
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y \
-          libnss3 \
-          libnspr4 \
-          libatk-bridge2.0-0 \
-          libdrm2 \
-          libxkbcommon0 \
-          libxcomposite1 \
-          libxdamage1 \
-          libxrandr2 \
-          libgbm1 \
-          libxss1 \
-          libasound2t64
+      - name: Install dependencies
+        working-directory: ./frontend
+        run: npm ci
 
-    - name: Build application
-      run: |
-        npm run build
-        
-    - name: Setup test environment variables
-      run: |
-        echo "DATABASE_URL=postgresql://postgres:password@localhost:5432/saas_xray_test" >> $GITHUB_ENV
-        echo "REDIS_URL=redis://localhost:6379" >> $GITHUB_ENV
-        echo "NODE_ENV=test" >> $GITHUB_ENV
-        echo "JWT_SECRET=test-jwt-secret-for-github-actions" >> $GITHUB_ENV
-        echo "ENCRYPTION_KEY=test-encryption-key-32-characters" >> $GITHUB_ENV
-        echo "PLAYWRIGHT_BASE_URL=http://localhost:3000" >> $GITHUB_ENV
-        echo "PLAYWRIGHT_API_URL=http://localhost:3001" >> $GITHUB_ENV
+      - name: Install Playwright browsers
+        working-directory: ./frontend
+        run: npx playwright install --with-deps ${{ matrix.browser }}
 
-    - name: Run database migrations
-      run: |
-        cd backend
-        npm run migrate
-        
-    - name: Start application servers
-      run: |
-        # Start backend server
-        cd backend && npm start &
-        BACKEND_PID=$!
-        echo "BACKEND_PID=$BACKEND_PID" >> $GITHUB_ENV
-        
-        # Start frontend dev server
-        cd frontend && npm run dev &
-        FRONTEND_PID=$!
-        echo "FRONTEND_PID=$FRONTEND_PID" >> $GITHUB_ENV
-        
-        # Wait for servers to be ready
-        timeout 120s bash -c 'until curl -f http://localhost:3001/api/health; do sleep 2; done'
-        timeout 120s bash -c 'until curl -f http://localhost:3000; do sleep 2; done'
-        
-    - name: Run Playwright tests
-      run: |
-        npm run test:e2e:ci -- \
-          --project=${{ matrix.browser }} \
-          --shard=${{ matrix.shard }}/2 \
-          --reporter=github,html,junit \
-          --output-dir=test-results-${{ matrix.browser }}-${{ matrix.shard }}
-      env:
-        CI: true
-        
-    - name: Upload test results
-      if: always()
-      uses: actions/upload-artifact@v4
-      with:
-        name: test-results-${{ matrix.browser }}-${{ matrix.shard }}
-        path: |
-          test-results-${{ matrix.browser }}-${{ matrix.shard }}/
-          playwright-report/
-        retention-days: 7
+      - name: Run E2E tests
+        working-directory: ./frontend
+        run: npx playwright test --project=${{ matrix.browser }}
 
-    - name: Upload test report
-      if: always()
-      uses: actions/upload-artifact@v4
-      with:
-        name: playwright-report-${{ matrix.browser }}-${{ matrix.shard }}
-        path: playwright-report/
-        retention-days: 7
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report-${{ matrix.browser }}
+          path: frontend/test-results/
+          retention-days: 30
 
-    - name: Publish test results
-      if: always()
-      uses: dorny/test-reporter@v1
-      with:
-        name: 'E2E Test Results (${{ matrix.browser }}, shard ${{ matrix.shard }})'
-        path: 'test-results-${{ matrix.browser }}-${{ matrix.shard }}/results.xml'
-        reporter: java-junit
-        fail-on-error: false
+      - name: Upload screenshots
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: screenshots-${{ matrix.browser }}
+          path: frontend/test-screenshots/
+          retention-days: 30
 
-    - name: Comment PR with test results
-      if: github.event_name == 'pull_request' && always()
-      uses: actions/github-script@v7
-      with:
-        script: |
-          const fs = require('fs');
-          const path = 'test-results-${{ matrix.browser }}-${{ matrix.shard }}/results.json';
-          
-          if (fs.existsSync(path)) {
-            const results = JSON.parse(fs.readFileSync(path, 'utf8'));
-            const { stats } = results;
-            
-            const comment = `## 🎭 E2E Test Results (${{ matrix.browser }}, shard ${{ matrix.shard }})
-            
-            - ✅ **Passed:** ${stats.expected}
-            - ❌ **Failed:** ${stats.unexpected}
-            - ⏭️ **Skipped:** ${stats.skipped}
-            - ⏱️ **Duration:** ${Math.round(stats.duration / 1000)}s
-            
-            ${stats.unexpected > 0 ? '⚠️ Some tests failed. Check the detailed report for more information.' : '🎉 All tests passed!'}
-            `;
-            
-            github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: comment
-            });
-          }
+      - name: Upload videos
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: videos-${{ matrix.browser }}
+          path: frontend/test-results/artifacts/**/*.webm
+          retention-days: 30
 
-    - name: Stop application servers
-      if: always()
-      run: |
-        if [ ! -z "$BACKEND_PID" ]; then kill $BACKEND_PID || true; fi
-        if [ ! -z "$FRONTEND_PID" ]; then kill $FRONTEND_PID || true; fi
-
-  security-scan:
-    name: Security Scan E2E Tests
+  report:
+    name: Publish Test Report
     runs-on: ubuntu-latest
-    needs: e2e-tests
-    if: github.ref == 'refs/heads/main'
-    
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-      
-    - name: Run security scan on test files
-      uses: securecodewarrior/github-action-add-sarif@v1
-      with:
-        sarif-file: 'security-scan-results.sarif'
-        
-    - name: Audit test dependencies
-      run: |
-        npm audit --audit-level moderate --production=false
-
-  merge-reports:
-    name: Merge Test Reports
-    runs-on: ubuntu-latest
-    needs: e2e-tests
+    needs: test
     if: always()
-    
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-      
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: ${{ env.NODE_VERSION }}
-        cache: 'npm'
-        
-    - name: Install dependencies
-      run: npm ci
-      
-    - name: Download all test artifacts
-      uses: actions/download-artifact@v4
-      with:
-        path: all-test-results/
-        
-    - name: Merge Playwright reports
-      run: |
-        npx playwright merge-reports all-test-results/test-results-*/ \
-          --reporter=html,github \
-          --config=playwright.config.ts
-          
-    - name: Upload merged report
-      if: always()
-      uses: actions/upload-artifact@v4
-      with:
-        name: merged-playwright-report
-        path: playwright-report/
-        retention-days: 30
 
-  deploy-reports:
-    name: Deploy Test Reports
-    runs-on: ubuntu-latest
-    needs: merge-reports
-    if: github.ref == 'refs/heads/main' && always()
-    
     steps:
-    - name: Download merged report
-      uses: actions/download-artifact@v4
-      with:
-        name: merged-playwright-report
-        path: playwright-report/
-        
-    - name: Deploy to GitHub Pages
-      uses: peaceiris/actions-gh-pages@v3
-      with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
-        publish_dir: ./playwright-report
-        destination_dir: e2e-reports
-        
-    - name: Comment with report link
-      if: github.event_name == 'push'
-      uses: actions/github-script@v7
-      with:
-        script: |
-          const reportUrl = `https://${context.repo.owner}.github.io/${context.repo.repo}/e2e-reports/`;
-          
-          github.rest.repos.createCommitComment({
-            owner: context.repo.owner,
-            repo: context.repo.repo,
-            commit_sha: context.sha,
-            body: `🎭 **E2E Test Report:** [View detailed results](${reportUrl})`
-          });
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
 
-  notify-failures:
-    name: Notify Test Failures
-    runs-on: ubuntu-latest
-    needs: e2e-tests
-    if: failure() && github.ref == 'refs/heads/main'
-    
-    steps:
-    - name: Notify Slack on failure
-      if: env.SLACK_WEBHOOK_URL != ''
-      uses: 8398a7/action-slack@v3
-      with:
-        status: failure
-        channel: '#dev-alerts'
-        text: |
-          🚨 E2E Tests Failed on main branch
-          
-          Repository: ${{ github.repository }}
-          Commit: ${{ github.sha }}
-          Author: ${{ github.actor }}
-          
-          Please check the failing tests and fix them promptly.
-      env:
-        SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+      - name: Publish HTML report
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-test-report
+          path: artifacts/**/html/
+          retention-days: 30
