@@ -219,7 +219,7 @@ export class DiscoveryService {
       return {
         platform: connection.platform_type,
         connectionId: connection.id,
-        automations: storedAutomations, // ✅ FIX: Return database records with UUIDs, not connector data with external IDs
+        automations: automations, // Return original AutomationEvent[] from connector, not database records
         auditLogs,
         permissionCheck,
         discoveredAt: new Date(),
@@ -371,6 +371,7 @@ export class DiscoveryService {
 
   /**
    * Store discovered automations in the database
+   * Maps AutomationEvent objects from platform connectors to DiscoveredAutomation database records
    */
   private async storeDiscoveredAutomations(
     automations: AutomationEvent[],

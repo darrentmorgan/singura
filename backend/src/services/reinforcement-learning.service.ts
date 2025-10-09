@@ -6,6 +6,16 @@
  * Full implementation pending ML infrastructure setup.
  */
 
+interface OptimizedThresholds {
+  velocityThresholds: {
+    humanMaxFileCreation: number;
+    humanMaxPermissionChanges: number;
+    humanMaxEmailActions: number;
+    automationThreshold: number;
+    criticalThreshold: number;
+  };
+}
+
 export class ReinforcementLearningService {
   /**
    * Placeholder for RL-based velocity analysis
@@ -27,6 +37,26 @@ export class ReinforcementLearningService {
   async adjustLearningRate(feedback: any): Promise<void> {
     // TODO: Implement learning rate adjustment
     console.log('RL learning rate adjustment not yet implemented', feedback);
+  }
+
+  /**
+   * Get optimized thresholds for an organization
+   * @param organizationId - Organization ID
+   * @returns Optimized detection thresholds
+   */
+  async getOptimizedThresholds(organizationId: string): Promise<OptimizedThresholds> {
+    // TODO: Implement RL-based threshold optimization
+    // For now, return default thresholds
+    console.log(`RL threshold optimization not yet implemented for ${organizationId}`);
+    return {
+      velocityThresholds: {
+        humanMaxFileCreation: 0.5,      // 0.5 files per second
+        humanMaxPermissionChanges: 0.2,  // 0.2 permission changes per second
+        humanMaxEmailActions: 0.3,       // 0.3 email actions per second
+        automationThreshold: 1.0,        // 1.0 actions per second
+        criticalThreshold: 5.0           // 5.0 actions per second
+      }
+    };
   }
 }
 

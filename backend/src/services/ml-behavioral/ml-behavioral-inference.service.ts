@@ -293,7 +293,9 @@ export class MLBehavioralInferenceService {
     const lastWeek = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
 
     // Simulate frequency calculation based on automation metadata
-    if (automation.metadata?.riskFactors?.includes('Recently active')) return 0.9;
+    const riskFactors = automation.metadata?.riskFactors;
+    const hasRecentlyActive = Array.isArray(riskFactors) && riskFactors.includes('Recently active');
+    if (hasRecentlyActive) return 0.9;
     if (automation.lastTriggered && new Date(automation.lastTriggered) > lastWeek) return 0.7;
     return 0.3;
   }
@@ -302,7 +304,7 @@ export class MLBehavioralInferenceService {
     // Analyze permission scope and risk
     const permissions = automation.permissions || [];
     const riskPermissions = permissions.filter(p =>
-      p.includes('admin') || p.includes('full') || p.includes('write') || p.includes('delete')
+      p.name.includes('admin') || p.name.includes('full') || p.name.includes('write') || p.name.includes('delete')
     );
 
     return Math.min(riskPermissions.length / Math.max(permissions.length, 1), 1.0);
@@ -313,8 +315,10 @@ export class MLBehavioralInferenceService {
     const patterns = [];
 
     // Simulate data pattern analysis
-    patterns.push(automation.actions.length / 10); // Action complexity
-    patterns.push(automation.metadata?.riskFactors?.length || 0 / 5); // Risk factor density
+    patterns.push((automation.actions?.length || 0) / 10); // Action complexity
+    const riskFactors = automation.metadata?.riskFactors;
+    const riskFactorCount = Array.isArray(riskFactors) ? riskFactors.length : 0;
+    patterns.push(riskFactorCount / 5); // Risk factor density
 
     return patterns;
   }
@@ -340,8 +344,10 @@ export class MLBehavioralInferenceService {
     context: { platform: string }
   ): number {
     // Assess cross-platform activity indicators
-    if (automation.metadata?.riskFactors?.includes('external API calls')) return 0.9;
-    if (automation.actions.includes('data_processing')) return 0.7;
+    const riskFactors = automation.metadata?.riskFactors;
+    const hasExternalApiRisk = Array.isArray(riskFactors) && riskFactors.includes('external API calls');
+    if (hasExternalApiRisk) return 0.9;
+    if (automation.actions && automation.actions.some(action => action.type === 'data_processing')) return 0.7;
     return 0.2;
   }
 
@@ -350,8 +356,8 @@ export class MLBehavioralInferenceService {
     const sequence = [];
 
     // Simulate sequence based on automation properties
-    sequence.push(automation.actions.length); // Action count
-    sequence.push(automation.trigger === 'event' ? 1 : 0); // Event-driven indicator
+    sequence.push(automation.actions?.length || 0); // Action count
+    sequence.push(automation.trigger?.type === 'event' ? 1 : 0); // Event-driven indicator
     sequence.push(automation.status === 'active' ? 1 : 0); // Activity status
 
     // Pad to sequence length
@@ -381,9 +387,9 @@ export class MLBehavioralInferenceService {
     const chains = [];
 
     // Simulate workflow complexity analysis
-    chains.push(automation.actions.includes('ai_analysis') ? 1 : 0);
-    chains.push(automation.actions.includes('external_api') ? 1 : 0);
-    chains.push(automation.actions.includes('data_processing') ? 1 : 0);
+    chains.push(automation.actions && automation.actions.some(action => action.type === 'ai_analysis') ? 1 : 0);
+    chains.push(automation.actions && automation.actions.some(action => action.type === 'external_api') ? 1 : 0);
+    chains.push(automation.actions && automation.actions.some(action => action.type === 'data_processing') ? 1 : 0);
 
     return chains;
   }

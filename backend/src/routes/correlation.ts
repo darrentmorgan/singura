@@ -21,7 +21,8 @@ import {
   ExecutiveRiskReport,
   MultiPlatformRiskAssessment,
   AutomationWorkflowChain,
-  isValidCorrelationAnalysisResult
+  isValidCorrelationAnalysisResult,
+  SlackOAuthCredentials
 } from '@saas-xray/shared-types';
 
 import { CrossPlatformCorrelationService } from '../services/detection/cross-platform-correlation.service';
@@ -117,9 +118,11 @@ const initializeCorrelationServices = async () => {
     };
     const slackCreds: SlackOAuthCredentials = {
       accessToken: '',
+      refreshToken: undefined,
+      tokenType: 'bot',
+      scope: [],
       teamId: '',
-      scope: '',
-      tokenType: 'Bearer'
+      userId: ''
     };
     const slackOAuthService = new SlackOAuthService(slackConfig, slackCreds);
     const slackConnector = new SlackCorrelationConnector(slackOAuthService, {
