@@ -1,0 +1,8 @@
+# Ignore session artifacts (temporary working memory)
+sessions/
+
+# Keep shared knowledge (cross-session)
+!shared/
+
+# Keep templates
+!templates/

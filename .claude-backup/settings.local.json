@@ -1,0 +1,73 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(pnpm :*::*)",
+      "Bash(npm :*::*)",
+      "Bash(curl:*)",
+      "Bash(chmod:*)",
+      "Task(*:*)",
+      "Read(*.md)",
+      "Read(.env*)",
+      "Read(*.json)",
+      "Grep",
+      "Glob",
+      "TodoWrite"
+    ],
+    "deny": [],
+    "ask": [
+      "Edit(**/*.tsx)",
+      "Edit(**/*.ts)",
+      "Edit(**/*.jsx)",
+      "Edit(**/*.js)",
+      "Edit(src/**)",
+      "Write(src/**)",
+      "Write(**/*.tsx)",
+      "Write(**/*.ts)",
+      "Write(**/*.jsx)",
+      "Write(**/*.js)"
+    ]
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": ".claude/hooks/tool-use.sh \"$FILE_PATH\"",
+            "timeout": 30
+          }
+        ]
+      },
+      {
+        "matcher": "Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": ".claude/hooks/tool-use.sh \"$FILE_PATH\"",
+            "timeout": 30
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": ".claude/hooks/pre-request-router.sh \"$USER_MESSAGE\"",
+            "timeout": 10
+          },
+          {
+            "type": "command",
+            "command": "echo '🤖 Claude Code session active' >> .claude/.session.log",
+            "timeout": 5
+          }
+        ]
+      }
+    ]
+  }
+}

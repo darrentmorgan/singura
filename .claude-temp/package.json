@@ -1,0 +1,36 @@
+{
+  "name": "claude-config-template",
+  "version": "2.3.0",
+  "description": "Production-ready Claude Code configuration with safe parallel execution and memory management",
+  "type": "module",
+  "engines": {
+    "node": ">=20.0.0 <21.0.0",
+    "npm": ">=10.0.0"
+  },
+  "scripts": {
+    "test": "echo \"Run tests in your project after installation\" && exit 0",
+    "setup": "bash setup.sh"
+  },
+  "devDependencies": {
+    "@types/node": "^20.17.6",
+    "commander": "^12.1.0",
+    "minimatch": "^10.0.3",
+    "p-limit": "^5.0.0",
+    "tsx": "^4.20.6",
+    "typescript": "^5.7.3"
+  },
+  "keywords": [
+    "claude",
+    "claude-code",
+    "agents",
+    "automation",
+    "ai",
+    "development-workflow"
+  ],
+  "author": "Darren Morgan",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/darrentmorgan/claude-config-template.git"
+  }
+}

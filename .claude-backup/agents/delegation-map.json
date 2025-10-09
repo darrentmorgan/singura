@@ -1,0 +1,400 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema#",
+  "title": "Agent Delegation Map",
+  "description": "Maps file patterns and triggers to appropriate sub-agents for autonomous code review",
+  "version": "1.0.0",
+  "delegation_rules": [
+    {
+      "name": "React Components",
+      "pattern": "**/*.tsx",
+      "exclude": ["**/*.test.tsx", "**/*.spec.tsx"],
+      "primary_agent": "frontend-developer",
+      "secondary_agents": ["code-reviewer-pro", "test-automator"],
+      "triggers": ["Edit", "Write"],
+      "context": {
+        "framework": "React 18",
+        "styling": "Tailwind CSS",
+        "ui_library": "shadcn/ui"
+      }
+    },
+    {
+      "name": "Backend API Handlers",
+      "pattern": "src/server/handlers/**/*.ts",
+      "exclude": ["**/*.test.ts"],
+      "primary_agent": "backend-architect",
+      "secondary_agents": ["typescript-pro", "code-reviewer-pro"],
+      "triggers": ["Edit", "Write"],
+      "context": {
+        "framework": "Express 5",
+        "database": "Supabase",
+        "validation": "Zod"
+      }
+    },
+    {
+      "name": "AI Agents",
+      "pattern": "src/server/agents/**/*.ts",
+      "exclude": ["**/*.test.ts"],
+      "primary_agent": "backend-architect",
+      "secondary_agents": ["typescript-pro"],
+      "triggers": ["Edit", "Write"],
+      "context": {
+        "ai_provider": "Anthropic Claude",
+        "orchestration": "Sequential execution"
+      }
+    },
+    {
+      "name": "API Contracts",
+      "pattern": "src/lib/api/contracts.ts",
+      "primary_agent": "typescript-pro",
+      "secondary_agents": ["backend-architect", "code-reviewer-pro"],
+      "triggers": ["Edit", "Write"],
+      "context": {
+        "validation": "Zod schemas",
+        "importance": "critical",
+        "breaking_changes": "require major version bump"
+      }
+    },
+    {
+      "name": "Test Files",
+      "pattern": "**/*.{test,spec}.{ts,tsx}",
+      "primary_agent": "test-automator",
+      "secondary_agents": ["code-reviewer-pro"],
+      "triggers": ["Edit", "Write"],
+      "context": {
+        "test_framework": "Vitest",
+        "e2e_framework": "Playwright"
+      }
+    },
+    {
+      "name": "Zustand Stores",
+      "pattern": "src/stores/**/*.ts",
+      "primary_agent": "frontend-developer",
+      "secondary_agents": ["typescript-pro", "code-reviewer-pro"],
+      "triggers": ["Edit", "Write"],
+      "context": {
+        "state_management": "Zustand",
+        "patterns": "selectors, devtools middleware"
+      }
+    },
+    {
+      "name": "Supabase Migrations",
+      "pattern": "supabase/migrations/**/*.sql",
+      "primary_agent": "backend-architect",
+      "secondary_agents": ["code-reviewer-pro"],
+      "triggers": ["Edit", "Write"],
+      "context": {
+        "database": "PostgreSQL",
+        "concerns": ["RLS policies", "indexes", "data integrity"]
+      }
+    },
+    {
+      "name": "Configuration Files",
+      "pattern": "{tsconfig,vite.config,playwright.config,vitest.config}.{json,ts}",
+      "primary_agent": "typescript-pro",
+      "secondary_agents": ["code-reviewer-pro"],
+      "triggers": ["Edit", "Write"],
+      "context": {
+        "impact": "affects entire build/test pipeline"
+      }
+    },
+    {
+      "name": "Documentation",
+      "pattern": "**/*.md",
+      "exclude": ["node_modules/**"],
+      "primary_agent": "code-reviewer-pro",
+      "secondary_agents": [],
+      "triggers": ["Edit", "Write"],
+      "context": {
+        "auto_approve": true,
+        "focus": "accuracy and clarity"
+      }
+    }
+  ],
+  "agent_capabilities": {
+    "code-reviewer-pro": {
+      "description": "Comprehensive code quality review",
+      "strengths": ["security", "best practices", "maintainability"],
+      "use_for": ["all code changes", "final approval"],
+      "mcp_servers": []
+    },
+    "test-automator": {
+      "description": "Test generation and validation",
+      "strengths": ["test coverage", "test quality", "CI/CD"],
+      "use_for": ["new features", "bug fixes", "test files"],
+      "mcp_servers": ["chrome-devtools", "playwright"]
+    },
+    "qa-expert": {
+      "description": "E2E testing and QA validation",
+      "strengths": ["user flows", "visual testing", "browser automation"],
+      "use_for": ["pre-deployment", "critical features", "UI changes"],
+      "mcp_servers": ["chrome-devtools", "playwright"]
+    },
+    "typescript-pro": {
+      "description": "TypeScript expertise",
+      "strengths": ["type safety", "generics", "advanced patterns"],
+      "use_for": ["type errors", "API contracts", "complex types"],
+      "mcp_servers": []
+    },
+    "frontend-developer": {
+      "description": "React and UI development",
+      "strengths": ["components", "hooks", "state management"],
+      "use_for": ["UI components", "React patterns", "Zustand stores"],
+      "mcp_servers": []
+    },
+    "backend-architect": {
+      "description": "Backend architecture and API design",
+      "strengths": ["Express routes", "database design", "API contracts"],
+      "use_for": ["API handlers", "database migrations", "backend logic"],
+      "mcp_servers": ["supabase"]
+    },
+    "deployment-engineer": {
+      "description": "CI/CD and deployment automation",
+      "strengths": ["GitHub Actions", "deployment scripts", "monitoring"],
+      "use_for": ["CI/CD workflows", "deployment", "production issues"],
+      "mcp_servers": []
+    },
+    "debugger": {
+      "description": "Debugging and issue resolution",
+      "strengths": ["root cause analysis", "test failures", "error handling"],
+      "use_for": ["test failures", "bugs", "unexpected behavior"],
+      "mcp_servers": []
+    },
+    "documentation-expert": {
+      "description": "Library documentation and API references",
+      "strengths": ["docs lookup", "code examples", "framework guides"],
+      "use_for": ["library docs", "API references", "how-to guides"],
+      "mcp_servers": ["Context7"]
+    },
+    "database-optimizer": {
+      "description": "Database performance optimization",
+      "strengths": ["query optimization", "indexing", "performance tuning"],
+      "use_for": ["slow queries", "database performance", "query plans"],
+      "mcp_servers": ["supabase"]
+    },
+    "general-purpose": {
+      "description": "General-purpose agent with web scraping",
+      "strengths": ["web scraping", "research", "fallback handler"],
+      "use_for": ["web content extraction", "unknown MCP tasks"],
+      "mcp_servers": ["firecrawl-mcp", "Context7"]
+    },
+    "product-manager": {
+      "description": "Task and project management",
+      "strengths": ["planning", "task coordination", "roadmaps"],
+      "use_for": ["ClickUp tasks", "project planning", "sprints"],
+      "mcp_servers": ["clickup"]
+    },
+    "data-engineer": {
+      "description": "Data pipelines and ETL operations",
+      "strengths": ["ETL", "data transformation", "pipelines"],
+      "use_for": ["data migration", "batch processing", "data quality"],
+      "mcp_servers": ["supabase"]
+    }
+  },
+  "execution_strategy": {
+    "sequential": {
+      "description": "Execute agents one at a time (default)",
+      "max_concurrent": 1,
+      "use_when": "tasks have dependencies"
+    },
+    "parallel": {
+      "description": "Execute independent agents simultaneously",
+      "max_concurrent": 3,
+      "use_when": "tasks are independent"
+    }
+  },
+  "quality_gates": {
+    "pre_commit": {
+      "required_agents": ["code-reviewer-pro"],
+      "optional_agents": ["typescript-pro", "test-automator"],
+      "blocking": true,
+      "min_score": 80
+    },
+    "pre_deployment": {
+      "required_agents": ["qa-expert", "code-reviewer-pro"],
+      "optional_agents": ["test-automator"],
+      "blocking": true,
+      "min_score": 85
+    }
+  },
+  "mcp_routing_rules": {
+    "description": "Routes tasks requiring MCP servers to specialized agents (main orchestrator has NO MCP access)",
+    "main_orchestrator_policy": "NEVER use MCP tools directly - ALWAYS delegate to specialized agents",
+    "context_savings": "~92k tokens (74% reduction) by removing MCP from main agent",
+    "routing_map": [
+      {
+        "name": "Library Documentation Lookup",
+        "mcp_server": "Context7",
+        "primary_agent": "documentation-expert",
+        "fallback_agent": "general-purpose",
+        "keywords": [
+          "library docs",
+          "API reference",
+          "how to use",
+          "package documentation",
+          "framework guide",
+          "code examples"
+        ],
+        "example_queries": [
+          "How do I use React useEffect?",
+          "Show Supabase RLS policy syntax",
+          "Find TypeScript utility types documentation"
+        ]
+      },
+      {
+        "name": "Browser Automation & E2E Testing",
+        "mcp_server": "chrome-devtools, playwright",
+        "primary_agent": "qa-expert",
+        "secondary_agents": ["test-automator"],
+        "keywords": [
+          "E2E test",
+          "browser test",
+          "Chrome DevTools",
+          "visual test",
+          "screenshot",
+          "performance trace",
+          "browser automation"
+        ],
+        "example_queries": [
+          "Run E2E tests for login flow",
+          "Take screenshot of dashboard",
+          "Profile page performance",
+          "Test cross-browser compatibility"
+        ],
+        "special_instructions": "Always use --isolated flag for chrome-devtools"
+      },
+      {
+        "name": "Test Automation & Debugging",
+        "mcp_server": "playwright, chrome-devtools",
+        "primary_agent": "test-automator",
+        "secondary_agents": ["qa-expert"],
+        "keywords": [
+          "test automation",
+          "playwright",
+          "visual regression",
+          "test debugging",
+          "fix test",
+          "test coverage"
+        ],
+        "example_queries": [
+          "Debug failing Playwright test",
+          "Create test for checkout flow",
+          "Fix visual regression test"
+        ]
+      },
+      {
+        "name": "Database Operations & Migrations",
+        "mcp_server": "supabase",
+        "primary_agent": "backend-architect",
+        "secondary_agents": ["database-optimizer", "data-engineer"],
+        "keywords": [
+          "database",
+          "migration",
+          "supabase",
+          "schema",
+          "RPC function",
+          "RLS policy",
+          "SQL query"
+        ],
+        "example_queries": [
+          "Create migration for user_preferences table",
+          "Add RLS policy for tenants",
+          "Create RPC function for campaign stats"
+        ],
+        "special_instructions": "Migrations go in supabase/migrations/ with YYYYMMDD prefix"
+      },
+      {
+        "name": "Query Optimization & Performance",
+        "mcp_server": "supabase",
+        "primary_agent": "database-optimizer",
+        "keywords": [
+          "optimize query",
+          "slow query",
+          "database performance",
+          "index",
+          "query plan",
+          "performance tuning"
+        ],
+        "example_queries": [
+          "Optimize slow campaign listing query",
+          "Add index for user lookups",
+          "Analyze query performance"
+        ]
+      },
+      {
+        "name": "Data Pipelines & ETL",
+        "mcp_server": "supabase",
+        "primary_agent": "data-engineer",
+        "keywords": [
+          "data pipeline",
+          "ETL",
+          "data transformation",
+          "batch process",
+          "data migration",
+          "data quality"
+        ],
+        "example_queries": [
+          "Create ETL pipeline for ad metrics",
+          "Migrate legacy campaign data",
+          "Transform CSV to database format"
+        ]
+      },
+      {
+        "name": "Web Scraping & Research",
+        "mcp_server": "firecrawl-mcp",
+        "primary_agent": "general-purpose",
+        "keywords": [
+          "scrape",
+          "crawl",
+          "extract from web",
+          "fetch URL",
+          "web content",
+          "research"
+        ],
+        "example_queries": [
+          "Scrape competitor ad examples",
+          "Extract product data from website",
+          "Research Meta ad best practices"
+        ]
+      },
+      {
+        "name": "Task & Project Management",
+        "mcp_server": "clickup",
+        "primary_agent": "product-manager",
+        "keywords": [
+          "clickup",
+          "create task",
+          "project plan",
+          "roadmap",
+          "sprint planning",
+          "milestone tracking"
+        ],
+        "example_queries": [
+          "Create tasks for Q2 roadmap",
+          "Plan sprint backlog",
+          "Track feature implementation progress"
+        ]
+      }
+    ],
+    "delegation_workflow": {
+      "step_1": "Main agent analyzes user request",
+      "step_2": "Main agent matches keywords to MCP routing rules",
+      "step_3": "Main agent delegates to primary_agent using Task tool",
+      "step_4": "Specialized agent loads MCP servers (only when invoked)",
+      "step_5": "Specialized agent executes task and returns concise summary",
+      "step_6": "Main agent formats and returns result to user"
+    },
+    "anti_patterns": [
+      "❌ Main agent calling MCP tools directly (main has NO MCP access)",
+      "❌ Loading all MCP servers 'just in case' (defeats context optimization)",
+      "❌ Returning full MCP responses to main agent (bloats context)",
+      "❌ Skipping delegation for 'simple' MCP tasks (breaks isolation)"
+    ],
+    "best_practices": [
+      "✅ Always delegate MCP operations to specialized agents",
+      "✅ Use keyword matching for automatic routing",
+      "✅ Return summaries with file:line references, not full content",
+      "✅ Run browser automation with --isolated flag",
+      "✅ Use parallel delegation for independent MCP tasks"
+    ]
+  }
+}

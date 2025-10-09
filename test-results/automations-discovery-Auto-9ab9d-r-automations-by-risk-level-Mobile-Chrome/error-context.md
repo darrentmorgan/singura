@@ -1,0 +1,47 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e7]:
+  - generic [ref=e8]:
+    - generic [ref=e10]:
+      - heading "Sign in to SaaS X-Ray" [level=1] [ref=e11]
+      - paragraph [ref=e12]: Welcome back! Please sign in to continue
+    - generic [ref=e13]:
+      - button "Sign in with Google Continue with Google" [ref=e16] [cursor=pointer]:
+        - generic [ref=e17]:
+          - img "Sign in with Google" [ref=e19]
+          - generic [ref=e20]: Continue with Google
+      - paragraph [ref=e23]: or
+      - generic [ref=e25]:
+        - generic [ref=e26]:
+          - generic [ref=e29]:
+            - generic [ref=e31]: Email address
+            - textbox "Email address" [ref=e32]:
+              - /placeholder: Enter your email address
+          - generic:
+            - generic:
+              - generic:
+                - generic:
+                  - generic: Password
+                - generic:
+                  - textbox "Password":
+                    - /placeholder: Enter your password
+                  - button "Show password":
+                    - img
+        - button "Continue" [ref=e34] [cursor=pointer]:
+          - generic [ref=e35]:
+            - text: Continue
+            - img [ref=e36]
+  - generic [ref=e38]:
+    - generic [ref=e39]:
+      - generic [ref=e40]: Don’t have an account?
+      - link "Sign up" [ref=e41] [cursor=pointer]:
+        - /url: http://localhost:4200/sign-up
+    - generic [ref=e43]:
+      - generic [ref=e45]:
+        - paragraph [ref=e46]: Secured by
+        - link "Clerk logo" [ref=e47] [cursor=pointer]:
+          - /url: https://go.clerk.com/components
+          - img [ref=e48]
+      - paragraph [ref=e53]: Development mode
+```

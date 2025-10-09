@@ -1,0 +1,56 @@
+{
+  "agentName": "test-automator",
+  "description": "Test automation and debugging specialist",
+  "mcpServers": {
+    "chrome-devtools": {
+      "command": "npx",
+      "args": [
+        "chrome-devtools-mcp@latest",
+        "--isolated"
+      ]
+    },
+    "playwright": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@playwright/mcp@latest"
+      ]
+    }
+  },
+  "capabilities": [
+    "Test code generation",
+    "Test debugging and fixing",
+    "Browser automation scripts",
+    "Visual regression testing",
+    "Test coverage analysis"
+  ],
+  "response_format": {
+    "type": "test_code_summary",
+    "max_tokens": 800,
+    "include": [
+      "test_file_paths",
+      "test_execution_summary",
+      "issues_found",
+      "fix_recommendations"
+    ],
+    "exclude": [
+      "full_test_code",
+      "verbose_execution_logs"
+    ]
+  },
+  "routing_triggers": [
+    "playwright",
+    "test automation",
+    "browser test",
+    "visual regression",
+    "test debugging",
+    "fix test",
+    "test coverage"
+  ],
+  "special_instructions": [
+    "Generate test code following Vitest + Playwright patterns",
+    "Use src/test/setup.ts for test utilities",
+    "Follow existing test patterns in tests/ directory",
+    "Return test file locations, not full code blocks"
+  ]
+}

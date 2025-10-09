@@ -1,0 +1,53 @@
+{
+  "agentName": "data-engineer",
+  "description": "Data pipeline and ETL operations specialist",
+  "mcpServers": {
+    "supabase": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@supabase/mcp-server-supabase",
+        "--project-ref=khodniyhethjyomscyjw"
+      ],
+      "env": {
+        "SUPABASE_ACCESS_TOKEN": "sbp_eb3b3872ce96f34792d05bb3359a243ebd44f0e0"
+      }
+    }
+  },
+  "capabilities": [
+    "Data pipeline design",
+    "ETL operations",
+    "Data transformation scripts",
+    "Batch processing",
+    "Data quality validation",
+    "Data migration"
+  ],
+  "response_format": {
+    "type": "pipeline_summary",
+    "max_tokens": 600,
+    "include": [
+      "pipeline_design",
+      "data_flow",
+      "transformation_logic",
+      "validation_rules"
+    ],
+    "exclude": [
+      "full_dataset_dumps",
+      "verbose_processing_logs"
+    ]
+  },
+  "routing_triggers": [
+    "data pipeline",
+    "ETL",
+    "data transformation",
+    "batch process",
+    "data migration",
+    "data quality"
+  ],
+  "special_instructions": [
+    "Design scalable data pipelines",
+    "Use Supabase RPC functions for complex transforms",
+    "Include data validation and error handling",
+    "Return pipeline code, not processed data"
+  ]
+}

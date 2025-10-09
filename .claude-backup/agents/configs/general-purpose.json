@@ -1,0 +1,62 @@
+{
+  "agentName": "general-purpose",
+  "description": "General-purpose agent with web scraping and documentation access",
+  "mcpServers": {
+    "firecrawl-mcp": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "firecrawl-mcp"
+      ],
+      "env": {
+        "FIRECRAWL_API_KEY": "fc-bf3ed61e05874ba2a46837a95ee2d72e"
+      }
+    },
+    "Context7": {
+      "command": "node",
+      "args": [
+        "/Users/darrenmorgan/mcp-servers/context7/dist/index.js"
+      ],
+      "env": {
+        "CONTEXT7_API_KEY": "ctx7sk-b9008b41-aaa6-4353-9cd6-9835bae3ba0a"
+      }
+    }
+  },
+  "capabilities": [
+    "Web scraping and content extraction",
+    "URL crawling",
+    "Research tasks",
+    "Library documentation (fallback)",
+    "General code search",
+    "Unknown task handling"
+  ],
+  "response_format": {
+    "type": "task_dependent",
+    "max_tokens": 700,
+    "include": [
+      "summary",
+      "key_findings",
+      "extracted_data",
+      "sources"
+    ],
+    "exclude": [
+      "full_scraped_content",
+      "verbose_crawl_logs"
+    ]
+  },
+  "routing_triggers": [
+    "scrape",
+    "crawl",
+    "extract from web",
+    "fetch URL",
+    "web content",
+    "research",
+    "find information"
+  ],
+  "special_instructions": [
+    "This is the FALLBACK agent for unknown MCP tasks",
+    "Use firecrawl for web scraping",
+    "Use Context7 when documentation-expert unavailable",
+    "Return concise summaries, not raw scraped data"
+  ]
+}

@@ -12,7 +12,7 @@ export type PlatformType = 'slack' | 'google' | 'microsoft' | 'jira';
 /**
  * Detection algorithm types used in SaaS X-Ray
  */
-export type DetectionAlgorithm = 
+export type DetectionAlgorithm =
   | 'VelocityDetector'
   | 'AIProviderDetector'
   | 'BatchOperationDetector'
@@ -20,18 +20,42 @@ export type DetectionAlgorithm =
   | 'CrossPlatformCorrelator';
 
 /**
+ * Detector pattern types for automation detection
+ */
+export type DetectorType =
+  | 'velocity'
+  | 'batch_operation'
+  | 'off_hours'
+  | 'regular_interval'
+  | 'api_usage'
+  | 'permission_change';  // Added for permission escalation detector
+
+/**
+ * Action types for Google Workspace events
+ */
+export type ActionType =
+  | 'file_create'
+  | 'file_edit'
+  | 'file_share'
+  | 'permission_change'
+  | 'email_send'
+  | 'script_execution'
+  | 'acl_change'    // Added for permission escalation detector
+  | 'sharing';      // Added for permission escalation detector
+
+/**
  * Google Workspace activity pattern for automation detection
  */
 export interface GoogleActivityPattern {
   patternId: string;
-  patternType: 'velocity' | 'batch_operation' | 'off_hours' | 'regular_interval' | 'api_usage';
+  patternType: DetectorType;  // Using DetectorType enum
   detectedAt: Date;
   confidence: number; // 0-100, confidence in automation detection
   metadata: {
     userId: string;
     userEmail: string;
     resourceType: 'file' | 'email' | 'calendar' | 'script' | 'permission';
-    actionType: string;
+    actionType: ActionType;  // Using ActionType enum
     timestamp: Date;
     location?: string;
     userAgent?: string;
@@ -187,7 +211,7 @@ export interface GoogleWorkspaceEvent {
   timestamp: Date;
   userId: string;
   userEmail: string;
-  eventType: 'file_create' | 'file_edit' | 'file_share' | 'permission_change' | 'email_send' | 'script_execution';
+  eventType: ActionType;  // Using ActionType enum
   resourceId: string;
   resourceType: 'file' | 'folder' | 'email' | 'script' | 'permission';
   actionDetails: {
@@ -263,7 +287,7 @@ export function isValidGoogleActivityPattern(value: unknown): value is GoogleAct
     'detectedAt' in value &&
     'confidence' in value &&
     typeof (value as any).patternId === 'string' &&
-    ['velocity', 'batch_operation', 'off_hours', 'regular_interval', 'api_usage'].includes((value as any).patternType) &&
+    ['velocity', 'batch_operation', 'off_hours', 'regular_interval', 'api_usage', 'permission_change'].includes((value as any).patternType) &&
     (value as any).detectedAt instanceof Date &&
     typeof (value as any).confidence === 'number' &&
     (value as any).confidence >= 0 &&

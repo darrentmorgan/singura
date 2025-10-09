@@ -1,0 +1,55 @@
+{
+  "agentName": "product-manager",
+  "description": "Product management and ClickUp task coordination specialist",
+  "mcpServers": {
+    "clickup": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "github:darrentmorgan/clickup-mcp-server"
+      ],
+      "env": {
+        "CLICKUP_API_KEY": "pk_282797850_TWEYBB2P5BY0FRJRR4LP1TURF96YF1BP",
+        "CLICKUP_TEAM_ID": "90161066625",
+        "DOCUMENT_SUPPORT": "true"
+      }
+    }
+  },
+  "capabilities": [
+    "Task creation and management",
+    "Sprint planning",
+    "Roadmap coordination",
+    "Team workflow optimization",
+    "Project tracking",
+    "ClickUp automation"
+  ],
+  "response_format": {
+    "type": "project_summary",
+    "max_tokens": 500,
+    "include": [
+      "task_ids",
+      "sprint_plan",
+      "key_milestones",
+      "team_assignments"
+    ],
+    "exclude": [
+      "full_task_descriptions",
+      "verbose_activity_logs"
+    ]
+  },
+  "routing_triggers": [
+    "clickup",
+    "create task",
+    "project plan",
+    "roadmap",
+    "task management",
+    "sprint planning",
+    "milestone tracking"
+  ],
+  "special_instructions": [
+    "Use ClickUp API for task operations",
+    "Follow team's naming conventions for tasks",
+    "Return task IDs and URLs for reference",
+    "Summarize sprint plans, don't dump all details"
+  ]
+}
