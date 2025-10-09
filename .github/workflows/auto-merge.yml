@@ -1,0 +1,175 @@
+name: Auto-Merge PR
+
+on:
+  # Trigger when PR status checks are updated
+  pull_request_target:
+    types: [opened, synchronize, reopened, ready_for_review]
+  check_suite:
+    types: [completed]
+  check_run:
+    types: [completed]
+  # Allow manual trigger
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: 'PR number to auto-merge'
+        required: true
+        type: number
+
+# Ensure only one auto-merge runs at a time per PR
+concurrency:
+  group: auto-merge-${{ github.event.pull_request.number || github.event.inputs.pr_number }}
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  pull-requests: write
+  checks: read
+
+jobs:
+  auto-merge:
+    name: Auto-Merge PR
+    runs-on: ubuntu-latest
+    # Skip draft PRs
+    if: |
+      github.event.pull_request.draft == false ||
+      github.event_name == 'workflow_dispatch'
+
+    steps:
+      - name: Get PR number
+        id: pr
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "number=${{ github.event.inputs.pr_number }}" >> $GITHUB_OUTPUT
+          else
+            echo "number=${{ github.event.pull_request.number }}" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Check PR status
+        id: check_status
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ steps.pr.outputs.number }}
+        run: |
+          # Get PR details
+          PR_JSON=$(gh pr view $PR_NUMBER --repo ${{ github.repository }} --json number,state,mergeable,mergeStateStatus,statusCheckRollup,labels,reviewDecision)
+
+          echo "PR Status:"
+          echo "$PR_JSON" | jq '.'
+
+          # Extract key fields
+          STATE=$(echo "$PR_JSON" | jq -r '.state')
+          MERGEABLE=$(echo "$PR_JSON" | jq -r '.mergeable')
+          MERGE_STATE=$(echo "$PR_JSON" | jq -r '.mergeStateStatus')
+          REVIEW_DECISION=$(echo "$PR_JSON" | jq -r '.reviewDecision // "NONE"')
+
+          # Check if PR has 'auto-merge' label
+          HAS_AUTO_MERGE_LABEL=$(echo "$PR_JSON" | jq -r '.labels[] | select(.name == "auto-merge") | .name' | wc -l)
+
+          # Check if all status checks passed
+          ALL_CHECKS_PASSED=true
+
+          # Get status checks
+          STATUS_CHECKS=$(echo "$PR_JSON" | jq -r '.statusCheckRollup[]? | select(.conclusion != null) | .conclusion')
+
+          echo "Status checks conclusions:"
+          echo "$STATUS_CHECKS"
+
+          # Check if any check failed
+          if echo "$STATUS_CHECKS" | grep -qE "FAILURE|CANCELLED|TIMED_OUT"; then
+            echo "❌ Some checks failed"
+            ALL_CHECKS_PASSED=false
+          elif [ -z "$STATUS_CHECKS" ]; then
+            echo "⚠️  No status checks found yet"
+            ALL_CHECKS_PASSED=false
+          fi
+
+          # Output results
+          echo "state=$STATE" >> $GITHUB_OUTPUT
+          echo "mergeable=$MERGEABLE" >> $GITHUB_OUTPUT
+          echo "merge_state=$MERGE_STATE" >> $GITHUB_OUTPUT
+          echo "review_decision=$REVIEW_DECISION" >> $GITHUB_OUTPUT
+          echo "all_checks_passed=$ALL_CHECKS_PASSED" >> $GITHUB_OUTPUT
+          echo "has_auto_merge_label=$HAS_AUTO_MERGE_LABEL" >> $GITHUB_OUTPUT
+
+      - name: Wait for pending checks
+        if: steps.check_status.outputs.merge_state == 'BLOCKED' || steps.check_status.outputs.merge_state == 'BEHIND'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ steps.pr.outputs.number }}
+        run: |
+          echo "PR is blocked or behind. Waiting for checks to complete..."
+
+          # Wait up to 10 minutes for checks to complete
+          for i in {1..60}; do
+            sleep 10
+
+            PR_JSON=$(gh pr view $PR_NUMBER --repo ${{ github.repository }} --json mergeStateStatus,statusCheckRollup)
+            MERGE_STATE=$(echo "$PR_JSON" | jq -r '.mergeStateStatus')
+
+            echo "Attempt $i/60: Merge state is $MERGE_STATE"
+
+            if [ "$MERGE_STATE" = "CLEAN" ] || [ "$MERGE_STATE" = "UNSTABLE" ]; then
+              echo "✅ Checks completed"
+              break
+            fi
+
+            if [ $i -eq 60 ]; then
+              echo "⏰ Timeout waiting for checks"
+              exit 1
+            fi
+          done
+
+      - name: Enable auto-merge
+        if: |
+          steps.check_status.outputs.all_checks_passed == 'true' &&
+          steps.check_status.outputs.state == 'OPEN' &&
+          steps.check_status.outputs.mergeable == 'MERGEABLE'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ steps.pr.outputs.number }}
+        run: |
+          echo "🚀 Enabling auto-merge for PR #$PR_NUMBER"
+
+          # Enable auto-merge with squash merge strategy
+          gh pr merge $PR_NUMBER \
+            --repo ${{ github.repository }} \
+            --auto \
+            --squash \
+            --delete-branch
+
+      - name: Notify success
+        if: success()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ steps.pr.outputs.number }}
+        run: |
+          gh pr comment $PR_NUMBER \
+            --repo ${{ github.repository }} \
+            --body "✅ Auto-merge enabled. PR will be merged automatically when all checks pass."
+
+      - name: Notify failure
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ steps.pr.outputs.number }}
+        run: |
+          REASON=""
+
+          if [ "${{ steps.check_status.outputs.all_checks_passed }}" != "true" ]; then
+            REASON="Some checks failed or are still pending."
+          elif [ "${{ steps.check_status.outputs.state }}" != "OPEN" ]; then
+            REASON="PR is not open (state: ${{ steps.check_status.outputs.state }})."
+          elif [ "${{ steps.check_status.outputs.mergeable }}" != "MERGEABLE" ]; then
+            REASON="PR has merge conflicts or is not mergeable."
+          fi
+
+          gh pr comment $PR_NUMBER \
+            --repo ${{ github.repository }} \
+            --body "❌ Auto-merge failed: $REASON
+
+Please ensure:
+- All status checks pass (E2E tests, builds, security scans)
+- No merge conflicts
+- PR is not a draft
+- Branch is up to date with base branch"

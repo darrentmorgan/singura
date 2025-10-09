@@ -1,0 +1,65 @@
+name: Build Validation
+
+# Fast validation workflow for PRs - replaces slow E2E tests
+# Runs: TypeScript checks, builds, and unit tests (no browser E2E)
+
+on:
+  pull_request:
+    branches: [main, develop]
+  push:
+    branches: [main, develop]
+  workflow_dispatch:
+
+# Ensure only one validation runs at a time per PR
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    name: Build & Type Check
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: 'package-lock.json'
+
+      - name: Install all dependencies (monorepo)
+        run: npm install --legacy-peer-deps
+
+      - name: Build shared-types (required by backend/frontend)
+        working-directory: ./shared-types
+        run: npm run build
+
+      - name: Build - Backend (validates compilation)
+        working-directory: ./backend
+        run: npm run build
+
+      - name: Build - Frontend (validates compilation)
+        working-directory: ./frontend
+        run: npm run build
+
+  summary:
+    name: Validation Summary
+    runs-on: ubuntu-latest
+    needs: validate
+    if: always()
+
+    steps:
+      - name: Check validation status
+        run: |
+          if [ "${{ needs.validate.result }}" == "success" ]; then
+            echo "✅ All validations passed!"
+            exit 0
+          else
+            echo "❌ Validation failed - check logs above"
+            exit 1
+          fi

@@ -11,7 +11,7 @@ import express, { Request, Response } from 'express';
 import cors from 'cors';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
-import automationRoutes from './routes/automations-mock';
+import automationRoutes from './routes/automations';
 import devRoutes from './routes/dev-routes';
 import { getDataProvider, isDataToggleEnabled } from './services/data-provider';
 import { platformConnectionRepository } from './database/repositories/platform-connection';
@@ -1029,6 +1029,32 @@ app.post('/api/connections/:id/discover', optionalClerkAuth, async (req: Request
       ]);
 
       console.log(`📊 Updated discovery run ${discoveryRunId} with results`);
+
+      // ✅ FIX: Query database to get persisted automations with UUIDs
+      const getPersistedQuery = `
+        SELECT da.id, da.external_id, da.name, da.automation_type, da.status, da.trigger_type, da.actions,
+               da.first_discovered_at, da.last_triggered_at, da.platform_metadata
+        FROM discovered_automations da
+        WHERE da.discovery_run_id = $1
+        ORDER BY da.first_discovered_at DESC
+      `;
+      const persistedResult = await db.query(getPersistedQuery, [discoveryRunId]);
+
+      // Replace connector data (with external_id as id) with database records (with UUID as id)
+      result.discovery.automations = persistedResult.rows.map((row: any) => ({
+        id: row.id,  // ✅ UUID from database
+        name: row.name,
+        type: row.automation_type,
+        platform: id?.includes('google') ? 'google' : id?.includes('slack') ? 'slack' : 'google',
+        status: row.status,
+        trigger: row.trigger_type,
+        actions: row.actions && Array.isArray(row.actions) ? row.actions : [],
+        createdAt: row.first_discovered_at,
+        lastTriggered: row.last_triggered_at,
+        metadata: row.platform_metadata || {}
+      }));
+
+      console.log(`📊 Replaced connector data with ${persistedResult.rows.length} database records (UUIDs)`);
     }
 
     // Add metadata about data source

@@ -1,0 +1,99 @@
+name: Auto-Merge (Label-Based)
+
+# This workflow enables auto-merge when the 'auto-merge' label is added to a PR
+# It's simpler and more explicit than the automatic version
+
+on:
+  pull_request:
+    types: [labeled, unlabeled, synchronize, reopened]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  auto-merge:
+    name: Enable Auto-Merge
+    runs-on: ubuntu-latest
+
+    # Only run when PR has 'auto-merge' label and is not a draft
+    if: |
+      contains(github.event.pull_request.labels.*.name, 'auto-merge') &&
+      github.event.pull_request.draft == false
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Enable auto-merge
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          echo "🏷️  Auto-merge label detected on PR #$PR_NUMBER"
+          echo "🚀 Enabling auto-merge with squash strategy..."
+
+          # Enable auto-merge
+          gh pr merge $PR_NUMBER \
+            --repo ${{ github.repository }} \
+            --auto \
+            --squash \
+            --delete-branch
+
+          echo "✅ Auto-merge enabled!"
+
+      - name: Comment on PR
+        if: success()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          gh pr comment $PR_NUMBER \
+            --repo ${{ github.repository }} \
+            --body "🤖 **Auto-merge enabled**
+
+This PR will automatically merge when:
+- ✅ All status checks pass (E2E tests, builds, security scans)
+- ✅ All required reviews are approved
+- ✅ Branch is up to date with \`${{ github.base_ref }}\`
+
+The PR will be **squashed and merged** and the source branch will be deleted.
+
+To disable auto-merge, remove the \`auto-merge\` label."
+
+  disable-auto-merge:
+    name: Disable Auto-Merge
+    runs-on: ubuntu-latest
+
+    # Run when auto-merge label is removed
+    if: |
+      github.event.action == 'unlabeled' &&
+      github.event.label.name == 'auto-merge'
+
+    steps:
+      - name: Disable auto-merge
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          echo "🏷️  Auto-merge label removed from PR #$PR_NUMBER"
+          echo "🛑 Disabling auto-merge..."
+
+          # Disable auto-merge
+          gh pr merge $PR_NUMBER \
+            --repo ${{ github.repository }} \
+            --disable-auto
+
+          echo "✅ Auto-merge disabled!"
+
+      - name: Comment on PR
+        if: success()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          gh pr comment $PR_NUMBER \
+            --repo ${{ github.repository }} \
+            --body "🛑 **Auto-merge disabled**
+
+The PR will no longer automatically merge. To re-enable, add the \`auto-merge\` label."

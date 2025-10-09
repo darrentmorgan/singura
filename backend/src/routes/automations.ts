@@ -5,7 +5,7 @@
 
 import { Router, Request, Response } from 'express';
 import { z } from 'zod';
-import { authenticateToken } from '../middleware/auth';
+import { ClerkAuthRequest } from '../middleware/clerk-auth';
 import { validateRequest } from '../middleware/validation';
 import { discoveryService } from '../services/discovery-service';
 import { riskService } from '../services/risk-service';
@@ -39,6 +39,7 @@ interface AutomationQueryResult {
   risk_factors: string[] | null;
   recommendations: string[] | null;
   data_access_patterns: string[] | null;
+  external_id: string | null;
 }
 
 interface AutomationStatsQueryResult {
@@ -101,7 +102,7 @@ const automationFiltersSchema = z.object({
  * GET /automations
  * Get discovered automations with filtering and pagination
  */
-router.get('/', authenticateToken, validateRequest({ query: automationFiltersSchema }), async (req: Request, res: Response): Promise<void> => {
+router.get('/', validateRequest({ query: automationFiltersSchema }), async (req: ClerkAuthRequest, res: Response): Promise<void> => {
   try {
     const organizationId = req.user?.organizationId;
     if (!organizationId) {
@@ -304,7 +305,7 @@ router.get('/', authenticateToken, validateRequest({ query: automationFiltersSch
  * GET /automations/stats
  * Get automation statistics for the dashboard
  */
-router.get('/stats', authenticateToken, async (req: Request, res: Response): Promise<void> => {
+router.get('/stats', async (req: ClerkAuthRequest, res: Response): Promise<void> => {
   try {
     const organizationId = req.user?.organizationId;
     if (!organizationId) {
@@ -404,7 +405,7 @@ router.get('/stats', authenticateToken, async (req: Request, res: Response): Pro
  * GET /automations/:id
  * Get detailed information about a specific automation
  */
-router.get('/:id', authenticateToken, async (req: Request, res: Response): Promise<void> => {
+router.get('/:id', async (req: ClerkAuthRequest, res: Response): Promise<void> => {
   try {
     const organizationId = req.user?.organizationId;
     const automationId = req.params.id;
@@ -501,10 +502,217 @@ router.get('/:id', authenticateToken, async (req: Request, res: Response): Promi
 });
 
 /**
+ * GET /automations/:id/details
+ * Get detailed automation information with enriched OAuth permissions
+ */
+router.get('/:id/details', async (req: ClerkAuthRequest, res: Response): Promise<void> => {
+  try {
+    const organizationId = req.user?.organizationId;
+    const automationId = req.params.id;
+
+    if (!organizationId) {
+      res.status(401).json({
+        success: false,
+        error: 'ORGANIZATION_NOT_FOUND',
+        message: 'Organization ID not found in token'
+      });
+      return;
+    }
+
+    // Query automation data with platform connection and risk assessment
+    const automationQuery = `
+      SELECT
+        da.*,
+        pc.id as connection_id,
+        pc.platform_type,
+        pc.display_name as connection_name,
+        pc.status as connection_status,
+        ra.risk_level,
+        ra.risk_score,
+        ra.risk_factors
+      FROM discovered_automations da
+      LEFT JOIN platform_connections pc ON da.platform_connection_id = pc.id
+      LEFT JOIN risk_assessments ra ON da.id = ra.automation_id
+      WHERE da.id = $1 AND da.organization_id = $2
+    `;
+
+    const automationResult = await db.query(automationQuery, [automationId, organizationId]) as {
+      rows: Array<AutomationQueryResult & {
+        connection_id?: string;
+        connection_name?: string;
+        connection_status?: string;
+      }>
+    };
+
+    if (automationResult.rows.length === 0) {
+      res.status(404).json({
+        success: false,
+        error: 'AUTOMATION_NOT_FOUND',
+        message: 'Automation not found'
+      });
+      return;
+    }
+
+    const automation = automationResult.rows[0]!;
+
+    // Try permissions_required first, then fall back to platform_metadata.scopes
+    // Google OAuth apps store scopes in platform_metadata.scopes
+    const permissions: string[] = (automation.permissions_required && automation.permissions_required.length > 0)
+      ? automation.permissions_required
+      : (Array.isArray(automation.platform_metadata?.scopes) ? automation.platform_metadata.scopes : []);
+
+    // Enrich OAuth permissions using oauth_scope_library
+    const enrichedPermissions = [];
+    let criticalCount = 0;
+    let highCount = 0;
+    let mediumCount = 0;
+    let lowCount = 0;
+
+    if (permissions.length > 0) {
+      // Query oauth_scope_library for all permissions at once
+      const scopeQuery = `
+        SELECT
+          scope_url,
+          display_name,
+          description,
+          risk_level,
+          data_types,
+          service_name,
+          access_level,
+          common_use_cases
+        FROM oauth_scope_library
+        WHERE scope_url = ANY($1::text[])
+      `;
+
+      const scopeResult = await db.query(scopeQuery, [permissions as unknown as string]) as {
+        rows: Array<{
+          scope_url: string;
+          display_name: string;
+          description: string;
+          risk_level: string;
+          data_types: string[] | null;
+          service_name: string;
+          access_level: string;
+          common_use_cases: string | null;
+        }>
+      };
+
+      // Create a map of scope URL to enriched data
+      const scopeMap = new Map(
+        scopeResult.rows.map(scope => [scope.scope_url, scope])
+      );
+
+      // Enrich each permission
+      for (const permission of permissions) {
+        const scopeData = scopeMap.get(permission);
+
+        if (scopeData) {
+          // Use library data
+          enrichedPermissions.push({
+            scope: permission,
+            description: scopeData.description,
+            category: scopeData.service_name,
+            riskLevel: scopeData.risk_level.toLowerCase(),
+            dataAccess: scopeData.data_types || [],
+            userImpact: scopeData.common_use_cases || 'No impact information available'
+          });
+
+          // Count by risk level
+          switch (scopeData.risk_level.toUpperCase()) {
+            case 'CRITICAL':
+              criticalCount++;
+              break;
+            case 'HIGH':
+              highCount++;
+              break;
+            case 'MEDIUM':
+              mediumCount++;
+              break;
+            case 'LOW':
+              lowCount++;
+              break;
+          }
+        } else {
+          // Fallback for permissions not in library
+          enrichedPermissions.push({
+            scope: permission,
+            description: `OAuth permission: ${permission}`,
+            category: 'Unknown',
+            riskLevel: 'medium',
+            dataAccess: [],
+            userImpact: 'Unknown - not in scope library'
+          });
+          mediumCount++;
+        }
+      }
+    }
+
+    // Determine overall risk based on highest risk level present
+    let overallRisk: 'low' | 'medium' | 'high' | 'critical' = 'low';
+    if (criticalCount > 0) {
+      overallRisk = 'critical';
+    } else if (highCount > 0) {
+      overallRisk = 'high';
+    } else if (mediumCount > 0) {
+      overallRisk = 'medium';
+    }
+
+    // Build response matching frontend expectations
+    // Prioritize platform_metadata fields when available (Google OAuth apps use this)
+    const response = {
+      success: true,
+      automation: {
+        id: automation.id,
+        name: automation.name,
+        description: automation.platform_metadata?.description || automation.description || '',
+        authorizedBy: automation.platform_metadata?.authorizedBy || automation.owner_info?.name || automation.owner_info?.email || 'Unknown',
+        createdAt: automation.first_discovered_at.toISOString(),
+        lastActivity: automation.platform_metadata?.lastActivity || automation.last_triggered_at?.toISOString() || automation.first_discovered_at.toISOString(),
+        permissions: {
+          total: permissions.length,
+          enriched: enrichedPermissions,
+          riskAnalysis: {
+            overallRisk,
+            breakdown: {
+              criticalCount,
+              highCount,
+              mediumCount,
+              lowCount
+            }
+          }
+        },
+        metadata: {
+          isAIPlatform: automation.platform_metadata?.isAIPlatform || false,
+          platformName: automation.platform_metadata?.platformName || automation.platform_type || undefined,
+          clientId: automation.platform_metadata?.clientId || automation.external_id || undefined,
+          detectionMethod: automation.platform_metadata?.detectionMethod || automation.automation_type || 'Unknown',
+          riskFactors: automation.platform_metadata?.riskFactors || automation.risk_factors || []
+        },
+        connection: automation.connection_id ? {
+          id: automation.connection_id,
+          platform: automation.platform_type || 'unknown',
+          status: automation.connection_status || 'unknown'
+        } : undefined
+      }
+    };
+
+    res.json(response);
+
+  } catch (error) {
+    console.error('Failed to get automation details:', error);
+    res.status(500).json({
+      success: false,
+      error: 'FETCH_AUTOMATION_DETAILS_FAILED',
+      message: 'Failed to retrieve automation details'
+    });
+  }
+});
+
+/**
  * POST /automations/:id/assess-risk
  * Trigger risk assessment for a specific automation
  */
-router.post('/:id/assess-risk', authenticateToken, async (req: Request, res: Response): Promise<void> => {
+router.post('/:id/assess-risk', async (req: ClerkAuthRequest, res: Response): Promise<void> => {
   try {
     const organizationId = req.user?.organizationId;
     const automationId = req.params.id;

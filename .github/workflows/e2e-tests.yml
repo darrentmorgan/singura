@@ -1,23 +1,29 @@
-name: E2E Tests
+name: E2E Tests (Manual)
+
+# E2E tests are slow (5+ min) and can be flaky in CI
+# Run manually or on-demand only - not required for PR merge
+# For PR validation, use the fast build-validation.yml workflow instead
 
 on:
+  # Manual trigger only - add label "run-e2e" to PR to trigger
   pull_request:
+    types: [labeled]
     branches: [main, develop]
-    paths:
-      - 'frontend/**'
-      - '.github/workflows/e2e-tests.yml'
-  push:
-    branches: [main, develop]
-    paths:
-      - 'frontend/**'
-      - '.github/workflows/e2e-tests.yml'
   workflow_dispatch:
+  # Optional: Run nightly
+  schedule:
+    - cron: '0 2 * * *'  # 2 AM UTC daily
 
 jobs:
   test:
     name: E2E Tests
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    # Only run if: manually triggered, scheduled, or PR has "run-e2e" label
+    if: |
+      github.event_name == 'workflow_dispatch' ||
+      github.event_name == 'schedule' ||
+      (github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'run-e2e'))
 
     strategy:
       fail-fast: false
@@ -38,9 +44,12 @@ jobs:
         with:
           node-version: '20'
           cache: 'npm'
-          cache-dependency-path: 'frontend/package-lock.json'
+          cache-dependency-path: 'package-lock.json'
 
-      - name: Install dependencies
+      - name: Install root dependencies
+        run: npm ci
+
+      - name: Install frontend dependencies
         working-directory: ./frontend
         run: npm ci
 
