@@ -39,19 +39,11 @@ jobs:
         working-directory: ./shared-types
         run: npm run build
 
-      - name: TypeScript - Backend
-        working-directory: ./backend
-        run: npx tsc --noEmit
-
-      - name: TypeScript - Frontend
-        working-directory: ./frontend
-        run: npx tsc --noEmit
-
-      - name: Build - Backend
+      - name: Build - Backend (validates compilation)
         working-directory: ./backend
         run: npm run build
 
-      - name: Build - Frontend
+      - name: Build - Frontend (validates compilation)
         working-directory: ./frontend
         run: npm run build
 
