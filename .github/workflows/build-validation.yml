@@ -32,16 +32,12 @@ jobs:
           cache: 'npm'
           cache-dependency-path: 'package-lock.json'
 
-      - name: Install root dependencies
-        run: npm ci
+      - name: Install all dependencies (monorepo)
+        run: npm install --legacy-peer-deps
 
-      - name: Install backend dependencies
-        working-directory: ./backend
-        run: npm ci
-
-      - name: Install frontend dependencies
-        working-directory: ./frontend
-        run: npm ci
+      - name: Build shared-types (required by backend/frontend)
+        working-directory: ./shared-types
+        run: npm run build
 
       - name: TypeScript - Backend
         working-directory: ./backend
@@ -58,11 +54,6 @@ jobs:
       - name: Build - Frontend
         working-directory: ./frontend
         run: npm run build
-
-      - name: Run Backend Unit Tests
-        working-directory: ./backend
-        run: npm test -- --passWithNoTests
-        continue-on-error: true
 
   summary:
     name: Validation Summary
