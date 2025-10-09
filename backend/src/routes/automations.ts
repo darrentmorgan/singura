@@ -757,6 +757,8 @@ router.get('/:id/details', async (req: ClerkAuthRequest, res: Response): Promise
           isAIPlatform: automation.platform_metadata?.isAIPlatform || false,
           platformName: automation.platform_metadata?.platformName || automation.platform_type || undefined,
           clientId: automation.platform_metadata?.clientId || automation.external_id || undefined,
+          authorizedBy: automation.platform_metadata?.authorizedBy || automation.owner_info?.name || automation.owner_info?.email || undefined,
+          firstAuthorization: automation.platform_metadata?.firstAuthorization || undefined,
           detectionMethod: automation.platform_metadata?.detectionMethod || automation.automation_type || 'Unknown',
           riskFactors: automation.platform_metadata?.riskFactors || automation.risk_factors || []
         },

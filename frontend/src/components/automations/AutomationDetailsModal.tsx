@@ -445,6 +445,41 @@ export const AutomationDetailsModal: React.FC<AutomationDetailsModalProps> = ({
                   </CardContent>
                 </Card>
 
+                {/* OAuth Authorization Info - only show for OAuth/integration automations */}
+                {automation.type === 'integration' && detailedData?.metadata?.authorizedBy && (
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>OAuth Authorization</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm font-medium">Authorized By</span>
+                        <span className="text-sm text-muted-foreground">{detailedData.metadata.authorizedBy}</span>
+                      </div>
+                      {detailedData.metadata.clientId && (
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm font-medium">Client ID</span>
+                          <span className="text-sm text-muted-foreground font-mono text-xs">{detailedData.metadata.clientId}</span>
+                        </div>
+                      )}
+                      {detailedData.metadata.firstAuthorization && (
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm font-medium">First Authorized</span>
+                          <span className="text-sm text-muted-foreground">
+                            {new Date(detailedData.metadata.firstAuthorization).toLocaleDateString('en-US', {
+                              year: 'numeric',
+                              month: 'short',
+                              day: 'numeric',
+                              hour: '2-digit',
+                              minute: '2-digit'
+                            })}
+                          </span>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                )}
+
                 {/* Connection Info */}
                 {detailedData?.connection && (
                   <Card>
