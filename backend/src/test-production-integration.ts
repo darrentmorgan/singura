@@ -45,7 +45,7 @@ async function testProductionIntegration() {
     console.log('   Permissions:', googleConnection.permissions.length, 'scopes');
 
     // Test production automation discovery
-    const result = await realDataProvider.discoverAutomations(googleConnection.id);
+    const result = await realDataProvider.discoverAutomations(googleConnection.id, 'test-org-id');
 
     console.log('🎉 Production discovery test completed successfully!');
     console.log('📊 Results:', {

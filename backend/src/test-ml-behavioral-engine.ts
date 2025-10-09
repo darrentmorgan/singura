@@ -67,7 +67,7 @@ async function testMLBehavioralEngine() {
       try {
         console.log(`\n📊 Step 3: Testing with ${connection.platform} connection...`);
 
-        const discoveryResult = await dataProvider.discoverAutomations(connection.id);
+        const discoveryResult = await dataProvider.discoverAutomations(connection.id, 'demo-org-id');
 
         if (discoveryResult.success && discoveryResult.discovery.automations.length > 0) {
           console.log(`✅ Found ${discoveryResult.discovery.automations.length} live automations`);
