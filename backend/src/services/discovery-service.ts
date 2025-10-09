@@ -219,7 +219,7 @@ export class DiscoveryService {
       return {
         platform: connection.platform_type,
         connectionId: connection.id,
-        automations,
+        automations: storedAutomations, // ✅ FIX: Return database records with UUIDs, not connector data with external IDs
         auditLogs,
         permissionCheck,
         discoveredAt: new Date(),
@@ -227,7 +227,7 @@ export class DiscoveryService {
         warnings,
         metadata: {
           executionTimeMs: executionTime,
-          automationsFound: automations.length,
+          automationsFound: storedAutomations.length,
           auditLogsFound: auditLogs.length,
           riskScore,
           complianceStatus: permissionCheck.isValid ? 'compliant' : 'non_compliant'
