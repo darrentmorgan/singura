@@ -40,7 +40,7 @@ export interface AutomationEvent {
     email?: string;
   };
   description?: string;
-  riskLevel?: 'low' | 'medium' | 'high';
+  riskLevel?: 'low' | 'medium' | 'high' | 'critical';
   permissions?: string[];
 }
 

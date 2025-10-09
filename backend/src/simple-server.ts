@@ -891,6 +891,7 @@ app.post('/api/connections/:id/discover', optionalClerkAuth, async (req: Request
     }
     discoveryRunId = discoveryRunResult.rows[0].id; // Assign to outer scope variable
     console.log('📊 Created discovery run:', discoveryRunId);
+    console.log('🔍 DEBUG: discoveryRunId type:', typeof discoveryRunId, 'value:', discoveryRunId);
 
     const result = await dataProvider.discoverAutomations(id || '', organizationId);
 
@@ -935,6 +936,8 @@ app.post('/api/connections/:id/discover', optionalClerkAuth, async (req: Request
       }));
       console.log('  📅 Sample dates before persistence:', JSON.stringify(sampleDates, null, 2));
 
+      console.log('🔍 DEBUG: About to insert automations with discoveryRunId:', discoveryRunId);
+
       for (const automation of result.discovery.automations) {
         const upsertQuery = `
           INSERT INTO discovered_automations (
@@ -958,6 +961,7 @@ app.post('/api/connections/:id/discover', optionalClerkAuth, async (req: Request
           ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, NOW(), $16)
           ON CONFLICT (platform_connection_id, external_id)
           DO UPDATE SET
+            discovery_run_id = EXCLUDED.discovery_run_id,
             name = EXCLUDED.name,
             description = EXCLUDED.description,
             status = EXCLUDED.status,
@@ -1031,28 +1035,66 @@ app.post('/api/connections/:id/discover', optionalClerkAuth, async (req: Request
       console.log(`📊 Updated discovery run ${discoveryRunId} with results`);
 
       // ✅ FIX: Query database to get persisted automations with UUIDs
+      console.log('🔍 DEBUG: Querying automations with discoveryRunId:', discoveryRunId);
+
       const getPersistedQuery = `
         SELECT da.id, da.external_id, da.name, da.automation_type, da.status, da.trigger_type, da.actions,
-               da.first_discovered_at, da.last_triggered_at, da.platform_metadata
+               da.first_discovered_at, da.last_triggered_at, da.platform_metadata, da.discovery_run_id
         FROM discovered_automations da
         WHERE da.discovery_run_id = $1
         ORDER BY da.first_discovered_at DESC
       `;
       const persistedResult = await db.query(getPersistedQuery, [discoveryRunId]);
 
+      console.log('🔍 DEBUG: Query returned', persistedResult.rows.length, 'rows');
+      if (persistedResult.rows.length > 0) {
+        console.log('🔍 DEBUG: First row discovery_run_id:', (persistedResult.rows[0] as any).discovery_run_id);
+      } else {
+        // Query to see what discovery_run_ids exist for this connection
+        const debugQuery = `
+          SELECT DISTINCT discovery_run_id, COUNT(*) as count
+          FROM discovered_automations
+          WHERE platform_connection_id = $1
+          GROUP BY discovery_run_id
+          ORDER BY discovery_run_id DESC
+          LIMIT 5
+        `;
+        const debugResult = await db.query(debugQuery, [id]);
+        console.log('🔍 DEBUG: Available discovery_run_ids for this connection:', debugResult.rows);
+      }
+
       // Replace connector data (with external_id as id) with database records (with UUID as id)
-      result.discovery.automations = persistedResult.rows.map((row: any) => ({
-        id: row.id,  // ✅ UUID from database
-        name: row.name,
-        type: row.automation_type,
-        platform: id?.includes('google') ? 'google' : id?.includes('slack') ? 'slack' : 'google',
-        status: row.status,
-        trigger: row.trigger_type,
-        actions: row.actions && Array.isArray(row.actions) ? row.actions : [],
-        createdAt: row.first_discovered_at,
-        lastTriggered: row.last_triggered_at,
-        metadata: row.platform_metadata || {}
-      }));
+      result.discovery.automations = persistedResult.rows.map((row: any) => {
+        const platformMetadata = row.platform_metadata || {};
+
+        // Calculate risk level from metadata (same as GET /automations)
+        const riskLevel = platformMetadata.isAIPlatform === true ? 'high' :
+          (platformMetadata.riskFactors || []).length >= 5 ? 'critical' :
+          (platformMetadata.riskFactors || []).length >= 3 ? 'high' :
+          (platformMetadata.riskFactors || []).length >= 1 ? 'medium' : 'low';
+
+        // Calculate risk score (same as GET /automations)
+        const riskScore = platformMetadata.isAIPlatform === true ? 85 :
+          Math.min(100, 30 + (platformMetadata.riskFactors || []).length * 15);
+
+        return {
+          id: row.id,  // ✅ UUID from database
+          name: row.name,
+          type: row.automation_type,
+          platform: id?.includes('google') ? 'google' : id?.includes('slack') ? 'slack' : 'google',
+          status: row.status,
+          trigger: row.trigger_type,
+          actions: row.actions && Array.isArray(row.actions) ? row.actions : [],
+          createdAt: row.first_discovered_at,
+          lastTriggered: row.last_triggered_at,
+          riskLevel: riskLevel,  // ✅ Add calculated risk level
+          metadata: {
+            ...platformMetadata,
+            riskScore: riskScore,  // ✅ Add calculated risk score
+            riskFactors: platformMetadata.riskFactors || []
+          }
+        };
+      });
 
       console.log(`📊 Replaced connector data with ${persistedResult.rows.length} database records (UUIDs)`);
     }
