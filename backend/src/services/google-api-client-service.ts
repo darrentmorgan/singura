@@ -984,6 +984,7 @@ export class GoogleAPIClientService implements GoogleAPIClient {
             status: 'active',
             trigger: 'oauth',
             actions: ['api_access', 'data_read'],
+            permissions: app.scopes,
             createdAt: app.firstSeen,
             lastTriggered: app.lastSeen,
             riskLevel: app.isAIPlatform ? 'high' : 'medium',

@@ -249,15 +249,17 @@ export const AutomationDetailsModal: React.FC<AutomationDetailsModalProps> = ({
 
                     {/* Individual Scope Cards */}
                     <div className="space-y-4">
-                      {detailedData.permissions.enriched && detailedData.permissions.enriched.length > 0 ? (
+                      {detailedData.permissions.enriched &&
+                       Array.isArray(detailedData.permissions.enriched) &&
+                       detailedData.permissions.enriched.length > 0 ? (
                         detailedData.permissions.enriched.map((scope: any, index: number) => (
                           <Card key={index}>
                             <CardHeader>
                               <div className="flex justify-between items-start">
                                 <div className="flex-1">
-                                  <CardTitle className="text-lg">{scope.displayName}</CardTitle>
+                                  <CardTitle className="text-lg">{scope.displayName || 'Unknown Permission'}</CardTitle>
                                   <CardDescription className="mt-1">
-                                    {scope.serviceName} • {scope.accessLevel}
+                                    {scope.serviceName || 'Unknown Service'} • {scope.accessLevel || 'Unknown Access'}
                                   </CardDescription>
                                 </div>
                                 <Badge className={getRiskBadgeClass(scope.riskLevel)}>
@@ -267,11 +269,11 @@ export const AutomationDetailsModal: React.FC<AutomationDetailsModalProps> = ({
                             </CardHeader>
                             <CardContent className="space-y-4">
                               <p className="text-sm text-gray-700 dark:text-gray-300">
-                                {scope.description}
+                                {scope.description || 'No description available'}
                               </p>
 
                               {/* Data Types */}
-                              {scope.dataTypes && scope.dataTypes.length > 0 && (
+                              {scope.dataTypes && Array.isArray(scope.dataTypes) && scope.dataTypes.length > 0 && (
                                 <div>
                                   <h4 className="font-semibold text-sm mb-2">Data Access:</h4>
                                   <div className="flex flex-wrap gap-2">
@@ -338,10 +340,12 @@ export const AutomationDetailsModal: React.FC<AutomationDetailsModalProps> = ({
                 {/* Risk Factors */}
                 <Card>
                   <CardHeader>
-                    <CardTitle>Risk Factors ({detailedData?.metadata?.riskFactors?.length || 0})</CardTitle>
+                    <CardTitle>Risk Factors ({detailedData?.metadata?.riskFactors && Array.isArray(detailedData.metadata.riskFactors) ? detailedData.metadata.riskFactors.length : 0})</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    {detailedData?.metadata?.riskFactors && detailedData.metadata.riskFactors.length > 0 ? (
+                    {detailedData?.metadata?.riskFactors &&
+                     Array.isArray(detailedData.metadata.riskFactors) &&
+                     detailedData.metadata.riskFactors.length > 0 ? (
                       <ul className="space-y-2">
                         {detailedData.metadata.riskFactors.map((factor: string, i: number) => (
                           <li key={i} className="flex items-start gap-2">
@@ -357,7 +361,9 @@ export const AutomationDetailsModal: React.FC<AutomationDetailsModalProps> = ({
                 </Card>
 
                 {/* Permission Risk Breakdown */}
-                {detailedData?.permissions?.riskAnalysis?.breakdown && (
+                {detailedData?.permissions?.riskAnalysis?.breakdown &&
+                 Array.isArray(detailedData.permissions.riskAnalysis.breakdown) &&
+                 detailedData.permissions.riskAnalysis.breakdown.length > 0 && (
                   <Card>
                     <CardHeader>
                       <CardTitle>Permission Risk Breakdown</CardTitle>
@@ -367,11 +373,11 @@ export const AutomationDetailsModal: React.FC<AutomationDetailsModalProps> = ({
                         {detailedData.permissions.riskAnalysis.breakdown.map((item: any, i: number) => (
                           <div key={i} className="flex items-center justify-between p-3 bg-muted rounded-lg">
                             <div className="flex-1">
-                              <p className="text-sm font-medium">{item.scope}</p>
-                              <p className="text-xs text-muted-foreground">Contribution: {item.contribution}%</p>
+                              <p className="text-sm font-medium">{item.scope || 'Unknown Scope'}</p>
+                              <p className="text-xs text-muted-foreground">Contribution: {item.contribution || 0}%</p>
                             </div>
                             <Badge className={getRiskBadgeClass(item.riskScore > 70 ? 'high' : item.riskScore > 40 ? 'medium' : 'low')}>
-                              {item.riskScore}/100
+                              {item.riskScore || 0}/100
                             </Badge>
                           </div>
                         ))}

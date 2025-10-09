@@ -335,16 +335,16 @@ class ApiService {
     return this.request<DiscoveryResponse>('POST', `/connections/${connectionId}/discover/refresh`);
   }
 
-  async getAutomations(filters: any = {}): Promise<ApiResponse<{ automations: AutomationDiscovery[], pagination: any }>> {
+  async getAutomations(filters: any = {}): Promise<{ success: boolean, automations: AutomationDiscovery[], pagination: any }> {
     const params = new URLSearchParams();
-    
+
     Object.entries(filters).forEach(([key, value]) => {
       if (value !== undefined && value !== null && value !== '') {
         params.append(key, value.toString());
       }
     });
 
-    return this.request<ApiResponse<{ automations: AutomationDiscovery[], pagination: any }>>('GET', `/automations?${params.toString()}`);
+    return this.request<{ success: boolean, automations: AutomationDiscovery[], pagination: any }>('GET', `/automations?${params.toString()}`);
   }
 
   async getAutomationStats(): Promise<ApiResponse<any>> {

@@ -155,22 +155,22 @@ export async function runMigrations(): Promise<void> {
  */
 export async function verifyMigrations(): Promise<boolean> {
   const migrationsDir = path.join(__dirname, '../../migrations');
-  
+
   try {
     const migrations = getMigrationFiles(migrationsDir);
     const appliedMigrations = await getAppliedMigrations();
-    
+
     let allValid = true;
-    
+
     for (const applied of appliedMigrations) {
       const migration = migrations.find(m => m.name === applied.migration_name);
-      
+
       if (!migration) {
         console.warn(`⚠️  Applied migration not found in files: ${applied.migration_name}`);
         allValid = false;
         continue;
       }
-      
+
       if (applied.checksum && migration.checksum !== applied.checksum) {
         console.warn(`⚠️  Checksum mismatch for ${applied.migration_name}`);
         console.warn(`   Expected: ${applied.checksum}`);
@@ -178,14 +178,59 @@ export async function verifyMigrations(): Promise<boolean> {
         allValid = false;
       }
     }
-    
+
     return allValid;
-    
+
   } catch (error) {
     console.error('❌ Migration verification failed:', error);
     return false;
   }
 }
+
+/**
+ * Migration Runner class for managing database migrations
+ * Provides a structured API for the database module
+ */
+export class MigrationRunner {
+  /**
+   * Run all pending migrations
+   */
+  async migrate(): Promise<void> {
+    return runMigrations();
+  }
+
+  /**
+   * Verify migration checksums
+   */
+  async validate(): Promise<{ valid: boolean }> {
+    const isValid = await verifyMigrations();
+    return { valid: isValid };
+  }
+
+  /**
+   * Get migration status
+   */
+  async status(): Promise<{
+    applied: MigrationRecord[];
+    pending: Migration[];
+  }> {
+    const migrationsDir = path.join(__dirname, '../../migrations');
+    const migrations = getMigrationFiles(migrationsDir);
+    const appliedMigrations = await getAppliedMigrations();
+    const appliedNames = new Set(appliedMigrations.map(m => m.migration_name));
+    const pendingMigrations = migrations.filter(m => !appliedNames.has(m.name));
+
+    return {
+      applied: appliedMigrations,
+      pending: pendingMigrations
+    };
+  }
+}
+
+/**
+ * Singleton instance of MigrationRunner
+ */
+export const migrationRunner = new MigrationRunner();
 
 /**
  * CLI handler

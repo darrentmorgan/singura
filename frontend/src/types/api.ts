@@ -7,7 +7,7 @@
 export type PlatformType = 'slack' | 'google' | 'microsoft' | 'hubspot' | 'salesforce' | 'notion' | 'asana' | 'jira';
 export type ConnectionStatus = 'active' | 'inactive' | 'error' | 'expired' | 'pending';
 export type AutomationStatus = 'active' | 'inactive' | 'error' | 'unknown';
-export type RiskLevel = 'low' | 'medium' | 'high';
+export type RiskLevel = 'low' | 'medium' | 'high' | 'critical' | 'unknown';
 export type ComplianceStatus = 'compliant' | 'non_compliant' | 'unknown';
 
 // Authentication Types

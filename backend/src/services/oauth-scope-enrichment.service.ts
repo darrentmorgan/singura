@@ -45,16 +45,25 @@ class OAuthScopeEnrichmentService {
    * Uses caching to improve performance
    */
   async enrichScope(scopeUrl: string, platform: string): Promise<EnrichedScope | null> {
+    console.log('🔍 [OAuth Enrichment] enrichScope called:', { scopeUrl, platform });
     const cacheKey = `${platform}:${scopeUrl}`;
 
     // Check cache first
     if (this.scopeCache.has(cacheKey)) {
       const cached = this.scopeCache.get(cacheKey);
+      console.log('✅ [OAuth Enrichment] Cache hit:', { scopeUrl, hasCachedData: !!cached });
       return cached ? this.mapToEnrichedScope(cached) : null;
     }
 
     // Query database
+    console.log('🔍 [OAuth Enrichment] Cache miss, querying database:', { scopeUrl, platform });
     const scopeData = await oauthScopeLibraryRepository.findByScopeUrl(scopeUrl, platform);
+    console.log('📊 [OAuth Enrichment] Database query result:', {
+      scopeUrl,
+      found: !!scopeData,
+      displayName: scopeData?.display_name,
+      serviceName: scopeData?.service_name
+    });
 
     // Cache result (including null to avoid repeated queries)
     this.scopeCache.set(cacheKey, scopeData);
@@ -67,6 +76,12 @@ class OAuthScopeEnrichmentService {
    * Filters out scopes that don't have metadata
    */
   async enrichScopes(scopeUrls: string[], platform: string): Promise<EnrichedScope[]> {
+    console.log('🚀 [OAuth Enrichment] enrichScopes called:', {
+      platform,
+      scopeCount: scopeUrls.length,
+      scopes: scopeUrls
+    });
+
     const enriched: EnrichedScope[] = [];
 
     for (const scopeUrl of scopeUrls) {
@@ -75,6 +90,12 @@ class OAuthScopeEnrichmentService {
         enriched.push(enrichedScope);
       }
     }
+
+    console.log('✅ [OAuth Enrichment] enrichScopes completed:', {
+      inputCount: scopeUrls.length,
+      enrichedCount: enriched.length,
+      enrichedNames: enriched.map(s => s.displayName)
+    });
 
     return enriched;
   }
