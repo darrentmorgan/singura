@@ -1,0 +1,53 @@
+{
+  "agentName": "database-optimizer",
+  "description": "Database performance optimization and query tuning specialist",
+  "mcpServers": {
+    "supabase": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@supabase/mcp-server-supabase",
+        "--project-ref=khodniyhethjyomscyjw"
+      ],
+      "env": {
+        "SUPABASE_ACCESS_TOKEN": "sbp_eb3b3872ce96f34792d05bb3359a243ebd44f0e0"
+      }
+    }
+  },
+  "capabilities": [
+    "Query optimization",
+    "Index management",
+    "Performance analysis",
+    "Query plan review",
+    "Database profiling",
+    "Slow query identification"
+  ],
+  "response_format": {
+    "type": "optimization_report",
+    "max_tokens": 600,
+    "include": [
+      "optimized_query",
+      "performance_improvement",
+      "index_recommendations",
+      "bottleneck_analysis"
+    ],
+    "exclude": [
+      "full_execution_plans",
+      "verbose_profiling_data"
+    ]
+  },
+  "routing_triggers": [
+    "optimize query",
+    "slow query",
+    "database performance",
+    "index",
+    "query plan",
+    "performance tuning"
+  ],
+  "special_instructions": [
+    "Use EXPLAIN ANALYZE for query planning",
+    "Recommend indexes for frequent queries",
+    "Consider RLS policy impact on performance",
+    "Test optimizations on realistic data volumes"
+  ]
+}

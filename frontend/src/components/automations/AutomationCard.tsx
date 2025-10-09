@@ -34,10 +34,12 @@ const automationTypeIcons = {
 };
 
 // Risk level colors
-const riskColors = {
+const riskColors: Record<string, string> = {
   low: 'bg-green-100 text-green-800 border-green-200 dark:bg-green-900/20 dark:text-green-400 dark:border-green-800',
   medium: 'bg-yellow-100 text-yellow-800 border-yellow-200 dark:bg-yellow-900/20 dark:text-yellow-400 dark:border-yellow-800',
   high: 'bg-red-100 text-red-800 border-red-200 dark:bg-red-900/20 dark:text-red-400 dark:border-red-800',
+  critical: 'bg-red-600 text-white border-red-700 dark:bg-red-700 dark:text-white dark:border-red-800',
+  unknown: 'bg-gray-100 text-gray-800 border-gray-200 dark:bg-gray-900/20 dark:text-gray-400 dark:border-gray-800',
 };
 
 // Status colors
@@ -141,10 +143,10 @@ export const AutomationCard: React.FC<AutomationCardProps> = ({
           <div className="flex items-center space-x-2">
             <span className={cn(
               "inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border",
-              riskColors[automation.riskLevel]
+              riskColors[automation.riskLevel] || riskColors.unknown
             )}>
               {getRiskIcon()}
-              <span className="ml-1 capitalize">{automation.riskLevel}</span>
+              <span className="ml-1 capitalize">{automation.riskLevel || 'Unknown'}</span>
             </span>
             {getStatusIcon()}
           </div>
@@ -228,10 +230,10 @@ export const AutomationCard: React.FC<AutomationCardProps> = ({
         <div className="flex items-center justify-between">
           <span className={cn(
             "inline-flex items-center px-3 py-1 rounded-full text-sm font-medium border",
-            riskColors[automation.riskLevel]
+            riskColors[automation.riskLevel] || riskColors.unknown
           )}>
             {getRiskIcon()}
-            <span className="ml-2 capitalize">{automation.riskLevel} Risk</span>
+            <span className="ml-2 capitalize">{automation.riskLevel || 'Unknown'} Risk</span>
           </span>
 
           {automation.permissions && automation.permissions.length > 0 && (

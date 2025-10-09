@@ -46,6 +46,33 @@
 
 **Examples**: See `.claude/docs/DELEGATION_EXAMPLES.md`
 
+### TOOLS YOU CAN USE DIRECTLY (Don't Delegate These)
+
+**Browser Automation & Testing:**
+- ✅ Chrome DevTools MCP (all tools: navigate, click, screenshot, evaluate, console, network)
+- ✅ Playwright MCP (browser automation)
+- ✅ Use these directly - DO NOT ask user to manually check DevTools
+- ✅ Use these directly - DO NOT delegate browser tasks
+
+**Research & Discovery:**
+- ✅ WebSearch, WebFetch
+- ✅ Read, Grep, Glob
+- ✅ TodoWrite
+
+**Shell Operations:**
+- ✅ Bash (git, npm, pnpm, curl, chmod, docker, etc.)
+
+**When to Act Autonomously:**
+- Browser testing/debugging → Use Chrome DevTools MCP directly (evaluate, console, network)
+- Web research → Use WebSearch/WebFetch directly
+- File discovery → Use Grep/Glob directly
+- Running commands → Use Bash directly
+
+**Only Delegate When:**
+- Writing/editing code in `src/**`
+- Complex multi-file code changes
+- Specialized tasks in the delegation matrix above
+
 ---
 
 ## SaaS X-Ray Tech Stack

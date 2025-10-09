@@ -85,6 +85,40 @@ import { QueryParameters } from '@saas-xray/shared-types';
 
 const router = Router();
 
+/**
+ * Calculate risk level based on platform metadata
+ */
+function calculateRiskLevel(metadata: any): 'low' | 'medium' | 'high' | 'critical' {
+  // AI platforms are automatically HIGH risk
+  if (metadata.isAIPlatform === true) {
+    return 'high';
+  }
+
+  // Calculate from risk factors
+  const riskFactors = metadata.riskFactors || [];
+  const riskFactorCount = riskFactors.length;
+
+  if (riskFactorCount >= 5) return 'critical';
+  if (riskFactorCount >= 3) return 'high';
+  if (riskFactorCount >= 1) return 'medium';
+  return 'low';
+}
+
+/**
+ * Calculate numeric risk score (0-100)
+ */
+function calculateRiskScore(metadata: any): number {
+  if (metadata.isAIPlatform === true) {
+    return 85; // High risk for AI platforms
+  }
+
+  const riskFactors = metadata.riskFactors || [];
+  const baseScore = 30;
+  const factorScore = riskFactors.length * 15;
+
+  return Math.min(100, baseScore + factorScore);
+}
+
 // Validation schemas
 const automationFiltersSchema = z.object({
   platform: z.enum(['slack', 'google', 'microsoft', 'hubspot', 'salesforce', 'notion', 'asana', 'jira']).optional(),
@@ -255,28 +289,35 @@ router.get('/', validateRequest({ query: automationFiltersSchema }), async (req:
 
     // Transform results to match frontend expectations
     const typedResult = result as { rows: AutomationQueryResult[] };
-    const automations = typedResult.rows.map(row => ({
-      id: row.id,
-      name: row.name,
-      description: row.description,
-      type: row.automation_type,
-      platform: row.platform_type,
-      status: row.status,
-      riskLevel: row.risk_level || 'medium',
-      createdAt: row.first_discovered_at,
-      lastTriggered: row.last_triggered_at,
-      permissions: row.permissions_required || [],
-      createdBy: row.owner_info?.name || row.owner_info?.email,
-      metadata: {
-        ...row.platform_metadata,
-        isInternal: true,
-        triggers: row.trigger_type ? [row.trigger_type] : [],
-        actions: row.actions || [],
-        riskScore: row.risk_score,
-        riskFactors: row.risk_factors || [],
-        recommendations: row.recommendations || [],
-      }
-    }));
+    const automations = typedResult.rows.map(row => {
+      // Extract platform metadata and calculate risk from it
+      const platformMetadata = (row.platform_metadata as any) || {};
+      const calculatedRiskLevel = calculateRiskLevel(platformMetadata);
+      const calculatedRiskScore = calculateRiskScore(platformMetadata);
+
+      return {
+        id: row.id,
+        name: row.name,
+        description: row.description,
+        type: row.automation_type,
+        platform: row.platform_type,
+        status: row.status,
+        riskLevel: calculatedRiskLevel, // Use calculated risk from platform metadata
+        createdAt: row.first_discovered_at,
+        lastTriggered: row.last_triggered_at,
+        permissions: row.permissions_required || [],
+        createdBy: row.owner_info?.name || row.owner_info?.email,
+        metadata: {
+          ...platformMetadata,
+          isInternal: true,
+          triggers: row.trigger_type ? [row.trigger_type] : [],
+          actions: row.actions || [],
+          riskScore: calculatedRiskScore, // Use calculated score
+          riskFactors: platformMetadata.riskFactors || row.risk_factors || [],
+          recommendations: row.recommendations || [],
+        }
+      };
+    });
 
     res.json({
       success: true,
@@ -607,14 +648,38 @@ router.get('/:id/details', async (req: ClerkAuthRequest, res: Response): Promise
         const scopeData = scopeMap.get(permission);
 
         if (scopeData) {
-          // Use library data
+          // Calculate numeric risk score from risk level
+          let riskScore = 30; // default medium
+          switch (scopeData.risk_level.toUpperCase()) {
+            case 'CRITICAL':
+              riskScore = 95;
+              break;
+            case 'HIGH':
+              riskScore = 75;
+              break;
+            case 'MEDIUM':
+              riskScore = 50;
+              break;
+            case 'LOW':
+              riskScore = 20;
+              break;
+          }
+
+          // Use library data - map to frontend expected fields
           enrichedPermissions.push({
-            scope: permission,
+            scopeUrl: permission,
+            displayName: scopeData.display_name,
+            serviceName: scopeData.service_name,
             description: scopeData.description,
-            category: scopeData.service_name,
+            accessLevel: scopeData.access_level,
             riskLevel: scopeData.risk_level.toLowerCase(),
-            dataAccess: scopeData.data_types || [],
-            userImpact: scopeData.common_use_cases || 'No impact information available'
+            riskScore,
+            dataTypes: scopeData.data_types || [],
+            userImpact: scopeData.common_use_cases || 'No impact information available',
+            // Also include legacy fields for backward compatibility
+            scope: permission,
+            category: scopeData.service_name,
+            dataAccess: scopeData.data_types || []
           });
 
           // Count by risk level
@@ -633,14 +698,21 @@ router.get('/:id/details', async (req: ClerkAuthRequest, res: Response): Promise
               break;
           }
         } else {
-          // Fallback for permissions not in library
+          // Fallback for permissions not in library - map to frontend expected fields
           enrichedPermissions.push({
-            scope: permission,
+            scopeUrl: permission,
+            displayName: permission.split('/').pop() || permission,
+            serviceName: 'Unknown Service',
             description: `OAuth permission: ${permission}`,
-            category: 'Unknown',
+            accessLevel: 'Unknown Access',
             riskLevel: 'medium',
-            dataAccess: [],
-            userImpact: 'Unknown - not in scope library'
+            riskScore: 50,
+            dataTypes: [],
+            userImpact: 'Unknown - not in scope library',
+            // Also include legacy fields for backward compatibility
+            scope: permission,
+            category: 'Unknown',
+            dataAccess: []
           });
           mediumCount++;
         }

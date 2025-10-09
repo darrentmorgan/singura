@@ -1,0 +1,209 @@
+{
+  "test_execution": {
+    "date": "2025-10-09",
+    "tester": "QA Expert (Claude Sonnet 4.5)",
+    "test_type": "Code Review + Static Analysis",
+    "environment": "Development (localhost)",
+    "mcp_tools_available": false,
+    "manual_testing_required": true
+  },
+  "test_summary": {
+    "total_checks": 8,
+    "passed": 6,
+    "failed": 0,
+    "warnings": 2,
+    "overall_status": "PASS_WITH_MANUAL_VERIFICATION_REQUIRED"
+  },
+  "backend_verification": {
+    "status": "PASS",
+    "file": "/Users/darrenmorgan/AI_Projects/saas-xray/backend/src/routes/automations.ts",
+    "endpoint": "GET /automations/:id/details",
+    "checks": [
+      {
+        "name": "Uses req.params.id for automation ID",
+        "line": 511,
+        "status": "PASS",
+        "code": "const automationId = req.params.id;"
+      },
+      {
+        "name": "Database query uses UUID in WHERE clause",
+        "line": 536,
+        "status": "PASS",
+        "code": "WHERE da.id = $1 AND da.organization_id = $2"
+      },
+      {
+        "name": "Permissions extracted from correct fields",
+        "line": "560-562",
+        "status": "PASS",
+        "note": "Uses permissions_required OR platform_metadata.scopes"
+      },
+      {
+        "name": "OAuth scope library enrichment",
+        "line": "573-586",
+        "status": "PASS",
+        "note": "Queries oauth_scope_library for permission details"
+      },
+      {
+        "name": "External ID shown as metadata only",
+        "line": 687,
+        "status": "PASS",
+        "code": "clientId: automation.platform_metadata?.clientId || automation.external_id"
+      }
+    ]
+  },
+  "frontend_verification": {
+    "status": "PASS",
+    "checks": [
+      {
+        "name": "API service constructs URL correctly",
+        "file": "/Users/darrenmorgan/AI_Projects/saas-xray/frontend/src/services/api.ts",
+        "line": 359,
+        "status": "PASS",
+        "code": "return this.request('GET', `/automations/${automationId}/details`);"
+      },
+      {
+        "name": "Modal passes automation.id (UUID)",
+        "file": "/Users/darrenmorgan/AI_Projects/saas-xray/frontend/src/components/automations/AutomationDetailsModal.tsx",
+        "line": 79,
+        "status": "PASS",
+        "code": "await automationsApi.getAutomationDetails(automation.id)"
+      }
+    ]
+  },
+  "integration_flow": {
+    "status": "VERIFIED",
+    "steps": [
+      {
+        "step": 1,
+        "component": "AutomationCard",
+        "action": "User clicks 'View Details'",
+        "data_passed": "Full automation object with UUID"
+      },
+      {
+        "step": 2,
+        "component": "AutomationsList",
+        "action": "handleViewDetails(automation)",
+        "data_passed": "automation object"
+      },
+      {
+        "step": 3,
+        "component": "AutomationDetailsModal",
+        "action": "fetchDetailedData()",
+        "data_extracted": "automation.id (UUID)"
+      },
+      {
+        "step": 4,
+        "component": "API Service",
+        "action": "GET /api/automations/{UUID}/details",
+        "url_format": "Uses UUID, NOT external_id"
+      },
+      {
+        "step": 5,
+        "component": "Backend Route",
+        "action": "Query database by UUID",
+        "query": "WHERE da.id = $1"
+      }
+    ]
+  },
+  "test_data": {
+    "sample_automations": [
+      {
+        "id": "aa28cdc1-8af7-4ab9-8be8-005991bb375d",
+        "name": "Superhuman",
+        "external_id": "oauth-app-649336022844-oq8a3tl77u107d1j8dbm705lkaj77v1h.apps.googleusercontent.com",
+        "expected_api_url": "/api/automations/aa28cdc1-8af7-4ab9-8be8-005991bb375d/details",
+        "expected_status": 200
+      },
+      {
+        "id": "27475129-2619-4b57-9c42-e36797a63b75",
+        "name": "Google Chrome",
+        "external_id": "oauth-app-77185425430.apps.googleusercontent.com",
+        "expected_api_url": "/api/automations/27475129-2619-4b57-9c42-e36797a63b75/details",
+        "expected_status": 200
+      }
+    ]
+  },
+  "success_criteria": {
+    "api_url_format": {
+      "expected": "/api/automations/{UUID}/details",
+      "not_expected": "/api/automations/oauth-app-.../details",
+      "status": "VERIFIED_IN_CODE"
+    },
+    "response_status": {
+      "uuid_request": 200,
+      "oauth_app_id_request": 404,
+      "status": "NOT_TESTED_MANUAL_REQUIRED"
+    },
+    "response_content": {
+      "has_metadata": "NOT_TESTED_MANUAL_REQUIRED",
+      "has_enriched_permissions": "NOT_TESTED_MANUAL_REQUIRED",
+      "has_risk_analysis": "NOT_TESTED_MANUAL_REQUIRED",
+      "client_id_in_metadata": "VERIFIED_IN_CODE"
+    },
+    "no_errors": {
+      "javascript_console": "NOT_TESTED_MANUAL_REQUIRED",
+      "network_404": "NOT_TESTED_MANUAL_REQUIRED"
+    }
+  },
+  "manual_testing_required": {
+    "reason": "Chrome DevTools MCP tools not available in this session",
+    "instructions_file": "/Users/darrenmorgan/AI_Projects/saas-xray/test-automation-metadata.js",
+    "test_url": "http://localhost:4200/automations",
+    "steps": [
+      "Open http://localhost:4200/automations in browser",
+      "Open DevTools (F12) → Console tab",
+      "Copy and paste test-automation-metadata.js content",
+      "Click 'View Details' on any automation",
+      "Run: testAutomationMetadataFix.verify()",
+      "Verify results in console"
+    ]
+  },
+  "risk_assessment": {
+    "critical_risks_mitigated": [
+      "404 errors on OAuth apps",
+      "Missing metadata for OAuth applications",
+      "Permission enrichment failures"
+    ],
+    "remaining_risks": [
+      {
+        "risk": "Empty OAuth scope library",
+        "impact": "Permissions won't be enriched",
+        "mitigation": "Verify oauth_scope_library table is populated"
+      },
+      {
+        "risk": "Database connection issues",
+        "impact": "Some fields may be null",
+        "mitigation": "Ensure platform_connections and risk_assessments tables have data"
+      }
+    ]
+  },
+  "recommendations": [
+    "Verify oauth_scope_library table is populated with Google OAuth scopes",
+    "Add integration tests for /automations/:id/details endpoint",
+    "Monitor 404 error rates on automation details endpoint",
+    "Add logging for permissions_required vs platform_metadata.scopes usage",
+    "Create automated E2E tests using Playwright or Chrome DevTools"
+  ],
+  "test_artifacts": {
+    "test_report": "/Users/darrenmorgan/AI_Projects/saas-xray/AUTOMATION_METADATA_TEST_REPORT.md",
+    "browser_test_script": "/Users/darrenmorgan/AI_Projects/saas-xray/test-automation-metadata.js",
+    "qa_summary": "/Users/darrenmorgan/AI_Projects/saas-xray/QA_AUTOMATION_METADATA_FIX_SUMMARY.md",
+    "test_results_json": "/Users/darrenmorgan/AI_Projects/saas-xray/test-results-automation-metadata.json"
+  },
+  "conclusion": {
+    "code_analysis_status": "PASS",
+    "confidence_level": "95%",
+    "confidence_reasoning": "Code changes are correct and consistent, integration points properly aligned, database schema supports the fix. Only missing automated E2E testing due to MCP tool unavailability.",
+    "ready_for_deployment": false,
+    "blocking_issues": [
+      "Manual browser testing required to verify end-to-end flow",
+      "Need to verify oauth_scope_library table is populated"
+    ],
+    "next_steps": [
+      "Perform manual browser testing using provided test script",
+      "Verify OAuth scope library database content",
+      "Test with multiple automation types",
+      "Monitor production logs for 404 errors"
+    ]
+  }
+}

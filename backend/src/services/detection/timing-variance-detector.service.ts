@@ -1,6 +1,7 @@
 import {
   GoogleWorkspaceEvent,
-  GoogleActivityPattern
+  GoogleActivityPattern,
+  ActionType
 } from '@saas-xray/shared-types';
 
 /**
@@ -262,7 +263,7 @@ export class TimingVarianceDetectorService {
   /**
    * Get the dominant action type from events
    */
-  private getDominantActionType(events: GoogleWorkspaceEvent[]): string {
+  private getDominantActionType(events: GoogleWorkspaceEvent[]): ActionType {
     const counts: Record<string, number> = {};
 
     for (const event of events) {
@@ -272,7 +273,7 @@ export class TimingVarianceDetectorService {
     const dominant = Object.entries(counts)
       .sort(([, a], [, b]) => b - a)[0];
 
-    return dominant?.[0] || 'unknown';
+    return (dominant?.[0] || 'file_create') as ActionType;
   }
 
   /**

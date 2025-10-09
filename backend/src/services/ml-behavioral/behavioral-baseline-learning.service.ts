@@ -226,12 +226,12 @@ export class BehavioralBaselineLearningService {
     };
 
     // 3. Permission pattern analysis
-    const allPermissions = automations.flatMap(a => a.permissions || []);
+    const allPermissions = automations.flatMap(a => (a.permissions || []).map(p => p.name));
     const permissionCounts = this.countOccurrences(allPermissions);
 
     const permissionPatterns = {
       commonPermissions: Object.keys(permissionCounts)
-        .filter(p => permissionCounts[p] > automations.length * 0.1)
+        .filter(p => (permissionCounts[p] ?? 0) > automations.length * 0.1)
         .slice(0, 10),
       riskPermissions: Object.keys(permissionCounts)
         .filter(p => p.includes('admin') || p.includes('write') || p.includes('delete')),
@@ -239,7 +239,7 @@ export class BehavioralBaselineLearningService {
     };
 
     // 4. Automation type analysis
-    const allTypes = automations.map(a => a.type);
+    const allTypes = automations.map(a => a.type || 'unknown');
     const typeCounts = this.countOccurrences(allTypes);
 
     const automationTypes = {
@@ -251,10 +251,12 @@ export class BehavioralBaselineLearningService {
     // 5. Cross-platform behavior analysis
     const platforms = automations.map(a => a.platform);
     const platformCounts = this.countOccurrences(platforms);
-    const crossPlatformChains = automations.filter(a =>
-      a.metadata?.riskFactors?.includes('Cross-platform') ||
-      a.actions.includes('external_api')
-    ).length;
+    const crossPlatformChains = automations.filter(a => {
+      const riskFactors = a.metadata?.riskFactors;
+      const hasExternalApi = a.actions && a.actions.some(action => action.type === 'external_api');
+      const hasCrossPlatformRisk = Array.isArray(riskFactors) && riskFactors.includes('Cross-platform');
+      return hasCrossPlatformRisk || hasExternalApi;
+    }).length;
 
     const crossPlatformBehavior = {
       platformUsage: platformCounts,
@@ -295,7 +297,7 @@ export class BehavioralBaselineLearningService {
     const hourCounts = this.countOccurrences(hours);
     return Object.keys(hourCounts)
       .map(h => parseInt(h))
-      .sort((a, b) => hourCounts[b] - hourCounts[a])
+      .sort((a, b) => (hourCounts[String(b)] ?? 0) - (hourCounts[String(a)] ?? 0))
       .slice(0, 3);
   }
 
@@ -314,12 +316,14 @@ export class BehavioralBaselineLearningService {
   }
 
   private calculateIntegrationComplexity(automations: AutomationEvent[]): number {
-    const integrationIndicators = automations.filter(a =>
-      a.actions.includes('external_api') ||
-      a.actions.includes('data_processing') ||
-      a.metadata?.riskFactors?.includes('external') ||
-      a.type === 'integration'
-    ).length;
+    const integrationIndicators = automations.filter(a => {
+      const hasExternalApi = a.actions && a.actions.some(action => action.type === 'external_api');
+      const hasDataProcessing = a.actions && a.actions.some(action => action.type === 'data_processing');
+      const riskFactors = a.metadata?.riskFactors;
+      const hasExternalRisk = Array.isArray(riskFactors) && riskFactors.includes('external');
+      const isIntegration = a.type === 'integration';
+      return hasExternalApi || hasDataProcessing || hasExternalRisk || isIntegration;
+    }).length;
 
     return integrationIndicators / automations.length;
   }
@@ -525,8 +529,9 @@ export class BehavioralBaselineLearningService {
     const permissions = automation.permissions || [];
     const commonPermissions = baseline.behavioralPatterns.permissionPatterns.commonPermissions;
 
-    const unusualPermissions = permissions.filter(p => !commonPermissions.includes(p));
-    const anomalyScore = unusualPermissions.length / Math.max(permissions.length, 1);
+    const permissionNames = permissions.map(p => p.name);
+    const unusualPermissions = permissionNames.filter(p => !commonPermissions.includes(p));
+    const anomalyScore = unusualPermissions.length / Math.max(permissionNames.length, 1);
 
     const isAnomaly = anomalyScore > 0.5;
 
@@ -543,8 +548,10 @@ export class BehavioralBaselineLearningService {
     score: number;
     reason: string;
   } {
-    const hasExternalCalls = automation.actions.includes('external_api') ||
-      automation.metadata?.riskFactors?.includes('external');
+    const hasExternalApiAction = automation.actions && automation.actions.some(action => action.type === 'external_api');
+    const riskFactors = automation.metadata?.riskFactors;
+    const hasExternalRisk = Array.isArray(riskFactors) && riskFactors.includes('external');
+    const hasExternalCalls = hasExternalApiAction || hasExternalRisk;
 
     const baselineCrossPlatformRate = baseline.behavioralPatterns.crossPlatformBehavior.crossPlatformChains;
 

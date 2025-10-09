@@ -494,10 +494,13 @@ router.get('/stats', async (req: Request, res: Response): Promise<void> => {
  * Get detailed information about a specific automation with enriched OAuth scopes
  */
 router.get('/:id/details', optionalClerkAuth, async (req: Request, res: Response): Promise<void> => {
+  console.log('🔴 [DETAILS ENDPOINT] Handler started!', { id: req.params.id, path: req.path, url: req.url });
   try {
     const { id } = req.params;
+    console.log('🔵 [DETAILS ENDPOINT] Extracted ID:', id);
     const authRequest = req as ClerkAuthRequest;
     const user = authRequest.user;
+    console.log('🟢 [DETAILS ENDPOINT] Got user:', { hasUser: !!user, org: user?.organizationId });
 
     // Check runtime toggle state for data provider selection
     const useMockData = (() => {
@@ -616,19 +619,39 @@ router.get('/:id/details', optionalClerkAuth, async (req: Request, res: Response
 
     // Extract platform metadata
     const platformMetadata = (automation.platform_metadata as any) || {};
+    console.log('🔍 [Details Endpoint] Platform metadata:', {
+      hasMetadata: !!platformMetadata,
+      metadataKeys: Object.keys(platformMetadata),
+      scopesInMetadata: platformMetadata.scopes
+    });
+
     const scopes: string[] = Array.isArray(platformMetadata.scopes) ? platformMetadata.scopes : [];
+    console.log('🔍 [Details Endpoint] Extracted scopes:', {
+      scopeCount: scopes.length,
+      scopes,
+      isArray: Array.isArray(platformMetadata.scopes)
+    });
 
     // Enrich OAuth scopes with library metadata
     let enrichedScopes: any[] = [];
     let permissionRisk: any = null;
 
     if (scopes.length > 0) {
+      console.log('✅ [Details Endpoint] Calling enrichment service:', {
+        scopeCount: scopes.length,
+        platform: automation.platform_type || 'google'
+      });
       const platform = automation.platform_type || 'google';
       enrichedScopes = await oauthScopeEnrichmentService.enrichScopes(scopes, platform);
+      console.log('📊 [Details Endpoint] Enrichment service returned:', {
+        enrichedCount: enrichedScopes.length
+      });
 
       if (enrichedScopes.length > 0) {
         permissionRisk = oauthScopeEnrichmentService.calculatePermissionRisk(enrichedScopes);
       }
+    } else {
+      console.log('⚠️ [Details Endpoint] No scopes to enrich - scopes array is empty');
     }
 
     // Get platform connection info for additional context

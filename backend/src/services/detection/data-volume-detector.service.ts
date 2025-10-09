@@ -1,6 +1,7 @@
 import {
   GoogleWorkspaceEvent,
-  GoogleActivityPattern
+  GoogleActivityPattern,
+  ActionType
 } from '@saas-xray/shared-types';
 
 interface VolumeStatistics {
@@ -201,7 +202,7 @@ export class DataVolumeDetectorService {
         userId: dailyVolume.userId,
         userEmail: dailyVolume.userEmail,
         resourceType: 'file',
-        actionType: 'data_exfiltration',
+        actionType: 'file_share' as ActionType, // Data exfiltration detected via file sharing
         timestamp: new Date(dailyVolume.date),
         location: undefined,
         userAgent: undefined

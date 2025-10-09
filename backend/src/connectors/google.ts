@@ -485,7 +485,8 @@ export class GoogleConnector implements PlatformConnector {
 
           if (file.shared) {
             riskFactors.push('Shared with other users');
-            if (riskLevel === 'low') riskLevel = 'medium';
+            // Only upgrade from low to medium (high stays high)
+            if (riskLevel !== 'high') riskLevel = 'medium';
           }
 
           // Check modification recency
@@ -499,7 +500,7 @@ export class GoogleConnector implements PlatformConnector {
           automations.push({
             id: `google-script-${file.id}`,
             name: file.name || 'Untitled Apps Script',
-            description: file.description,
+            description: file.description || undefined,
             type: 'workflow',
             platform: 'google',
             status: 'active',
@@ -701,12 +702,15 @@ export class GoogleConnector implements PlatformConnector {
           actorEmail.includes('.iam.gserviceaccount.com') ||
           actorEmail.includes('.apps.googleusercontent.com')
         )) {
+          // Get activity time with null safety
+          const activityTime = activity.id?.time ? new Date(activity.id.time) : new Date();
+
           if (!serviceAccountMap.has(actorEmail)) {
             serviceAccountMap.set(actorEmail, {
               email: actorEmail,
               activities: [],
-              firstSeen: new Date(activity.id.time),
-              lastSeen: new Date(activity.id.time),
+              firstSeen: activityTime,
+              lastSeen: activityTime,
               scopes: new Set(),
               clientIds: new Set()
             });
@@ -716,7 +720,6 @@ export class GoogleConnector implements PlatformConnector {
           saData.activities.push(activity);
 
           // Update time range
-          const activityTime = new Date(activity.id.time);
           if (activityTime < saData.firstSeen) saData.firstSeen = activityTime;
           if (activityTime > saData.lastSeen) saData.lastSeen = activityTime;
 
@@ -727,10 +730,15 @@ export class GoogleConnector implements PlatformConnector {
                 for (const param of event.parameters) {
                   if (param.name === 'scope' || param.name === 'oauth_scopes') {
                     const scopes = param.multiValue || [param.value];
-                    scopes.forEach((scope: string) => saData.scopes.add(scope));
+                    // Add null check for scope values
+                    if (scopes) {
+                      scopes.forEach((scope: string | undefined) => {
+                        if (scope) saData.scopes.add(scope);
+                      });
+                    }
                   }
                   if (param.name === 'client_id' || param.name === 'oauth_client_id') {
-                    saData.clientIds.add(param.value);
+                    if (param.value) saData.clientIds.add(param.value);
                   }
                 }
               }
@@ -749,7 +757,8 @@ export class GoogleConnector implements PlatformConnector {
       // Convert service account data to AutomationEvent format
       for (const [email, saData] of serviceAccountMap.entries()) {
         // Determine service account name
-        const saName = email.split('@')[0]
+        const emailParts = email.split('@');
+        const saName = (emailParts[0] || email)
           .replace(/[-_]/g, ' ')
           .replace(/\b\w/g, l => l.toUpperCase());
 

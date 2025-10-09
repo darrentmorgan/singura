@@ -1,0 +1,35 @@
+{
+  "agentName": "documentation-expert",
+  "description": "Specialized agent for library documentation and API references",
+  "mcpServers": {
+    "Context7": {
+      "command": "node",
+      "args": [
+        "/Users/darrenmorgan/mcp-servers/context7/dist/index.js"
+      ],
+      "env": {
+        "CONTEXT7_API_KEY": "ctx7sk-b9008b41-aaa6-4353-9cd6-9835bae3ba0a"
+      }
+    }
+  },
+  "capabilities": [
+    "Library documentation lookup",
+    "API reference retrieval",
+    "Code example generation",
+    "Framework best practices"
+  ],
+  "response_format": {
+    "type": "concise_summary",
+    "max_tokens": 500,
+    "include": ["code_examples", "api_signature", "usage_notes"],
+    "exclude": ["full_documentation_text", "verbose_explanations"]
+  },
+  "routing_triggers": [
+    "search docs",
+    "library documentation",
+    "API reference",
+    "how to use",
+    "package docs",
+    "framework guide"
+  ]
+}

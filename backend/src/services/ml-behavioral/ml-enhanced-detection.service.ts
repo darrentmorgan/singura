@@ -218,7 +218,7 @@ export class MLEnhancedDetectionService {
     const gpt5ValidationScore = traditionalRiskScore + Math.random() * 10 - 5; // ±5 adjustment
 
     // Simulate cross-platform correlation (would integrate with existing correlation service)
-    const crossPlatformCorrelationScore = automation.actions.includes('external_api') ? 70 : 30;
+    const crossPlatformCorrelationScore = (automation.actions && automation.actions.some(action => action.type === 'external_api')) ? 70 : 30;
 
     return {
       traditionalRiskScore,
