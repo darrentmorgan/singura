@@ -127,7 +127,11 @@ export const AutomationDetailsModal: React.FC<AutomationDetailsModalProps> = ({
     }
   };
 
-  const getRiskBadgeClass = (riskLevel: string) => {
+  const getRiskBadgeClass = (riskLevel?: string | null) => {
+    if (!riskLevel) {
+      return 'bg-gray-100 text-gray-800 border-gray-200 dark:bg-gray-900/20 dark:text-gray-400';
+    }
+
     switch (riskLevel.toLowerCase()) {
       case 'critical':
       case 'high':
@@ -223,7 +227,7 @@ export const AutomationDetailsModal: React.FC<AutomationDetailsModalProps> = ({
                         <CardContent>
                           <div className="flex items-center gap-4">
                             <Badge className={getRiskBadgeClass(detailedData.permissions.riskAnalysis.riskLevel)}>
-                              {detailedData.permissions.riskAnalysis.riskLevel}
+                              {detailedData.permissions.riskAnalysis.riskLevel || 'Unknown'}
                             </Badge>
                             <span className="text-sm">
                               Overall Risk Score: <span className="font-bold">{detailedData.permissions.riskAnalysis.overallRisk}/100</span>
@@ -257,7 +261,7 @@ export const AutomationDetailsModal: React.FC<AutomationDetailsModalProps> = ({
                                   </CardDescription>
                                 </div>
                                 <Badge className={getRiskBadgeClass(scope.riskLevel)}>
-                                  {scope.riskScore}/100 {scope.riskLevel}
+                                  {scope.riskScore || 0}/100 {scope.riskLevel || 'Unknown'}
                                 </Badge>
                               </div>
                             </CardHeader>
