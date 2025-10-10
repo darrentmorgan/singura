@@ -20,7 +20,7 @@ QUALITY_GATE_PASSED=true
 
 # 1. Auto-fix linting issues
 echo "📝 Running linter..."
-if $PKG_MANAGER run lint --fix; then
+if $PKG_MANAGER run lint:fix 2>/dev/null || $PKG_MANAGER run lint --fix; then
     echo -e "${GREEN}✓ Linting passed${NC}"
 else
     echo -e "${RED}✗ Linting failed${NC}"
@@ -56,23 +56,27 @@ fi
 echo "📋 Changed files:"
 echo "$CHANGED_FILES"
 
-# 5. AI Quality Judge Review (optional - comment out if not using)
-echo "🤖 Invoking AI Code Quality Judge..."
-
-# Call AI judge script with changed files
-if npx tsx .claude/scripts/invoke-ai-judge.ts $CHANGED_FILES 2>/dev/null; then
-    echo -e "${GREEN}✓ AI Quality Judge APPROVED${NC}"
-else
-    # AI judge is optional - warn but don't fail
-    echo -e "${YELLOW}⚠ AI Quality Judge not available (skipping)${NC}"
-fi
+# 5. AI Quality Judge Review (optional - not yet implemented)
+# Uncomment when invoke-ai-judge.ts script is available
+# echo "🤖 Invoking AI Code Quality Judge..."
+# if npx tsx .claude/scripts/invoke-ai-judge.ts $CHANGED_FILES; then
+#     echo -e "${GREEN}✓ AI Quality Judge APPROVED${NC}"
+# else
+#     AI_JUDGE_EXIT=$?
+#     if [ $AI_JUDGE_EXIT -eq 1 ]; then
+#         echo -e "${RED}✗ AI Quality Judge REJECTED code${NC}"
+#         QUALITY_GATE_PASSED=false
+#     else
+#         echo -e "${YELLOW}⚠ AI Quality Judge not available (skipping)${NC}"
+#     fi
+# fi
 
 # Final decision
-if [ "$QUALITY_GATE_PASSED" = true ]; then
-    echo -e "${GREEN}✅ Quality gate PASSED - proceeding with commit${NC}"
-    exit 0
-else
+if [ "$QUALITY_GATE_PASSED" != true ]; then
     echo -e "${RED}❌ Quality gate FAILED - commit blocked${NC}"
     echo "Please fix the issues above and try again"
     exit 1
 fi
+
+echo -e "${GREEN}✅ Quality gate PASSED - proceeding with commit${NC}"
+exit 0

@@ -119,7 +119,7 @@ export const CONTENT = {
   // Footer
   footer: {
     description: 'Enterprise security platform for shadow AI discovery',
-    copyright: `© ${new Date().getFullYear()} Singura AI. All rights reserved.`,
+    copyright: `© 2025 ${BRAND.name}. All rights reserved.`,
     sections: {
       product: {
         title: 'Product',
@@ -167,6 +167,12 @@ export const CONTENT = {
   },
 } as const;
 
-// Type exports for TypeScript intellisense
-export type BrandConfig = typeof BRAND;
-export type ContentConfig = typeof CONTENT;
+/**
+ * Usage: Import BRAND and CONTENT directly in components
+ * @example
+ * import { BRAND, CONTENT } from '@/lib/brand';
+ *
+ * function Header() {
+ *   return <h1>{BRAND.name}</h1>;
+ * }
+ */

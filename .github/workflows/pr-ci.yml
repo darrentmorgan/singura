@@ -95,15 +95,15 @@ jobs:
 
       - name: TypeScript check - Shared Types
         working-directory: ./shared-types
-        run: pnpm run typecheck || npx tsc --noEmit
+        run: npx tsc --noEmit
 
       - name: TypeScript check - Frontend
         working-directory: ./frontend
-        run: pnpm run typecheck || npx tsc --noEmit
+        run: npx tsc --noEmit
 
       - name: TypeScript check - Backend
         working-directory: ./backend
-        run: pnpm run typecheck || npx tsc --noEmit
+        run: npx tsc --noEmit
 
   # Job 3: Linting
   lint:
@@ -161,11 +161,25 @@ jobs:
 
       - name: Audit Frontend Dependencies
         working-directory: ./frontend
-        run: pnpm audit --audit-level=high || true
+        run: |
+          echo "Running security audit on frontend dependencies..."
+          if ! pnpm audit --audit-level=high; then
+            echo "❌ CRITICAL: High-severity vulnerabilities detected in frontend dependencies"
+            echo "Review the audit report above and update vulnerable packages before merging"
+            exit 1
+          fi
+          echo "✅ No high-severity vulnerabilities found in frontend"
 
       - name: Audit Backend Dependencies
         working-directory: ./backend
-        run: pnpm audit --audit-level=high || true
+        run: |
+          echo "Running security audit on backend dependencies..."
+          if ! pnpm audit --audit-level=high; then
+            echo "❌ CRITICAL: High-severity vulnerabilities detected in backend dependencies"
+            echo "Review the audit report above and update vulnerable packages before merging"
+            exit 1
+          fi
+          echo "✅ No high-severity vulnerabilities found in backend"
 
   # Job 5: Frontend tests
   test-frontend:
@@ -461,13 +475,19 @@ jobs:
           echo "E2E Tests: ${{ needs.test-e2e.result }}"
           echo "Build: ${{ needs.build.result }}"
 
-          if [ "${{ needs.typecheck.result }}" != "success" ] || \
-             [ "${{ needs.lint.result }}" != "success" ] || \
-             [ "${{ needs.test-frontend.result }}" != "success" ] || \
-             [ "${{ needs.test-backend.result }}" != "success" ] || \
-             [ "${{ needs.test-e2e.result }}" != "success" ] || \
-             [ "${{ needs.build.result }}" != "success" ]; then
+          # Check if any job failed
+          FAILED_JOBS=""
+          [ "${{ needs.typecheck.result }}" != "success" ] && FAILED_JOBS="$FAILED_JOBS TypeCheck"
+          [ "${{ needs.lint.result }}" != "success" ] && FAILED_JOBS="$FAILED_JOBS Lint"
+          [ "${{ needs.security.result }}" != "success" ] && FAILED_JOBS="$FAILED_JOBS Security"
+          [ "${{ needs.test-frontend.result }}" != "success" ] && FAILED_JOBS="$FAILED_JOBS Frontend"
+          [ "${{ needs.test-backend.result }}" != "success" ] && FAILED_JOBS="$FAILED_JOBS Backend"
+          [ "${{ needs.test-e2e.result }}" != "success" ] && FAILED_JOBS="$FAILED_JOBS E2E"
+          [ "${{ needs.build.result }}" != "success" ] && FAILED_JOBS="$FAILED_JOBS Build"
+
+          if [ -n "$FAILED_JOBS" ]; then
             echo "❌ CI Pipeline Failed - PR cannot be merged"
+            echo "Failed jobs:$FAILED_JOBS"
             exit 1
           fi
 
@@ -493,7 +513,23 @@ jobs:
             const emoji = allPassed ? '✅' : '❌';
             const message = allPassed ? 'All checks passed!' : 'Some checks failed';
 
-            const body = `## ${emoji} CI Pipeline ${message}\n\n| Check | Status |\n|-------|--------|\n| TypeScript | ${status.typecheck === 'success' ? '✅' : '❌'} |\n| Linting | ${status.lint === 'success' ? '✅' : '❌'} |\n| Security | ${status.security === 'success' ? '✅' : '❌'} |\n| Frontend Tests | ${status.frontend === 'success' ? '✅' : '❌'} |\n| Backend Tests | ${status.backend === 'success' ? '✅' : '❌'} |\n| E2E Tests | ${status.e2e === 'success' ? '✅' : '❌'} |\n| Build | ${status.build === 'success' ? '✅' : '❌'} |\n\n${allPassed ? '🎉 This PR is ready to merge!' : '⚠️ Please fix failing checks before merging'}`;
+            const getStatusIcon = (result) => result === 'success' ? '✅' : '❌';
+
+            const statusTable = [
+              ['TypeScript', getStatusIcon(status.typecheck)],
+              ['Linting', getStatusIcon(status.lint)],
+              ['Security', getStatusIcon(status.security)],
+              ['Frontend Tests', getStatusIcon(status.frontend)],
+              ['Backend Tests', getStatusIcon(status.backend)],
+              ['E2E Tests', getStatusIcon(status.e2e)],
+              ['Build', getStatusIcon(status.build)]
+            ].map(([check, icon]) => `| ${check} | ${icon} |`).join('\n');
+
+            const footer = allPassed
+              ? '🎉 This PR is ready to merge!'
+              : '⚠️ Please fix failing checks before merging';
+
+            const body = `## ${emoji} CI Pipeline ${message}\n\n| Check | Status |\n|-------|--------|\n${statusTable}\n\n${footer}`;
 
             github.rest.issues.createComment({
               issue_number: context.issue.number,
