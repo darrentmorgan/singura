@@ -16,26 +16,32 @@ const Navigation = ({ onJoinWaitlist }: NavigationProps) => {
           </Link>
 
           <div className="hidden md:flex items-center gap-8">
-            {BRAND.navigation.map((item) => (
-              item.action === 'openWaitlist' ? (
-                <Button
-                  key={item.label}
-                  size="sm"
-                  onClick={onJoinWaitlist}
-                  className="bg-primary text-primary-foreground hover:bg-primary/90 font-medium"
-                >
-                  {item.label.toUpperCase()}
-                </Button>
-              ) : (
+            {BRAND.navigation.map((item) => {
+              const uppercaseLabel = item.label.toUpperCase();
+
+              if ('action' in item && item.action === 'openWaitlist') {
+                return (
+                  <Button
+                    key={item.label}
+                    size="sm"
+                    onClick={onJoinWaitlist}
+                    className="bg-primary text-primary-foreground hover:bg-primary/90 font-medium"
+                  >
+                    {uppercaseLabel}
+                  </Button>
+                );
+              }
+
+              return (
                 <a
                   key={item.label}
                   href={item.anchor}
                   className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
                 >
-                  {item.label.toUpperCase()}
+                  {uppercaseLabel}
                 </a>
-              )
-            ))}
+              );
+            })}
           </div>
 
           <div className="w-32 md:hidden" />

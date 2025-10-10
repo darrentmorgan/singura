@@ -11,6 +11,12 @@ export default defineConfig({
       '@saas-xray/shared-types': path.resolve(__dirname, '../shared-types/src'),
     },
   },
+  test: {
+    globals: true,
+    environment: 'jsdom',
+    setupFiles: ['./src/test/setup.ts'],
+    css: true,
+  },
   server: {
     port: 4200,
     host: true,
