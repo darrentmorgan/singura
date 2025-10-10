@@ -296,6 +296,10 @@ jobs:
         working-directory: ./frontend
         run: pnpm exec playwright install --with-deps chromium
 
+      - name: Build shared types
+        working-directory: ./shared-types
+        run: pnpm build
+
       - name: Start Backend Server
         working-directory: ./backend
         run: |
