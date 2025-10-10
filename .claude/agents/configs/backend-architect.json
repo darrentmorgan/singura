@@ -1,0 +1,58 @@
+{
+  "agentName": "backend-architect",
+  "description": "Backend architecture and Supabase database specialist",
+  "mcpServers": {
+    "supabase": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@supabase/mcp-server-supabase",
+        "--project-ref=khodniyhethjyomscyjw"
+      ],
+      "env": {
+        "SUPABASE_ACCESS_TOKEN": "sbp_eb3b3872ce96f34792d05bb3359a243ebd44f0e0"
+      }
+    }
+  },
+  "capabilities": [
+    "Database schema design",
+    "Migration creation and execution",
+    "RPC function development",
+    "RLS policy implementation",
+    "API endpoint design",
+    "Data model optimization"
+  ],
+  "response_format": {
+    "type": "architecture_summary",
+    "max_tokens": 800,
+    "include": [
+      "migration_file_path",
+      "schema_changes_summary",
+      "rls_policies",
+      "breaking_changes",
+      "rollback_strategy"
+    ],
+    "exclude": [
+      "full_migration_sql",
+      "verbose_schema_dumps"
+    ]
+  },
+  "routing_triggers": [
+    "database",
+    "migration",
+    "supabase",
+    "schema",
+    "RPC",
+    "SQL query",
+    "RLS policy",
+    "backend design",
+    "API handler"
+  ],
+  "special_instructions": [
+    "Migrations go in supabase/migrations/ with YYYYMMDD prefix",
+    "Always include RLS policies for new tables",
+    "Use RPC functions for complex queries",
+    "Follow existing naming conventions (snake_case)",
+    "Test migrations on dev branch before production"
+  ]
+}

@@ -1,0 +1,59 @@
+{
+  "agentName": "qa-expert",
+  "description": "E2E testing and browser automation specialist",
+  "mcpServers": {
+    "chrome-devtools": {
+      "command": "npx",
+      "args": [
+        "chrome-devtools-mcp@latest",
+        "--isolated"
+      ]
+    },
+    "playwright": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@playwright/mcp@latest"
+      ]
+    }
+  },
+  "capabilities": [
+    "E2E test execution",
+    "Visual QA and screenshot analysis",
+    "Browser automation",
+    "Performance profiling",
+    "Network debugging",
+    "Cross-browser testing"
+  ],
+  "response_format": {
+    "type": "test_results_summary",
+    "max_tokens": 1000,
+    "include": [
+      "test_pass_fail_counts",
+      "critical_issues",
+      "screenshot_analysis",
+      "performance_metrics"
+    ],
+    "exclude": [
+      "full_console_logs",
+      "verbose_network_traces",
+      "raw_screenshot_data"
+    ]
+  },
+  "routing_triggers": [
+    "browser test",
+    "E2E test",
+    "Chrome DevTools",
+    "visual test",
+    "browser automation",
+    "screenshot",
+    "performance trace",
+    "QA validation"
+  ],
+  "special_instructions": [
+    "Always run with --isolated flag for Chrome DevTools",
+    "Capture screenshots only for failures or when explicitly requested",
+    "Return summary of issues, not full logs",
+    "Include file:line references for test failures"
+  ]
+}

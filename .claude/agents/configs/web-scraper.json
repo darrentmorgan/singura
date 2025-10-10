@@ -1,0 +1,62 @@
+{
+  "agentName": "web-scraper",
+  "description": "Lightweight web scraping and content extraction specialist using Firecrawl",
+  "model": "claude-3-5-haiku-20241022",
+  "mcpServers": {
+    "firecrawl-mcp": {
+      "command": "npx",
+      "args": ["-y", "@firecrawl/mcp-server-firecrawl"],
+      "env": {
+        "FIRECRAWL_API_KEY": "${FIRECRAWL_API_KEY}"
+      }
+    }
+  },
+  "capabilities": [
+    "Web page scraping",
+    "Content extraction from URLs",
+    "Multi-page crawling",
+    "Structured data extraction",
+    "Website metadata retrieval",
+    "Competitor data gathering"
+  ],
+  "response_format": {
+    "type": "structured_data",
+    "max_tokens": 500,
+    "preferred_formats": ["JSON", "CSV", "Markdown table"],
+    "include": [
+      "extracted_data",
+      "source_urls",
+      "extraction_timestamp",
+      "data_quality_notes"
+    ],
+    "exclude": [
+      "raw_html",
+      "verbose_logs"
+    ]
+  },
+  "routing_triggers": [
+    "scrape",
+    "crawl",
+    "extract from web",
+    "fetch URL",
+    "web content",
+    "website data",
+    "competitor data",
+    "web research"
+  ],
+  "special_instructions": [
+    "Return data in structured format (JSON/CSV/Markdown)",
+    "Include source URLs and timestamps",
+    "Handle rate limits gracefully",
+    "Validate extracted data quality",
+    "Use pagination for large datasets",
+    "Respect robots.txt and rate limits"
+  ],
+  "artifacts": {
+    "enabled": true,
+    "scratchpad": false,
+    "auto_summary": true,
+    "detail_threshold": 100,
+    "instructions": "Store large scraped datasets in artifacts. Return concise summaries with data statistics and quality metrics."
+  }
+}
