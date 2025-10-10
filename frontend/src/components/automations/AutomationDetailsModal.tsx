@@ -415,7 +415,10 @@ export const AutomationDetailsModal: React.FC<AutomationDetailsModalProps> = ({
                 </Card>
 
                 {/* Permission Risk Breakdown */}
-                {detailedData?.permissions?.riskAnalysis?.breakdown &&
+                {detailedData?.permissions &&
+                 typeof detailedData.permissions === 'object' &&
+                 !Array.isArray(detailedData.permissions) &&
+                 detailedData.permissions.riskAnalysis?.breakdown &&
                  Array.isArray(detailedData.permissions.riskAnalysis.breakdown) &&
                  detailedData.permissions.riskAnalysis.breakdown.length > 0 && (
                   <Card>
@@ -430,7 +433,7 @@ export const AutomationDetailsModal: React.FC<AutomationDetailsModalProps> = ({
                               <p className="text-sm font-medium">{item.scope || 'Unknown Scope'}</p>
                               <p className="text-xs text-muted-foreground">Contribution: {item.contribution || 0}%</p>
                             </div>
-                            <Badge className={getRiskBadgeClass(item.riskScore > 70 ? 'high' : item.riskScore > 40 ? 'medium' : 'low')}>
+                            <Badge className={getRiskBadgeClass((item.riskScore || 0) > 70 ? 'high' : (item.riskScore || 0) > 40 ? 'medium' : 'low')}>
                               {item.riskScore || 0}/100
                             </Badge>
                           </div>

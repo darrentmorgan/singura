@@ -242,8 +242,8 @@ export const useAutomationsStore = create<AutomationsStore>()(
             automations: response.automations,
             pagination: {
               ...pagination,
-              total: response.pagination.total,
-              totalPages: response.pagination.totalPages,
+              total: (response.pagination as any).total || 0,
+              totalPages: (response.pagination as any).totalPages || 0,
             },
             isAnalyzing: false,
             error: null,
@@ -270,9 +270,9 @@ export const useAutomationsStore = create<AutomationsStore>()(
       try {
         const response = await automationsApi.getAutomationStats();
         
-        if (response.success && response.stats) {
+        if (response.success && response.data) {
           set({
-            stats: response.stats,
+            stats: response.data as any,
           });
           return true;
         }

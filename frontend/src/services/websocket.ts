@@ -237,7 +237,7 @@ export class WebSocketService {
 
     this.socket.on('discovery:complete', (data: { connectionId: string, result: unknown }) => {
       console.log('Discovery completed:', data);
-      useAutomationsStore.getState().updateDiscoveryResult(data.connectionId, data.result);
+      useAutomationsStore.getState().updateDiscoveryResult(data.connectionId, data.result as import('@/types/api').DiscoveryResult);
       useUIStore.getState().showSuccess('Automation discovery completed');
     });
 

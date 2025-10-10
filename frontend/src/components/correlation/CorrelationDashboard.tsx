@@ -101,6 +101,30 @@ export const CorrelationDashboard: React.FC<CorrelationDashboardProps> = ({
   });
 
   /**
+   * Fetch executive report for C-level presentation
+   */
+  const fetchExecutiveReport = useCallback(async () => {
+    try {
+      const response = await fetch(`/api/correlation/${organizationId}/executive-report`);
+
+      if (!response.ok) {
+        throw new Error(`Executive report failed: ${response.statusText}`);
+      }
+
+      const result = await response.json();
+
+      if (result.success) {
+        setState(prev => ({
+          ...prev,
+          executiveReport: result.data
+        }));
+      }
+    } catch (error) {
+      console.error('Executive report fetch failed:', error);
+    }
+  }, [organizationId]);
+
+  /**
    * Execute correlation analysis with real-time progress tracking
    */
   const executeCorrelationAnalysis = useCallback(async () => {
@@ -159,30 +183,6 @@ export const CorrelationDashboard: React.FC<CorrelationDashboardProps> = ({
       }));
     }
   }, [organizationId, fetchExecutiveReport]);
-
-  /**
-   * Fetch executive report for C-level presentation
-   */
-  const fetchExecutiveReport = useCallback(async () => {
-    try {
-      const response = await fetch(`/api/correlation/${organizationId}/executive-report`);
-
-      if (!response.ok) {
-        throw new Error(`Executive report failed: ${response.statusText}`);
-      }
-
-      const result = await response.json();
-
-      if (result.success) {
-        setState(prev => ({
-          ...prev,
-          executiveReport: result.data
-        }));
-      }
-    } catch (error) {
-      console.error('Executive report fetch failed:', error);
-    }
-  }, [organizationId]);
 
   /**
    * Fetch correlation status and metrics

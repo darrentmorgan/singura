@@ -6,6 +6,7 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { User, LoginRequest } from '@saas-xray/shared-types';
+import { RefreshTokenResponse } from '@/types/api';
 import { authApi } from '@/services/api';
 
 interface AuthState {
@@ -117,12 +118,13 @@ export const useAuthStore = create<AuthStore>()(
 
         try {
           const response = await authApi.refreshToken({ refreshToken });
-          
-          if (response.success && response.accessToken) {
+
+          // The response from shared-types only has accessToken and expiresAt
+          if (response.accessToken) {
             set({
               accessToken: response.accessToken,
-              refreshToken: response.refreshToken,
-              tokenType: response.tokenType || 'Bearer',
+              refreshToken: refreshToken, // Keep existing refresh token
+              tokenType: 'Bearer',
               error: null,
             });
             return true;
