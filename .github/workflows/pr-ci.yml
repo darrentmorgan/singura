@@ -303,7 +303,7 @@ jobs:
       - name: Start Backend Server
         working-directory: ./backend
         run: |
-          pnpm run build
+          pnpm run build:nocheck
           pnpm run start &
           sleep 10
         env:
