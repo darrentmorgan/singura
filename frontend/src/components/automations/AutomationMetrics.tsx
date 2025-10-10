@@ -8,7 +8,6 @@ import {
   Bot,
   AlertTriangle,
   CheckCircle,
-  Clock,
   XCircle,
   Zap,
   Workflow,
@@ -23,11 +22,8 @@ import {
 
 import {
   useAutomationsStats,
-  useAutomationsActions,
-  useAutomations,
-  useHighRiskAutomations
+  useAutomationsActions
 } from '@/stores/automations';
-import { useConnectionStats } from '@/stores/connections';
 import { cn } from '@/lib/utils';
 
 interface MetricCardProps {
@@ -91,10 +87,7 @@ export const AutomationMetrics: React.FC<AutomationMetricsProps> = ({
   className
 }) => {
   const stats = useAutomationsStats();
-  const automations = useAutomations();
-  const highRiskAutomations = useHighRiskAutomations();
-  const connectionStats = useConnectionStats();
-  
+
   const { fetchAutomationStats } = useAutomationsActions();
 
   useEffect(() => {

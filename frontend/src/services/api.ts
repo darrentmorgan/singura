@@ -34,7 +34,7 @@ class ApiService {
   private isRefreshing = false;
   private failedQueue: Array<{
     resolve: (token: string) => void;
-    reject: (error: any) => void;
+    reject: (error: unknown) => void;
   }> = [];
 
   constructor() {
@@ -127,7 +127,7 @@ class ApiService {
     );
   }
 
-  private processQueue(error: any, token: string | null) {
+  private processQueue(error: unknown, token: string | null) {
     this.failedQueue.forEach(({ resolve, reject }) => {
       if (error) {
         reject(error);
@@ -151,14 +151,14 @@ class ApiService {
 
     // HTTP error with response
     const { status, data } = error.response;
-    const errorData = data as any;
+    const errorData = data as Record<string, unknown>;
 
     // Extract error details from response
     const apiError: ApiError = {
-      error: errorData?.error || error.message,
-      code: errorData?.code || `HTTP_${status}`,
-      message: errorData?.message || this.getStatusMessage(status),
-      details: errorData?.details,
+      error: (typeof errorData?.error === 'string' ? errorData.error : null) || error.message,
+      code: (typeof errorData?.code === 'string' ? errorData.code : null) || `HTTP_${status}`,
+      message: (typeof errorData?.message === 'string' ? errorData.message : null) || this.getStatusMessage(status),
+      details: typeof errorData?.details === 'object' && errorData.details !== null ? errorData.details as Record<string, unknown> : undefined,
     };
 
     return apiError;
@@ -249,7 +249,7 @@ class ApiService {
   }
 
   // Generic request method
-  private async request<T>(method: string, url: string, data?: any, config?: any): Promise<T> {
+  private async request<T>(method: string, url: string, data?: unknown, config?: Record<string, unknown>): Promise<T> {
     try {
       const response = await this.client.request({
         method,
@@ -335,28 +335,28 @@ class ApiService {
     return this.request<DiscoveryResponse>('POST', `/connections/${connectionId}/discover/refresh`);
   }
 
-  async getAutomations(filters: any = {}): Promise<{ success: boolean, automations: AutomationDiscovery[], pagination: any }> {
+  async getAutomations(filters: Record<string, unknown> = {}): Promise<{ success: boolean, automations: AutomationDiscovery[], pagination: Record<string, unknown> }> {
     const params = new URLSearchParams();
 
     Object.entries(filters).forEach(([key, value]) => {
       if (value !== undefined && value !== null && value !== '') {
-        params.append(key, value.toString());
+        params.append(key, String(value));
       }
     });
 
-    return this.request<{ success: boolean, automations: AutomationDiscovery[], pagination: any }>('GET', `/automations?${params.toString()}`);
+    return this.request<{ success: boolean, automations: AutomationDiscovery[], pagination: Record<string, unknown> }>('GET', `/automations?${params.toString()}`);
   }
 
-  async getAutomationStats(): Promise<ApiResponse<any>> {
-    return this.request<ApiResponse<any>>('GET', '/automations/stats');
+  async getAutomationStats(): Promise<ApiResponse<Record<string, unknown>>> {
+    return this.request<ApiResponse<Record<string, unknown>>>('GET', '/automations/stats');
   }
 
   async getAutomation(automationId: string): Promise<ApiResponse<AutomationDiscovery>> {
     return this.request<ApiResponse<AutomationDiscovery>>('GET', `/automations/${automationId}`);
   }
 
-  async getAutomationDetails(automationId: string): Promise<ApiResponse<any>> {
-    return this.request<ApiResponse<any>>('GET', `/automations/${automationId}/details`);
+  async getAutomationDetails(automationId: string): Promise<ApiResponse<Record<string, unknown>>> {
+    return this.request<ApiResponse<Record<string, unknown>>>('GET', `/automations/${automationId}/details`);
   }
 
   // Health check
@@ -395,7 +395,7 @@ export const automationsApi = {
   startDiscovery: (connectionId: string) => apiService.startDiscovery(connectionId),
   getDiscoveryResult: (connectionId: string) => apiService.getDiscoveryResult(connectionId),
   refreshDiscovery: (connectionId: string) => apiService.refreshDiscovery(connectionId),
-  getAutomations: (filters?: any) => apiService.getAutomations(filters),
+  getAutomations: (filters?: Record<string, unknown>) => apiService.getAutomations(filters),
   getAutomationStats: () => apiService.getAutomationStats(),
   getAutomation: (automationId: string) => apiService.getAutomation(automationId),
   getAutomationDetails: (automationId: string) => apiService.getAutomationDetails(automationId),

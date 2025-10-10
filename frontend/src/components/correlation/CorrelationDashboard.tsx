@@ -27,9 +27,7 @@ import { Loader2, Activity, TrendingUp, AlertTriangle, CheckCircle2, Download, R
 
 import {
   CorrelationAnalysisResult,
-  ExecutiveRiskReport,
-  AutomationWorkflowChain,
-  MultiPlatformRiskAssessment
+  ExecutiveRiskReport
 } from '@saas-xray/shared-types';
 
 /**
@@ -160,7 +158,7 @@ export const CorrelationDashboard: React.FC<CorrelationDashboardProps> = ({
         analysisStage: ''
       }));
     }
-  }, [organizationId]);
+  }, [organizationId, fetchExecutiveReport]);
 
   /**
    * Fetch executive report for C-level presentation
@@ -440,7 +438,7 @@ export const CorrelationDashboard: React.FC<CorrelationDashboardProps> = ({
                   <CardHeader>
                     <div className="flex items-center justify-between">
                       <CardTitle className="text-base">{chain.chainName}</CardTitle>
-                      <Badge variant={getRiskLevelColor(chain.riskLevel) as any}>
+                      <Badge variant={getRiskLevelColor(chain.riskLevel) as 'default' | 'secondary' | 'destructive' | 'outline'}>
                         {chain.riskLevel.toUpperCase()}
                       </Badge>
                     </div>

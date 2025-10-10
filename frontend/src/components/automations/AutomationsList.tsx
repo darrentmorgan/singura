@@ -21,11 +21,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import AutomationCard from './AutomationCard';
 import AutomationDetailsModal from './AutomationDetailsModal';
-import { 
-  AutomationDiscovery, 
-  PlatformType, 
-  RiskLevel, 
-  AutomationStatus 
+import {
+  AutomationDiscovery
 } from '@/types/api';
 import { 
   useAutomations,
@@ -80,7 +77,7 @@ export const AutomationsList: React.FC<AutomationsListProps> = ({
     setSorting,
     selectAutomation
   } = useAutomationsActions();
-  const { showError, showSuccess, openModal } = useUIActions();
+  const { showError, showSuccess } = useUIActions();
 
   // Load data on mount
   useEffect(() => {
@@ -104,8 +101,8 @@ export const AutomationsList: React.FC<AutomationsListProps> = ({
   }, [searchQuery, setSearch]);
 
   // Filter automations by connection if specified
-  const displayAutomations = connectionId 
-    ? filteredAutomations.filter(auto => 
+  const displayAutomations = connectionId
+    ? filteredAutomations.filter(() =>
         // TODO: Add connectionId field to automations
         true // For now, show all
       )
@@ -135,12 +132,12 @@ export const AutomationsList: React.FC<AutomationsListProps> = ({
     setIsDetailsModalOpen(true);
   };
 
-  const handleToggleStatus = (automationId: string) => {
+  const handleToggleStatus = (_automationId: string) => {
     // TODO: Implement status toggle
     showError('Status toggle functionality coming soon');
   };
 
-  const handleFilterChange = (key: string, value: any) => {
+  const handleFilterChange = (key: string, value: string | undefined) => {
     setFilters({ [key]: value });
   };
 

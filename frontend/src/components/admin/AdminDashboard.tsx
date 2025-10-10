@@ -8,7 +8,7 @@ interface LogEntry {
   timestamp: string;
   level: 'info' | 'success' | 'warning' | 'error';
   message: string;
-  details?: any;
+  details?: Record<string, unknown>;
 }
 
 interface DiscoveryEventCard {
@@ -228,7 +228,7 @@ export const AdminDashboard: React.FC = () => {
   };
 
   // Create static discovery event card from completed discovery
-  const createDiscoveryEventCard = (discoveryData: any) => {
+  const createDiscoveryEventCard = (discoveryData: Record<string, unknown>) => {
     const mockAutomationDetails: AutomationDetectionDetail[] = [
       {
         automationId: `auto-${Date.now()}-1`,

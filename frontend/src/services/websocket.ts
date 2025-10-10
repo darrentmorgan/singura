@@ -4,9 +4,8 @@
  */
 
 import { io, Socket } from 'socket.io-client';
-import { 
-  WebSocketMessage, 
-  ConnectionStatusUpdate, 
+import {
+  ConnectionStatusUpdate,
   DiscoveryProgress,
   PlatformConnection,
   AutomationDiscovery
@@ -29,7 +28,7 @@ export class WebSocketService {
   private heartbeatTimer: NodeJS.Timeout | null = null;
 
   // Event listeners storage for cleanup
-  private eventListeners: Map<string, (...args: any[]) => void> = new Map();
+  private eventListeners: Map<string, (...args: unknown[]) => void> = new Map();
 
   constructor() {
     this.setupEventListeners();
@@ -140,7 +139,7 @@ export class WebSocketService {
   /**
    * Send a message through the WebSocket
    */
-  emit(event: string, data: any): boolean {
+  emit(event: string, data: unknown): boolean {
     if (!this.socket?.connected) {
       console.warn('Cannot send WebSocket message: not connected');
       return false;
@@ -236,7 +235,7 @@ export class WebSocketService {
       useAutomationsStore.getState().updateDiscoveryProgress(data.connectionId, data);
     });
 
-    this.socket.on('discovery:complete', (data: { connectionId: string, result: any }) => {
+    this.socket.on('discovery:complete', (data: { connectionId: string, result: unknown }) => {
       console.log('Discovery completed:', data);
       useAutomationsStore.getState().updateDiscoveryResult(data.connectionId, data.result);
       useUIStore.getState().showSuccess('Automation discovery completed');

@@ -51,7 +51,7 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundarySta
     // this.reportError(error, errorInfo);
   }
 
-  private reportError = (error: Error, errorInfo: React.ErrorInfo) => {
+  private reportError = (_error: Error, _errorInfo: React.ErrorInfo) => {
     // TODO: Integrate with error monitoring service
     // Example: Sentry.captureException(error, { extra: errorInfo });
   };

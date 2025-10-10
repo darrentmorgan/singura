@@ -75,7 +75,7 @@ export interface PlatformConnection {
   last_sync_at?: string;
   error_message?: string;
   credentials?: EncryptedCredential[];
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 export interface EncryptedCredential {
@@ -132,7 +132,7 @@ export interface AutomationDiscovery {
     version?: string;
     triggers?: string[];
     actions?: string[];
-    [key: string]: any;
+    [key: string]: unknown;
   };
 }
 
@@ -142,7 +142,7 @@ export interface AuditLogEntry {
   actor: string;
   action: string;
   resource: string;
-  details?: Record<string, any>;
+  details?: Record<string, unknown>;
 }
 
 export interface PermissionCheck {
@@ -195,7 +195,7 @@ export interface ApiError {
   error: string;
   code: string;
   message?: string;
-  details?: Record<string, any>;
+  details?: Record<string, unknown>;
 }
 
 // Request/Response wrapper types
@@ -222,7 +222,7 @@ export interface PaginationParams {
 }
 
 // WebSocket Types
-export interface WebSocketMessage<T = any> {
+export interface WebSocketMessage<T = unknown> {
   type: string;
   payload: T;
   timestamp: string;
@@ -263,5 +263,5 @@ export interface ComplianceReport {
     compliantConnections: number;
     violations: number;
   };
-  details: Record<string, any>;
+  details: Record<string, unknown>;
 }

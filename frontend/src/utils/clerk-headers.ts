@@ -9,10 +9,16 @@
  *
  * @returns Record of headers or null if Clerk not initialized
  */
+interface ClerkInstance {
+  user?: { id?: string };
+  session?: { id?: string };
+  organization?: { id?: string };
+}
+
 export function getClerkAuthHeaders(): Record<string, string> | null {
   try {
     // Access Clerk's global instance
-    const clerk = (window as any).Clerk;
+    const clerk = (window as { Clerk?: ClerkInstance }).Clerk;
 
     if (!clerk || !clerk.user) {
       return null;
