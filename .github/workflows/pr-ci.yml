@@ -45,15 +45,7 @@ jobs:
         run: |
           echo "cache-key=${{ runner.os }}-deps-${{ hashFiles('**/pnpm-lock.yaml') }}" >> $GITHUB_OUTPUT
 
-      - name: Install root dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Install frontend dependencies
-        working-directory: ./frontend
-        run: pnpm install --frozen-lockfile
-
-      - name: Install backend dependencies
-        working-directory: ./backend
+      - name: Install all workspace dependencies
         run: pnpm install --frozen-lockfile
 
       - name: Build shared types
