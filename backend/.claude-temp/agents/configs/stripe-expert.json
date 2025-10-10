@@ -1,0 +1,70 @@
+{
+  "agentName": "stripe-expert",
+  "description": "Stripe payment integration specialist",
+  "mcpServers": {
+    "stripe": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@stripe/mcp-server"
+      ],
+      "env": {
+        "STRIPE_SECRET_KEY": "{{STRIPE_SECRET_KEY}}"
+      }
+    }
+  },
+  "capabilities": [
+    "Payment intent creation and management",
+    "Customer management",
+    "Subscription handling",
+    "Webhook setup and verification",
+    "Product and price configuration",
+    "Refund and dispute handling",
+    "Payment method management",
+    "Test mode vs live mode operations",
+    "Stripe Checkout integration",
+    "Invoice generation"
+  ],
+  "response_format": {
+    "type": "payment_summary",
+    "max_tokens": 700,
+    "include": [
+      "object_ids",
+      "amounts",
+      "status",
+      "webhook_endpoints",
+      "test_mode",
+      "next_steps"
+    ],
+    "exclude": [
+      "full_api_responses",
+      "customer_pii",
+      "raw_keys"
+    ]
+  },
+  "routing_triggers": [
+    "stripe",
+    "payment",
+    "subscription",
+    "checkout",
+    "payment intent",
+    "stripe webhook",
+    "refund",
+    "customer billing",
+    "stripe product",
+    "payment method",
+    "stripe invoice"
+  ],
+  "special_instructions": [
+    "NEVER log full Stripe API keys",
+    "Always use test mode keys for development",
+    "Verify webhook signatures to prevent spoofing",
+    "Handle idempotency keys for retries",
+    "Return Stripe object IDs (e.g., pi_, sub_, cus_)",
+    "Use Stripe CLI for local webhook testing",
+    "Follow PCI compliance - no raw card data in logs",
+    "Include currency in all amount references",
+    "Document webhook event types used",
+    "Use Stripe metadata for correlation IDs"
+  ]
+}

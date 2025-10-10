@@ -1,5 +1,5 @@
 /**
- * API Interface Types for SaaS X-Ray Frontend
+ * API Interface Types for Singura AI Frontend
  * These types match the backend API contracts
  */
 

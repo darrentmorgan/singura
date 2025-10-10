@@ -1,7 +1,7 @@
 {
-  "name": "SaaS X-Ray - Automation Discovery Platform",
-  "short_name": "SaaS X-Ray",
-  "description": "Discover and monitor automations across your SaaS platforms with enterprise-grade security and compliance.",
+  "name": "Singura AI - Shadow AI Detection Platform",
+  "short_name": "Singura AI",
+  "description": "Singura AI reveals, manages, and protects your network of AI agents — in real time. Observe behavior, detect anomalies, and shut down rogue agents before they act.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",

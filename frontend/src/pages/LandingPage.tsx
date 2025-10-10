@@ -1,16 +1,17 @@
 /**
  * Landing Page - Public Marketing Page
- * Modern, dark-themed landing page for SaaS X-Ray
+ * Modern, dark-themed landing page for Singura AI
  * Inspired by Apple/Tesla premium aesthetic
  */
 
 import React, { useEffect, useState } from 'react';
 import Navigation from '@/components/landing/Navigation';
 import Hero from '@/components/landing/Hero';
-import ValueProps from '@/components/landing/ValueProps';
-import ProductShowcase from '@/components/landing/ProductShowcase';
-import TrustSection from '@/components/landing/TrustSection';
-import CTASection from '@/components/landing/CTASection';
+import Features from '@/components/landing/Features';
+import WhySingura from '@/components/landing/WhySingura';
+import ConsolePreview from '@/components/landing/ConsolePreview';
+import Mission from '@/components/landing/Mission';
+import FooterCTA from '@/components/landing/FooterCTA';
 import Footer from '@/components/landing/Footer';
 import { WaitlistModal } from '@/components/landing/WaitlistModal';
 
@@ -29,13 +30,18 @@ const LandingPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      {/* Skip link for keyboard navigation accessibility */}
+      <a href="#main-content" className="skip-link">
+        Skip to main content
+      </a>
       <Navigation onJoinWaitlist={() => setWaitlistOpen(true)} />
-      <main>
+      <main id="main-content">
         <Hero onJoinWaitlist={() => setWaitlistOpen(true)} />
-        <ValueProps />
-        <ProductShowcase />
-        <TrustSection />
-        <CTASection onJoinWaitlist={() => setWaitlistOpen(true)} />
+        <Features />
+        <WhySingura />
+        <ConsolePreview />
+        <Mission />
+        <FooterCTA onJoinWaitlist={() => setWaitlistOpen(true)} />
       </main>
       <Footer />
       <WaitlistModal open={waitlistOpen} onOpenChange={setWaitlistOpen} />

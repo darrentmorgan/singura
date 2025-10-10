@@ -16,6 +16,7 @@ import { Label } from '@/components/ui/label';
 import { useAuthStore, useAuthActions, useAuthError, useAuthLoading } from '@/stores/auth';
 import { useUIActions } from '@/stores/ui';
 import { cn } from '@/lib/utils';
+import { BRAND } from '@/lib/brand';
 
 // Validation schema
 const loginSchema = z.object({
@@ -120,7 +121,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({
       <div className="text-center space-y-2">
         <div className="flex items-center justify-center mb-4" data-testid="app-logo">
           <Shield className="h-8 w-8 text-primary mr-2" />
-          <h1 className="text-2xl font-bold text-foreground">SaaS X-Ray</h1>
+          <h1 className="text-2xl font-bold text-foreground">{BRAND.name}</h1>
         </div>
         <h2 className="text-xl font-semibold text-foreground" data-testid="login-title">Welcome back</h2>
         <p className="text-sm text-muted-foreground">

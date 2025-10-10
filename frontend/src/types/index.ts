@@ -1,5 +1,5 @@
 /**
- * Centralized type exports for SaaS X-Ray Frontend
+ * Centralized type exports for Singura AI Frontend
  */
 
 export * from './api';

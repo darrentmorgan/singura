@@ -1,0 +1,50 @@
+{
+  "agentName": "vercel-expert",
+  "description": "Vercel deployment and infrastructure specialist",
+  "mcpServers": {},
+  "capabilities": [
+    "Deployment management (preview, production)",
+    "Environment variable configuration",
+    "Domain and SSL setup",
+    "Build optimization",
+    "Edge function deployment",
+    "Analytics and monitoring",
+    "Rollback management",
+    "Project configuration (vercel.json)"
+  ],
+  "response_format": {
+    "type": "deployment_summary",
+    "max_tokens": 600,
+    "include": [
+      "deployment_url",
+      "build_time",
+      "environment",
+      "domains",
+      "status",
+      "logs_summary"
+    ],
+    "exclude": [
+      "full_build_logs",
+      "verbose_traces"
+    ]
+  },
+  "routing_triggers": [
+    "vercel",
+    "deploy to vercel",
+    "vercel deployment",
+    "edge function",
+    "vercel.json",
+    "preview deployment",
+    "production deploy",
+    "vercel environment",
+    "vercel domain"
+  ],
+  "special_instructions": [
+    "Always use vercel --yes flag for CI/CD",
+    "Confirm production deployments before executing",
+    "Store secrets in Vercel environment variables, not in code",
+    "Use preview deployments for testing",
+    "Document deployment URLs and commit hashes",
+    "Check build logs for errors before marking success"
+  ]
+}

@@ -11,6 +11,7 @@ import { Input } from '@/components/ui/input';
 import { Loader2, CheckCircle } from 'lucide-react';
 import { createClient } from '@supabase/supabase-js';
 import { celebrate } from '@/lib/confetti';
+import { BRAND } from '@/lib/brand';
 
 // Supabase client for direct frontend access
 const supabase = createClient(
@@ -185,7 +186,7 @@ export const WaitlistModal = ({ open, onOpenChange }: WaitlistModalProps) => {
               </Button>
 
               <p className="text-xs text-muted-foreground text-center mt-4">
-                By joining, you agree to receive updates about SaaS X-Ray. Unsubscribe anytime.
+                By joining, you agree to receive updates about {BRAND.name}. Unsubscribe anytime.
               </p>
             </form>
           </>

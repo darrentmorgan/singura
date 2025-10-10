@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
+import { BRAND } from "@/lib/brand";
 
 interface NavigationProps {
   onJoinWaitlist: () => void;
@@ -11,26 +12,30 @@ const Navigation = ({ onJoinWaitlist }: NavigationProps) => {
       <div className="container mx-auto px-6 lg:px-8">
         <div className="flex h-16 items-center justify-between">
           <Link to="/" className="text-xl font-semibold tracking-tight">
-            GHOSTMAP<span className="text-primary">.AI</span>
+            {BRAND.name}
           </Link>
 
           <div className="hidden md:flex items-center gap-8">
-            <a href="#product" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
-              PRODUCT
-            </a>
-            <a href="#platform" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
-              PLATFORM
-            </a>
-            <a href="#contact" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
-              CONTACT
-            </a>
-            <Button
-              size="sm"
-              onClick={onJoinWaitlist}
-              className="bg-primary text-primary-foreground hover:bg-primary/90 font-medium"
-            >
-              JOIN WAITLIST
-            </Button>
+            {BRAND.navigation.map((item) => (
+              item.action === 'openWaitlist' ? (
+                <Button
+                  key={item.label}
+                  size="sm"
+                  onClick={onJoinWaitlist}
+                  className="bg-primary text-primary-foreground hover:bg-primary/90 font-medium"
+                >
+                  {item.label.toUpperCase()}
+                </Button>
+              ) : (
+                <a
+                  key={item.label}
+                  href={item.anchor}
+                  className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  {item.label.toUpperCase()}
+                </a>
+              )
+            ))}
           </div>
 
           <div className="w-32 md:hidden" />

@@ -8,6 +8,7 @@ import { Helmet } from 'react-helmet-async';
 import { Play, Pause, RotateCw } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
+import { BRAND } from '@/lib/brand';
 import AutomationsList from '@/components/automations/AutomationsList';
 import DiscoveryProgress from '@/components/automations/DiscoveryProgress';
 import { 
@@ -139,7 +140,7 @@ export const AutomationsPage: React.FC = () => {
   return (
     <>
       <Helmet>
-        <title>Automations - SaaS X-Ray</title>
+        <title>Automations - {BRAND.name}</title>
         <meta name="description" content="View and manage discovered automations across your platforms" />
       </Helmet>
 

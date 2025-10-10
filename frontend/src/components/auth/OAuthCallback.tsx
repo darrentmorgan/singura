@@ -10,6 +10,7 @@ import { Shield, CheckCircle, XCircle, Loader2 } from 'lucide-react';
 import { useConnectionsActions } from '@/stores/connections';
 import { useUIActions } from '@/stores/ui';
 import { Button } from '@/components/ui/button';
+import { BRAND } from '@/lib/brand';
 
 interface OAuthCallbackState {
   status: 'loading' | 'success' | 'error';
@@ -154,7 +155,7 @@ export const OAuthCallback: React.FC = () => {
           {/* Header */}
           <div className="flex items-center justify-center mb-4">
             <Shield className="h-8 w-8 text-primary mr-2" />
-            <h1 className="text-2xl font-bold text-foreground">SaaS X-Ray</h1>
+            <h1 className="text-2xl font-bold text-foreground">{BRAND.name}</h1>
           </div>
 
           {/* Status Icon and Message */}

@@ -1,5 +1,5 @@
 /**
- * Global Styles - SaaS X-Ray Frontend
+ * Global Styles - Singura AI Frontend
  * Tailwind CSS base styles with custom CSS variables and utility classes
  */
 
@@ -266,10 +266,25 @@
     animation: fadeIn 0.3s ease-in-out;
   }
 
+  .animate-fade-in-up {
+    animation: fadeInUp 0.6s ease-out;
+  }
+
   @keyframes fadeIn {
     from {
       opacity: 0;
       transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
     }
     to {
       opacity: 1;

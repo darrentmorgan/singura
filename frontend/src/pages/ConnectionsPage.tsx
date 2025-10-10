@@ -8,6 +8,7 @@ import { Helmet } from 'react-helmet-async';
 import { useSearchParams } from 'react-router-dom';
 
 import ConnectionsGrid from '@/components/connections/ConnectionsGrid';
+import { BRAND } from '@/lib/brand';
 import { useConnectionsActions, useConnectionStats, useConnectionsLoading } from '@/stores/connections';
 import { useUIActions } from '@/stores/ui';
 
@@ -63,7 +64,7 @@ export const ConnectionsPage: React.FC = () => {
   return (
     <>
       <Helmet>
-        <title>Platform Connections - SaaS X-Ray</title>
+        <title>Platform Connections - {BRAND.name}</title>
         <meta name="description" content="Manage your platform connections and integrations" />
       </Helmet>
 
