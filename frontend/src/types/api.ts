@@ -1,5 +1,5 @@
 /**
- * API Interface Types for SaaS X-Ray Frontend
+ * API Interface Types for Singura AI Frontend
  * These types match the backend API contracts
  */
 
@@ -125,6 +125,8 @@ export interface AutomationDiscovery {
   lastTriggered?: string;
   permissions?: string[];
   riskLevel: RiskLevel;
+  riskScore: number;
+  discoveredAt: string;
   metadata?: {
     isInternal?: boolean;
     version?: string;

@@ -121,6 +121,7 @@ temp/
 # Backup files
 *.bak
 *.backup
+.claude-backup-*/
 .vercel
 
 # Test screenshots and artifacts

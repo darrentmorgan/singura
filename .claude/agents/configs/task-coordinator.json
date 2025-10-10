@@ -1,0 +1,62 @@
+{
+  "agentName": "task-coordinator",
+  "description": "Lightweight ClickUp task management specialist for CRUD operations",
+  "model": "claude-3-5-haiku-20241022",
+  "mcpServers": {
+    "clickup": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-clickup"],
+      "env": {
+        "CLICKUP_API_KEY": "${CLICKUP_API_KEY}"
+      }
+    }
+  },
+  "capabilities": [
+    "Create tasks",
+    "Update task status",
+    "Assign tasks to team members",
+    "Query tasks by status/assignee",
+    "Add task comments",
+    "Set task priorities and due dates",
+    "Simple task organization"
+  ],
+  "response_format": {
+    "type": "task_operation_summary",
+    "max_tokens": 400,
+    "include": [
+      "task_ids",
+      "operation_type",
+      "affected_tasks_count",
+      "status_changes",
+      "errors"
+    ],
+    "exclude": [
+      "full_task_details",
+      "verbose_api_responses"
+    ]
+  },
+  "routing_triggers": [
+    "clickup",
+    "create task",
+    "update task",
+    "assign task",
+    "task status",
+    "task management",
+    "add comment"
+  ],
+  "special_instructions": [
+    "Use task-coordinator for simple CRUD operations only",
+    "Delegate strategic planning to product-manager agent",
+    "Return task IDs and operation summaries",
+    "Handle bulk operations efficiently",
+    "Validate required fields before API calls",
+    "Use concise task descriptions"
+  ],
+  "artifacts": {
+    "enabled": true,
+    "scratchpad": false,
+    "auto_summary": true,
+    "detail_threshold": 50,
+    "instructions": "Write large task lists to artifact, return summary with task IDs created/updated, operation status, any errors."
+  }
+}

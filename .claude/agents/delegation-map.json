@@ -9,7 +9,7 @@
       "pattern": "**/*.tsx",
       "exclude": ["**/*.test.tsx", "**/*.spec.tsx"],
       "primary_agent": "frontend-developer",
-      "secondary_agents": ["code-reviewer-pro", "test-automator"],
+      "secondary_agents": ["code-reviewer-pro", "testing-suite:test-engineer"],
       "triggers": ["Edit", "Write"],
       "context": {
         "framework": "React 18",
@@ -57,7 +57,7 @@
     {
       "name": "Test Files",
       "pattern": "**/*.{test,spec}.{ts,tsx}",
-      "primary_agent": "test-automator",
+      "primary_agent": "testing-suite:test-engineer",
       "secondary_agents": ["code-reviewer-pro"],
       "triggers": ["Edit", "Write"],
       "context": {
@@ -117,11 +117,11 @@
       "use_for": ["all code changes", "final approval"],
       "mcp_servers": []
     },
-    "test-automator": {
-      "description": "Test generation and validation",
+    "testing-suite:test-engineer": {
+      "description": "Test generation and validation (plugin:testing-suite)",
       "strengths": ["test coverage", "test quality", "CI/CD"],
       "use_for": ["new features", "bug fixes", "test files"],
-      "mcp_servers": ["chrome-devtools", "playwright"]
+      "mcp_servers": []
     },
     "qa-expert": {
       "description": "E2E testing and QA validation",
@@ -205,13 +205,13 @@
   "quality_gates": {
     "pre_commit": {
       "required_agents": ["code-reviewer-pro"],
-      "optional_agents": ["typescript-pro", "test-automator"],
+      "optional_agents": ["typescript-pro", "testing-suite:test-engineer"],
       "blocking": true,
       "min_score": 80
     },
     "pre_deployment": {
       "required_agents": ["qa-expert", "code-reviewer-pro"],
-      "optional_agents": ["test-automator"],
+      "optional_agents": ["testing-suite:test-engineer"],
       "blocking": true,
       "min_score": 85
     }
@@ -244,7 +244,7 @@
         "name": "Browser Automation & E2E Testing",
         "mcp_server": "chrome-devtools, playwright",
         "primary_agent": "qa-expert",
-        "secondary_agents": ["test-automator"],
+        "secondary_agents": ["testing-suite:test-engineer"],
         "keywords": [
           "E2E test",
           "browser test",
@@ -265,7 +265,7 @@
       {
         "name": "Test Automation & Debugging",
         "mcp_server": "playwright, chrome-devtools",
-        "primary_agent": "test-automator",
+        "primary_agent": "testing-suite:test-engineer",
         "secondary_agents": ["qa-expert"],
         "keywords": [
           "test automation",

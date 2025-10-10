@@ -115,23 +115,26 @@ User: [Edits src/handlers/auth.ts]
 
 ---
 
-#### `test-automator`
-**Purpose**: Test generation and automation
-**MCP Servers**: `chrome-devtools`, `playwright`
+#### `test-engineer` ⭐ (Plugin)
+**Purpose**: Test code generation and strategy
+**Source**: `plugin:testing-suite@claude-code-templates`
+**MCP Servers**: None (lightweight!)
 **Best For**:
 - Unit test generation
-- Integration testing
-- Test debugging
+- Integration test code
+- Test strategy and architecture
 - CI/CD test automation
 - Test coverage improvement
 
-**Routing Triggers**: `test automation`, `playwright`, `fix test`, `test coverage`, `test debugging`
+**Routing Triggers**: `test code`, `unit test`, `integration test`, `test coverage`, `generate tests`, `test strategy`
+
+**Note**: We use `test-engineer` (plugin, no MCP) for unit/integration tests to avoid crashes. For E2E/browser testing, use `qa-expert` (local, has MCP).
 
 **Example Usage**:
 ```
-User: "Create tests for the login API handler"
-→ Delegates to: test-automator
-→ Returns: Test files with coverage report
+User: "Generate unit tests for the user service"
+→ Delegates to: test-engineer (plugin)
+→ Returns: Test code with coverage analysis
 ```
 
 ---
@@ -197,6 +200,56 @@ User: "Set up CI/CD pipeline for staging environment"
 User: "Optimize the slow campaign listing query"
 → Delegates to: database-optimizer
 → Returns: Optimized query, indexes, performance metrics
+```
+
+---
+
+#### `vercel-expert`
+**Purpose**: Vercel deployment and infrastructure management
+**MCP Servers**: None
+**Best For**:
+- Deployment management (preview and production)
+- Environment variable configuration
+- Domain and SSL setup
+- Build optimization
+- Edge function deployment
+- Analytics and monitoring
+- Rollback management
+
+**Routing Triggers**: `vercel`, `deploy to vercel`, `vercel deployment`, `edge function`, `vercel.json`, `preview deployment`, `production deploy`, `vercel environment`, `vercel domain`
+
+**Example Usage**:
+```
+User: "Deploy the latest changes to Vercel with a preview URL"
+→ Delegates to: vercel-expert
+→ Returns: Deployment URL, build summary, environment details
+```
+
+---
+
+### Payment & Commerce Agents
+
+#### `stripe-expert`
+**Purpose**: Stripe payment integration specialist
+**MCP Servers**: `stripe`
+**Best For**:
+- Payment intent creation and management
+- Customer management
+- Subscription handling
+- Webhook setup and verification
+- Product and price configuration
+- Refund and dispute handling
+- Payment method management
+- Stripe Checkout integration
+- Invoice generation
+
+**Routing Triggers**: `stripe`, `payment`, `subscription`, `checkout`, `payment intent`, `stripe webhook`, `refund`, `customer billing`, `stripe product`, `payment method`, `stripe invoice`
+
+**Example Usage**:
+```
+User: "Set up a Stripe subscription webhook for our SaaS app"
+→ Delegates to: stripe-expert
+→ Returns: Webhook configuration, test mode details, integration steps
 ```
 
 ---
@@ -376,14 +429,14 @@ All agents return responses with:
 ### Pre-Commit Gate
 
 **Required Agents**: `code-reviewer-pro`
-**Optional**: `typescript-pro`, `test-automator`
+**Optional**: `typescript-pro`, `test-engineer`
 **Minimum Score**: 80/100
 **Blocking**: Yes
 
 ### Pre-Deployment Gate
 
 **Required Agents**: `qa-expert`, `code-reviewer-pro`
-**Optional**: `test-automator`
+**Optional**: `test-engineer`
 **Minimum Score**: 85/100
 **Blocking**: Yes
 
@@ -473,4 +526,41 @@ The `setup.sh` script:
 
 ---
 
-*Last Updated: 2025-10-08*
+## 🔌 Plugin Agents
+
+In addition to local agents, this project uses Claude Code plugins from the `claude-code-templates` marketplace. Plugin agents extend functionality without duplicating configs.
+
+### Available Plugin Agents
+
+| Plugin | Agent | Use Case | MCP Servers |
+|--------|-------|----------|-------------|
+| **testing-suite** | `test-engineer` | Unit/integration test generation | None |
+| **git-workflow** | `git-flow-manager` | Git Flow automation | None |
+| **supabase-toolkit** | `data-scientist` | Data analysis & modeling | supabase |
+| **nextjs-vercel-pro** | `fullstack-developer` | Next.js full-stack development | vercel-mcp |
+| **security-pro** | `security-auditor` | Security audits & compliance | None |
+| **performance-optimizer** | `performance-engineer` | Performance profiling | None |
+
+### Plugin vs Local Agent Selection
+
+**Use Plugin Agents For**:
+- Generic workflows (git, testing, security)
+- Cross-project functionality
+- Lightweight operations (no project-specific MCP credentials)
+
+**Use Local Agents For**:
+- Project-specific MCP credentials (e.g., your Supabase API keys)
+- Heavy browser automation (qa-expert with chrome-devtools)
+- Custom delegation routing
+
+**Example Split**:
+- Unit tests → `test-engineer` (plugin, lightweight)
+- E2E tests → `qa-expert` (local, has chrome-devtools MCP)
+
+### Plugin Documentation
+
+For complete plugin usage guide, see: [PLUGIN_INTEGRATION.md](./PLUGIN_INTEGRATION.md)
+
+---
+
+*Last Updated: 2025-10-10*

@@ -1,0 +1,67 @@
+{
+  "agentName": "python-pro",
+  "description": "Python specialist for backend development, data processing, and best practices",
+  "model": "claude-sonnet-4-5-20250929",
+  "mcpServers": {},
+  "capabilities": [
+    "Python backend development (FastAPI, Django, Flask)",
+    "Data processing (pandas, numpy)",
+    "Python type hints and mypy",
+    "Async/await patterns",
+    "Python testing (pytest, unittest)",
+    "Virtual environment management",
+    "Python packaging and dependencies",
+    "Performance optimization"
+  ],
+  "response_format": {
+    "type": "python_implementation",
+    "max_tokens": 800,
+    "include": [
+      "modules_created",
+      "dependencies_added",
+      "type_hints_coverage",
+      "tests_written",
+      "performance_notes"
+    ],
+    "exclude": [
+      "full_code_listings"
+    ]
+  },
+  "routing_triggers": [
+    "Python",
+    "FastAPI",
+    "Django",
+    "Flask",
+    "pandas",
+    "pytest",
+    "async Python",
+    "Python types"
+  ],
+  "special_instructions": [
+    "Follow PEP 8 style guide",
+    "Use type hints for all function signatures",
+    "Run mypy for static type checking",
+    "Use virtual environments (venv or poetry)",
+    "Write docstrings (Google or NumPy style)",
+    "Use dataclasses for structured data",
+    "Prefer pathlib over os.path",
+    "Use f-strings for string formatting"
+  ],
+  "best_practices": [
+    "One class per module (unless tightly coupled)",
+    "Use context managers for resource management",
+    "Leverage Python's standard library",
+    "Use list comprehensions over map/filter when readable",
+    "Implement __repr__ for debugging",
+    "Use logging instead of print statements",
+    "Test with pytest fixtures",
+    "Use async for I/O-bound operations"
+  ],
+  "artifacts": {
+    "enabled": true,
+    "scratchpad": true,
+    "auto_summary": true,
+    "detail_threshold": 200,
+    "instructions": "Document Python implementation details in scratchpad. Return summary with: modules created, dependencies, type coverage, test status."
+  }
+}

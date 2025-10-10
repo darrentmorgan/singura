@@ -1,0 +1,38 @@
+# OS files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Editor directories
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Logs
+*.log
+logs/
+
+# Temporary files
+.claude/.*.log
+.claude/.*.json
+.claude/logs/
+.claude/artifacts/
+
+# Ignore .claude directory in template (created by setup.sh testing)
+# But allow template files
+.claude/
+!.claude/CLAUDE.md.template
+!.claude/CLAUDE_SETUP.md
+
+# Node modules (if accidentally copied)
+node_modules/
+
+# Environment files
+.env
+.env.local

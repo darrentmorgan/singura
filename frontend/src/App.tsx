@@ -26,6 +26,7 @@ import AutomationsPage from '@/pages/AutomationsPage';
 import { websocketService } from '@/services/websocket';
 import { useAuth } from '@clerk/clerk-react';
 import { useUIActions, useNotifications, useTheme } from '@/stores/ui';
+import { BRAND, CONTENT } from '@/lib/brand';
 
 // Global Error Boundary
 import ErrorBoundary from '@/components/common/ErrorBoundary';
@@ -245,8 +246,8 @@ const App: React.FC = () => {
         <QueryClientProvider client={queryClient}>
           <Router>
             <Helmet>
-              <title>SaaS X-Ray - Automation Discovery Platform</title>
-              <meta name="description" content="Discover and monitor automations across your SaaS platforms with enterprise-grade security." />
+              <title>{CONTENT.seo.title}</title>
+              <meta name="description" content={CONTENT.seo.description} />
               <meta name="viewport" content="width=device-width, initial-scale=1" />
             </Helmet>
 

@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Risk Badge Fix Test</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; }
+    .test { margin: 20px 0; padding: 10px; border: 1px solid #ccc; }
+    .pass { background: #d4edda; }
+    .fail { background: #f8d7da; }
+  </style>
+</head>
+<body>
+  <h1>Risk Badge Function Test</h1>
+
+  <div id="tests"></div>
+
+  <script>
+    // Original buggy function
+    const getRiskBadgeClassBuggy = (riskLevel) => {
+      switch (riskLevel.toLowerCase()) { // This will crash if riskLevel is undefined
+        case 'critical':
+        case 'high':
+          return 'bg-red-100 text-red-800';
+        case 'medium':
+          return 'bg-yellow-100 text-yellow-800';
+        case 'low':
+          return 'bg-green-100 text-green-800';
+        default:
+          return 'bg-gray-100 text-gray-800';
+      }
+    };
+
+    // Fixed function
+    const getRiskBadgeClassFixed = (riskLevel) => {
+      if (!riskLevel) {
+        return 'bg-gray-100 text-gray-800';
+      }
+
+      switch (riskLevel.toLowerCase()) {
+        case 'critical':
+        case 'high':
+          return 'bg-red-100 text-red-800';
+        case 'medium':
+          return 'bg-yellow-100 text-yellow-800';
+        case 'low':
+          return 'bg-green-100 text-green-800';
+        default:
+          return 'bg-gray-100 text-gray-800';
+      }
+    };
+
+    const tests = [
+      { name: 'Defined risk level - high', value: 'high', expected: 'bg-red-100 text-red-800' },
+      { name: 'Defined risk level - medium', value: 'medium', expected: 'bg-yellow-100 text-yellow-800' },
+      { name: 'Defined risk level - low', value: 'low', expected: 'bg-green-100 text-green-800' },
+      { name: 'Undefined risk level', value: undefined, expected: 'bg-gray-100 text-gray-800' },
+      { name: 'Null risk level', value: null, expected: 'bg-gray-100 text-gray-800' },
+      { name: 'Empty string risk level', value: '', expected: 'bg-gray-100 text-gray-800' },
+    ];
+
+    const testsDiv = document.getElementById('tests');
+
+    tests.forEach(test => {
+      const div = document.createElement('div');
+      div.className = 'test';
+
+      // Test buggy version
+      let buggyResult = 'N/A';
+      let buggyError = null;
+      try {
+        buggyResult = getRiskBadgeClassBuggy(test.value);
+      } catch (e) {
+        buggyError = e.message;
+      }
+
+      // Test fixed version
+      let fixedResult = 'N/A';
+      let fixedError = null;
+      try {
+        fixedResult = getRiskBadgeClassFixed(test.value);
+      } catch (e) {
+        fixedError = e.message;
+      }
+
+      const passed = !fixedError && fixedResult === test.expected;
+      div.className += passed ? ' pass' : ' fail';
+
+      div.innerHTML = `
+        <h3>${test.name}</h3>
+        <p><strong>Input:</strong> ${test.value === undefined ? 'undefined' : test.value === null ? 'null' : test.value}</p>
+        <p><strong>Expected:</strong> ${test.expected}</p>
+        <hr>
+        <p><strong>Buggy Version:</strong> ${buggyError ? `❌ ERROR: ${buggyError}` : `✓ ${buggyResult}`}</p>
+        <p><strong>Fixed Version:</strong> ${fixedError ? `❌ ERROR: ${fixedError}` : `✓ ${fixedResult}`}</p>
+        <p><strong>Status:</strong> ${passed ? '✅ PASS' : '❌ FAIL'}</p>
+      `;
+
+      testsDiv.appendChild(div);
+    });
+
+    // Summary
+    const summary = document.createElement('div');
+    summary.style.cssText = 'margin-top: 30px; padding: 20px; background: #e3f2fd; border-radius: 5px;';
+    summary.innerHTML = `
+      <h2>Summary</h2>
+      <p>The fix adds a null/undefined check before calling .toLowerCase(), preventing the crash.</p>
+      <p><strong>Original Error:</strong> "Cannot read properties of undefined (reading 'toLowerCase')"</p>
+      <p><strong>Fix:</strong> Check if riskLevel exists before attempting to call .toLowerCase() on it.</p>
+    `;
+    testsDiv.appendChild(summary);
+  </script>
+</body>
+</html>

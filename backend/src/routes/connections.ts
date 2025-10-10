@@ -29,7 +29,7 @@ import { slackConnector } from '../connectors/slack';
 import { PlatformType } from '../types/database';
 import { AutomationEvent, AuditLogEntry } from '../connectors/types';
 
-const router = Router();
+const router: Router = Router();
 
 // Apply security middleware to all connection routes
 router.use(securityMiddleware.requireAuthentication());

@@ -24,6 +24,7 @@ import { useUIActions, useTheme, useNotifications, useSidebarState } from '@/sto
 import { useConnectionsActions } from '@/stores/connections';
 import { AdminToggle } from '@/components/admin/AdminToggle';
 import { cn } from '@/lib/utils';
+import { BRAND } from '@/lib/brand';
 
 interface HeaderProps {
   className?: string;
@@ -106,13 +107,13 @@ export const Header: React.FC<HeaderProps> = ({ className }) => {
           </Button>
 
           {/* Logo */}
-          <Link 
-            to="/dashboard" 
+          <Link
+            to="/dashboard"
             className="flex items-center space-x-2 hover:opacity-80 transition-opacity"
           >
             <Shield className="h-8 w-8 text-primary" />
             <span className="font-bold text-xl text-foreground hidden sm:block">
-              SaaS X-Ray
+              {BRAND.name}
             </span>
           </Link>
         </div>

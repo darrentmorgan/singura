@@ -83,7 +83,7 @@ interface CountQueryResult {
 }
 import { QueryParameters } from '@saas-xray/shared-types';
 
-const router = Router();
+const router: Router = Router();
 
 /**
  * Calculate risk level based on platform metadata

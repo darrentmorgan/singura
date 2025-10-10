@@ -17,7 +17,7 @@ interface UserPayload {
   organizationId: string;
 }
 
-const router = Router();
+const router: Router = Router();
 
 /**
  * Calculate risk level based on platform metadata

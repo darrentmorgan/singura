@@ -46,7 +46,7 @@ if [[ "$MODIFIED_FILE" == *".ts"* ]] || [[ "$MODIFIED_FILE" == *".tsx"* ]] || [[
 fi
 
 # Quick type check if TypeScript file
-PKG_MANAGER="npm"
+PKG_MANAGER="pnpm"
 if [[ "$MODIFIED_FILE" == *".ts"* ]] || [[ "$MODIFIED_FILE" == *".tsx"* ]]; then
     echo "🔤 Quick type check..."
     $PKG_MANAGER exec tsc --noEmit --skipLibCheck "$MODIFIED_FILE" 2>/dev/null && \

@@ -11,11 +11,35 @@ import { Input } from '@/components/ui/input';
 import { Loader2, CheckCircle } from 'lucide-react';
 import { createClient } from '@supabase/supabase-js';
 import { celebrate } from '@/lib/confetti';
+import { BRAND } from '@/lib/brand';
+import { logError, ERROR_IDS } from '@/lib/errorLogger';
+
+// Validate Supabase configuration
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+if (!supabaseUrl || !supabaseAnonKey) {
+  const errorMsg = 'Supabase credentials not configured';
+  logError(errorMsg, {
+    error: new Error(errorMsg),
+    errorId: ERROR_IDS.SUPABASE_CONFIG_ERROR,
+    context: {
+      hasUrl: !!supabaseUrl,
+      hasKey: !!supabaseAnonKey,
+      component: 'WaitlistModal',
+    },
+    level: 'error',
+  });
+
+  if (import.meta.env.DEV) {
+    console.error('⚠️ CRITICAL: Supabase credentials missing. Check your .env file.');
+  }
+}
 
 // Supabase client for direct frontend access
 const supabase = createClient(
-  import.meta.env.VITE_SUPABASE_URL || '',
-  import.meta.env.VITE_SUPABASE_ANON_KEY || ''
+  supabaseUrl || 'https://placeholder.supabase.co',
+  supabaseAnonKey || 'placeholder-key'
 );
 
 interface WaitlistModalProps {
@@ -35,7 +59,18 @@ export const WaitlistModal = ({ open, onOpenChange }: WaitlistModalProps) => {
     e.preventDefault();
 
     if (!email) {
-      setError('Email is required');
+      setError('Please provide your work email address');
+      return;
+    }
+
+    // Validate Supabase is configured before attempting submission
+    if (!supabaseUrl || !supabaseAnonKey) {
+      setError('Service temporarily unavailable. Please try again later or contact support.');
+      logError('Supabase credentials not configured during submission', {
+        error: new Error('Missing Supabase credentials'),
+        errorId: ERROR_IDS.WAITLIST_CONFIG_ERROR,
+        context: { component: 'WaitlistModal', action: 'submit' },
+      });
       return;
     }
 
@@ -58,12 +93,52 @@ export const WaitlistModal = ({ open, onOpenChange }: WaitlistModalProps) => {
         });
 
       if (submitError) {
-        // Handle duplicate email gracefully
+        // Handle specific error cases with helpful messages
         if (submitError.code === '23505') {
+          // Duplicate email (unique constraint violation)
           setError('You\'re already on the waitlist! We\'ll be in touch soon.');
+          logError('Duplicate waitlist submission attempt', {
+            error: submitError,
+            errorId: ERROR_IDS.WAITLIST_DUPLICATE_EMAIL,
+            context: { email: email.toLowerCase().trim() },
+            level: 'info',
+          });
+        } else if (submitError.code === '23502') {
+          // NOT NULL constraint violation
+          setError('Please provide a valid email address');
+          logError('NULL constraint violation in waitlist', {
+            error: submitError,
+            errorId: ERROR_IDS.WAITLIST_VALIDATION_ERROR,
+            context: { code: submitError.code },
+          });
+        } else if (submitError.code === '23514') {
+          // CHECK constraint violation
+          setError('Invalid email format. Please use a work email address');
+          logError('CHECK constraint violation in waitlist', {
+            error: submitError,
+            errorId: ERROR_IDS.WAITLIST_VALIDATION_ERROR,
+            context: { code: submitError.code },
+          });
+        } else if (submitError.message?.includes('RLS') || submitError.message?.includes('policy')) {
+          // RLS policy error
+          setError('Service temporarily unavailable. Please try again later');
+          logError('RLS policy error in waitlist submission', {
+            error: submitError,
+            errorId: ERROR_IDS.WAITLIST_RLS_ERROR,
+            context: { message: submitError.message },
+          });
         } else {
-          setError('Something went wrong. Please try again.');
-          console.error('Waitlist submission error:', submitError);
+          // Unknown error
+          setError('Unable to submit. Please try again or contact support if this persists');
+          logError('Unknown waitlist submission error', {
+            error: submitError,
+            errorId: ERROR_IDS.WAITLIST_SUBMISSION_FAILED,
+            context: {
+              code: submitError.code,
+              message: submitError.message,
+              email: email.toLowerCase().trim(),
+            },
+          });
         }
         setLoading(false);
         return;
@@ -88,9 +163,25 @@ export const WaitlistModal = ({ open, onOpenChange }: WaitlistModalProps) => {
         }, 300);
       }, 2000);
     } catch (err) {
-      setError('Network error. Please check your connection and try again.');
+      // Distinguish between network errors and other errors
+      const isNetworkError = err instanceof TypeError && (err.message.includes('fetch') || err.message.includes('network'));
+
+      if (isNetworkError) {
+        setError('Network error. Please check your connection and try again');
+      } else {
+        setError('Unable to submit. Please try again or contact support');
+      }
+
+      logError('Waitlist submission exception', {
+        error: err,
+        errorId: isNetworkError ? ERROR_IDS.WAITLIST_NETWORK_ERROR : ERROR_IDS.WAITLIST_SUBMISSION_FAILED,
+        context: {
+          isNetworkError,
+          email: email.toLowerCase().trim(),
+        },
+      });
+
       setLoading(false);
-      console.error('Waitlist submission error:', err);
     }
   };
 
@@ -185,7 +276,7 @@ export const WaitlistModal = ({ open, onOpenChange }: WaitlistModalProps) => {
               </Button>
 
               <p className="text-xs text-muted-foreground text-center mt-4">
-                By joining, you agree to receive updates about SaaS X-Ray. Unsubscribe anytime.
+                By joining, you agree to receive updates about {BRAND.name}. Unsubscribe anytime.
               </p>
             </form>
           </>

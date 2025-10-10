@@ -1,5 +1,5 @@
 /**
- * UI-specific types for SaaS X-Ray Frontend
+ * UI-specific types for Singura AI Frontend
  */
 
 import { PlatformType, ConnectionStatus, RiskLevel } from './api';

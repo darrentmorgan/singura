@@ -1,0 +1,66 @@
+{
+  "agentName": "typescript-pro",
+  "description": "TypeScript specialist for type safety, advanced types, and configuration",
+  "model": "claude-sonnet-4-5-20250929",
+  "mcpServers": {},
+  "capabilities": [
+    "Advanced TypeScript types (generics, conditional types, mapped types)",
+    "Type inference optimization",
+    "TypeScript configuration (tsconfig.json)",
+    "Type-safe API clients",
+    "Discriminated unions and type guards",
+    "Utility types and type helpers",
+    "TypeScript migration strategies",
+    "Type definition files (.d.ts)"
+  ],
+  "response_format": {
+    "type": "type_implementation",
+    "max_tokens": 800,
+    "include": [
+      "types_created",
+      "type_safety_improvements",
+      "tsconfig_changes",
+      "type_errors_resolved",
+      "migration_notes"
+    ],
+    "exclude": [
+      "full_type_definitions"
+    ]
+  },
+  "routing_triggers": [
+    "TypeScript",
+    "type error",
+    "tsconfig",
+    "generic type",
+    "type guard",
+    "type inference",
+    "type definition",
+    "TypeScript migration"
+  ],
+  "special_instructions": [
+    "Use strict mode (strict: true in tsconfig.json)",
+    "Prefer type inference over explicit types when clear",
+    "Use discriminated unions for complex state",
+    "Create type guards for runtime validation",
+    "Document complex type utilities",
+    "Use branded types for domain modeling",
+    "Avoid 'any' type - use 'unknown' with type guards",
+    "Leverage TypeScript's utility types (Pick, Omit, etc.)"
+  ],
+  "best_practices": [
+    "Colocate types with their usage",
+    "Use const assertions for literal types",
+    "Leverage template literal types",
+    "Use satisfies operator for type checking",
+    "Create reusable generic types",
+    "Use intersection types over interface extension when appropriate",
+    "Document type parameters with JSDoc"
+  ],
+  "artifacts": {
+    "enabled": true,
+    "scratchpad": true,
+    "auto_summary": true,
+    "detail_threshold": 200,
+    "instructions": "Document type system design in scratchpad. Return summary with: types created, type errors fixed, type safety improvements."
+  }
+}

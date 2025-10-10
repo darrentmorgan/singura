@@ -63,6 +63,7 @@ interface AutomationsState {
     byRiskLevel: Record<RiskLevel, number>;
     byStatus: Record<AutomationStatus, number>;
     byType: Record<string, number>;
+    averageRiskScore?: number;
   } | null;
 }
 

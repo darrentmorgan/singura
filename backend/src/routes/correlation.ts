@@ -32,7 +32,7 @@ import { GoogleCorrelationConnector } from '../services/connectors/google-correl
 import { SlackOAuthService } from '../services/slack-oauth-service';
 import { GoogleAPIClientService } from '../services/google-api-client-service';
 
-const router = Router();
+const router: Router = Router();
 
 /**
  * API response wrapper for consistent response structure

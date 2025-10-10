@@ -30,7 +30,7 @@ interface DropdownMenuItemProps {
 
 const DropdownMenuContext = React.createContext<{
   isOpen: boolean;
-  setIsOpen: (open: boolean) => void;
+  setIsOpen: (open: boolean | ((prev: boolean) => boolean)) => void;
 }>({
   isOpen: false,
   setIsOpen: () => {},

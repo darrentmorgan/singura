@@ -21,6 +21,7 @@ export * from './utils/memory-storage';
 export * from './models/automation';
 export * from './models/connection';
 export * from './models/events';
+export * from './models/user';
 
 // API types
 export * from './api/requests';

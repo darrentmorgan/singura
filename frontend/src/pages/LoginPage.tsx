@@ -6,6 +6,7 @@
 import React from 'react';
 import { SignIn } from '@clerk/clerk-react';
 import { Shield } from 'lucide-react';
+import { BRAND, CONTENT } from '@/lib/brand';
 
 export const LoginPage: React.FC = () => {
   return (
@@ -18,13 +19,13 @@ export const LoginPage: React.FC = () => {
             <div className="space-y-4">
               <div className="flex items-center space-x-3 mb-6">
                 <Shield className="h-10 w-10 text-primary" />
-                <h1 className="text-3xl font-bold text-foreground">SaaS X-Ray</h1>
+                <h1 className="text-3xl font-bold text-foreground">{BRAND.name}</h1>
               </div>
               <h2 className="text-4xl font-bold text-foreground">
-                Discover Hidden Automations
+                {CONTENT.hero.headline}
               </h2>
               <p className="text-xl text-muted-foreground leading-relaxed">
-                Gain complete visibility into your organization's automation ecosystem with SaaS X-Ray.
+                {CONTENT.hero.subheadline}
               </p>
             </div>
 

@@ -1,0 +1,12 @@
+{
+  "session_id": "{{SESSION_ID}}",
+  "created": "{{TIMESTAMP}}",
+  "last_updated": "{{TIMESTAMP}}",
+  "agents": {},
+  "outputs": [],
+  "context_stats": {
+    "orchestrator_reads": 0,
+    "detail_expansions": 0,
+    "estimated_tokens_saved": 0
+  }
+}

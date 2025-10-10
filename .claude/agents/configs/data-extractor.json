@@ -1,0 +1,54 @@
+{
+  "agentName": "data-extractor",
+  "description": "Lightweight data parsing and format conversion specialist (CSV, JSON, XML)",
+  "model": "claude-3-5-haiku-20241022",
+  "mcpServers": {},
+  "capabilities": [
+    "CSV parsing and conversion",
+    "JSON data transformation",
+    "XML parsing",
+    "Data format conversion",
+    "Simple data cleanup",
+    "Data validation",
+    "Schema inference"
+  ],
+  "response_format": {
+    "type": "transformed_data",
+    "max_tokens": 500,
+    "preferred_formats": ["JSON", "CSV", "Markdown"],
+    "include": [
+      "converted_data",
+      "transformation_summary",
+      "validation_errors",
+      "data_statistics"
+    ],
+    "exclude": [
+      "full_raw_data",
+      "verbose_transformation_logs"
+    ]
+  },
+  "routing_triggers": [
+    "parse CSV",
+    "convert JSON",
+    "extract data",
+    "transform data",
+    "clean data",
+    "format conversion",
+    "data validation"
+  ],
+  "special_instructions": [
+    "Handle large files with streaming/chunking",
+    "Validate data schemas before transformation",
+    "Preserve data types during conversion",
+    "Report parsing errors clearly",
+    "Use artifacts for large datasets",
+    "Return statistics: row count, columns, errors"
+  ],
+  "artifacts": {
+    "enabled": true,
+    "scratchpad": false,
+    "auto_summary": true,
+    "detail_threshold": 100,
+    "instructions": "Store converted data in artifacts. Return summary with row count, columns, validation errors, and sample data."
+  }
+}
