@@ -4,16 +4,16 @@
   "description": "Enterprise Shadow AI & Automation Detection Platform",
   "private": true,
   "scripts": {
-    "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
-    "dev:backend": "cd backend && npm run dev",
-    "dev:frontend": "cd frontend && npm run dev",
-    "build": "npm run build:shared && npm run build:backend && npm run build:frontend",
-    "build:shared": "cd shared-types && npm run build",
-    "build:backend": "cd backend && npm run build",
-    "build:frontend": "cd frontend && npm run build",
-    "test": "npm run test:backend && npm run test:frontend && npm run test:e2e",
-    "test:backend": "cd backend && npm test",
-    "test:frontend": "cd frontend && npm test",
+    "dev": "concurrently \"pnpm run dev:backend\" \"pnpm run dev:frontend\"",
+    "dev:backend": "cd backend && pnpm run dev",
+    "dev:frontend": "cd frontend && pnpm run dev",
+    "build": "pnpm run build:shared && pnpm run build:backend && pnpm run build:frontend",
+    "build:shared": "cd shared-types && pnpm run build",
+    "build:backend": "cd backend && pnpm run build",
+    "build:frontend": "cd frontend && pnpm run build",
+    "test": "pnpm run test:backend && pnpm run test:frontend && pnpm run test:e2e",
+    "test:backend": "cd backend && pnpm test",
+    "test:frontend": "cd frontend && pnpm test",
     "test:e2e": "playwright test",
     "test:e2e:headed": "playwright test --headed",
     "test:e2e:debug": "playwright test --debug",
@@ -24,7 +24,7 @@
     "test:e2e:install": "playwright install",
     "test:oauth": "playwright test oauth-flows.spec.ts",
     "test:auth": "playwright test authentication.spec.ts",
-    "start": "cd backend && npm start",
+    "start": "cd backend && pnpm start",
     "start:prod": "cd backend && node dist/server-with-socketio.js",
     "docker:build": "docker-compose build",
     "docker:up": "docker-compose up -d",
@@ -33,7 +33,7 @@
     "docker:prod:up": "docker-compose -f docker-compose.prod.yml --env-file .env.production up -d",
     "docker:prod:down": "docker-compose -f docker-compose.prod.yml down",
     "docker:prod:logs": "docker-compose -f docker-compose.prod.yml logs -f",
-    "docker:prod:restart": "npm run docker:prod:down && npm run docker:prod:up",
+    "docker:prod:restart": "pnpm run docker:prod:down && pnpm run docker:prod:up",
     "deploy": "scripts/deploy.sh",
     "deploy:staging": "scripts/deploy.sh latest .env.staging",
     "deploy:production": "scripts/deploy.sh latest .env.production"
@@ -54,6 +54,7 @@
   },
   "engines": {
     "node": ">=20.0.0",
-    "npm": ">=9.0.0"
-  }
+    "pnpm": ">=8.0.0"
+  },
+  "packageManager": "pnpm@9.15.9"
 }
