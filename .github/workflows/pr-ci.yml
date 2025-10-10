@@ -89,15 +89,15 @@ jobs:
 
       - name: TypeScript check - Shared Types
         working-directory: ./shared-types
-        run: npx tsc --noEmit
+        run: pnpm exec tsc --noEmit
 
       - name: TypeScript check - Frontend
         working-directory: ./frontend
-        run: npx tsc --noEmit
+        run: pnpm exec tsc --noEmit
 
       - name: TypeScript check - Backend
         working-directory: ./backend
-        run: npx tsc --noEmit
+        run: pnpm exec tsc --noEmit
 
   # Job 3: Linting
   lint:
