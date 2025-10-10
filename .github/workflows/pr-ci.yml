@@ -36,7 +36,7 @@ jobs:
         id: pnpm-cache
         shell: bash
         run: |
-          echo "STORE_PATH=$(pnpm store path)" >> $GITHUB_OUTPUT
+          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_OUTPUT
 
       - name: Setup pnpm cache
         uses: actions/cache@v3
@@ -475,15 +475,15 @@ jobs:
           echo "E2E Tests: ${{ needs.test-e2e.result }}"
           echo "Build: ${{ needs.build.result }}"
 
-          # Check if any job failed
+          # Check if any job failed (only check for "failure", not "skipped")
           FAILED_JOBS=""
-          [ "${{ needs.typecheck.result }}" != "success" ] && FAILED_JOBS="$FAILED_JOBS TypeCheck"
-          [ "${{ needs.lint.result }}" != "success" ] && FAILED_JOBS="$FAILED_JOBS Lint"
-          [ "${{ needs.security.result }}" != "success" ] && FAILED_JOBS="$FAILED_JOBS Security"
-          [ "${{ needs.test-frontend.result }}" != "success" ] && FAILED_JOBS="$FAILED_JOBS Frontend"
-          [ "${{ needs.test-backend.result }}" != "success" ] && FAILED_JOBS="$FAILED_JOBS Backend"
-          [ "${{ needs.test-e2e.result }}" != "success" ] && FAILED_JOBS="$FAILED_JOBS E2E"
-          [ "${{ needs.build.result }}" != "success" ] && FAILED_JOBS="$FAILED_JOBS Build"
+          [ "${{ needs.typecheck.result }}" == "failure" ] && FAILED_JOBS="$FAILED_JOBS TypeCheck"
+          [ "${{ needs.lint.result }}" == "failure" ] && FAILED_JOBS="$FAILED_JOBS Lint"
+          [ "${{ needs.security.result }}" == "failure" ] && FAILED_JOBS="$FAILED_JOBS Security"
+          [ "${{ needs.test-frontend.result }}" == "failure" ] && FAILED_JOBS="$FAILED_JOBS Frontend"
+          [ "${{ needs.test-backend.result }}" == "failure" ] && FAILED_JOBS="$FAILED_JOBS Backend"
+          [ "${{ needs.test-e2e.result }}" == "failure" ] && FAILED_JOBS="$FAILED_JOBS E2E"
+          [ "${{ needs.build.result }}" == "failure" ] && FAILED_JOBS="$FAILED_JOBS Build"
 
           if [ -n "$FAILED_JOBS" ]; then
             echo "❌ CI Pipeline Failed - PR cannot be merged"
