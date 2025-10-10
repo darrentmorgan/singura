@@ -13,7 +13,7 @@ import { Eye, EyeOff, Shield, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { useAuthStore, useAuthActions, useAuthError, useAuthLoading } from '@/stores/auth';
+import { useAuthActions, useAuthError, useAuthLoading } from '@/stores/auth';
 import { useUIActions } from '@/stores/ui';
 import { cn } from '@/lib/utils';
 import { BRAND } from '@/lib/brand';

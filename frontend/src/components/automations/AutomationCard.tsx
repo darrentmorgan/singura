@@ -21,7 +21,7 @@ import {
 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
-import { AutomationDiscovery, RiskLevel, AutomationStatus } from '@/types/api';
+import { AutomationDiscovery } from '@/types/api';
 import { cn } from '@/lib/utils';
 
 // Automation type icons

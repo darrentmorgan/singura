@@ -1,11 +1,19 @@
-import { test, expect, Page } from '@playwright/test';
+import { test, expect } from '@playwright/test';
 import * as fs from 'fs';
 
 // Screenshot directory (relative to project root)
 const SCREENSHOT_DIR = 'test-results/oauth-scope-enrichment';
 
+interface NetworkRequest {
+  url: string;
+  status: number;
+  method: string;
+  body: unknown;
+  timestamp: string;
+}
+
 test.describe('OAuth Scope Enrichment - Google Workspace Discovery', () => {
-  let networkRequests: any[] = [];
+  let networkRequests: NetworkRequest[] = [];
   let consoleMessages: string[] = [];
   let consoleErrors: string[] = [];
 
@@ -73,7 +81,6 @@ test.describe('OAuth Scope Enrichment - Google Workspace Discovery', () => {
 
       // Look for email/password inputs
       const emailInput = page.locator('input[type="email"], input[name="email"]').first();
-      const passwordInput = page.locator('input[type="password"], input[name="password"]').first();
 
       if (await emailInput.isVisible({ timeout: 5000 })) {
         console.log('⚠ Login required. Please configure Clerk test credentials or use existing session.');
@@ -134,7 +141,6 @@ test.describe('OAuth Scope Enrichment - Google Workspace Discovery', () => {
 
     if (cardCount === 0) {
       console.log('⚠ No connection cards found. Checking page content...');
-      const pageContent = await page.content();
 
       await page.screenshot({
         path: `${SCREENSHOT_DIR}/04-no-connections.png`,
@@ -184,11 +190,9 @@ test.describe('OAuth Scope Enrichment - Google Workspace Discovery', () => {
       page.locator('text=/41.*automation/i') // Expected 41 automations
     ];
 
-    let discoveryComplete = false;
     for (const indicator of completionIndicators) {
       if (await indicator.first().isVisible({ timeout: 30000 }).catch(() => false)) {
         console.log(`✓ Discovery complete indicator found: ${await indicator.first().textContent()}`);
-        discoveryComplete = true;
         break;
       }
     }
