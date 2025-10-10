@@ -85,7 +85,7 @@ export const CONTENT = {
   // Why Singura Section
   why: {
     headline: 'Why Singura',
-    description: 'Built for the coming era of autonomous AI networks. Traditional monitoring tools weren't designed for self-learning entities. Singura is — purpose-built for AI observability, explainability, and command.',
+    description: 'Built for the coming era of autonomous AI networks. Traditional monitoring tools weren\'t designed for self-learning entities. Singura is — purpose-built for AI observability, explainability, and command.',
   },
 
   // Console/Product Section
