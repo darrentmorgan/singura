@@ -303,8 +303,7 @@ jobs:
       - name: Start Backend Server
         working-directory: ./backend
         run: |
-          pnpm run build:nocheck
-          pnpm run start &
+          pnpm run dev &
           sleep 10
         env:
           DATABASE_URL: postgresql://postgres:password@localhost:5432/saas_xray_test
