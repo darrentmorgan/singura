@@ -13,14 +13,14 @@ YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
 # Detect package manager
-PKG_MANAGER="npm"
+PKG_MANAGER="pnpm"
 
 # Track overall status
 QUALITY_GATE_PASSED=true
 
 # 1. Auto-fix linting issues
 echo "📝 Running linter..."
-if $PKG_MANAGER lint --fix; then
+if $PKG_MANAGER run lint --fix; then
     echo -e "${GREEN}✓ Linting passed${NC}"
 else
     echo -e "${RED}✗ Linting failed${NC}"
@@ -38,7 +38,7 @@ fi
 
 # 3. Run fast unit tests (skip E2E)
 echo "🧪 Running fast unit tests..."
-if $PKG_MANAGER test --run; then
+if $PKG_MANAGER run test --run; then
     echo -e "${GREEN}✓ Tests passed${NC}"
 else
     echo -e "${RED}✗ Tests failed${NC}"

@@ -1,0 +1,503 @@
+name: Pull Request CI/CD
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    branches:
+      - main
+      - develop
+
+env:
+  NODE_VERSION: '20'
+  PNPM_VERSION: '8'
+
+jobs:
+  # Job 1: Install and cache dependencies
+  setup:
+    name: Setup Dependencies
+    runs-on: ubuntu-latest
+    outputs:
+      cache-key: ${{ steps.cache-keys.outputs.cache-key }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Get pnpm store directory
+        id: pnpm-cache
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path)" >> $GITHUB_OUTPUT
+
+      - name: Setup pnpm cache
+        uses: actions/cache@v3
+        with:
+          path: ${{ steps.pnpm-cache.outputs.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Generate cache key
+        id: cache-keys
+        run: |
+          echo "cache-key=${{ runner.os }}-deps-${{ hashFiles('**/pnpm-lock.yaml') }}" >> $GITHUB_OUTPUT
+
+      - name: Install root dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install frontend dependencies
+        working-directory: ./frontend
+        run: pnpm install --frozen-lockfile
+
+      - name: Install backend dependencies
+        working-directory: ./backend
+        run: pnpm install --frozen-lockfile
+
+      - name: Build shared types
+        working-directory: ./shared-types
+        run: pnpm build
+
+  # Job 2: TypeScript type checking
+  typecheck:
+    name: TypeScript Type Check
+    runs-on: ubuntu-latest
+    needs: setup
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Restore dependencies
+        uses: actions/cache@v3
+        with:
+          path: |
+            **/node_modules
+            ~/.pnpm-store
+          key: ${{ needs.setup.outputs.cache-key }}
+
+      - name: TypeScript check - Shared Types
+        working-directory: ./shared-types
+        run: pnpm run typecheck || npx tsc --noEmit
+
+      - name: TypeScript check - Frontend
+        working-directory: ./frontend
+        run: pnpm run typecheck || npx tsc --noEmit
+
+      - name: TypeScript check - Backend
+        working-directory: ./backend
+        run: pnpm run typecheck || npx tsc --noEmit
+
+  # Job 3: Linting
+  lint:
+    name: ESLint & Code Quality
+    runs-on: ubuntu-latest
+    needs: setup
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Restore dependencies
+        uses: actions/cache@v3
+        with:
+          path: |
+            **/node_modules
+            ~/.pnpm-store
+          key: ${{ needs.setup.outputs.cache-key }}
+
+      - name: Lint Frontend
+        working-directory: ./frontend
+        run: pnpm run lint
+
+      - name: Lint Backend
+        working-directory: ./backend
+        run: pnpm run lint
+
+  # Job 4: Security audit
+  security:
+    name: Security Audit
+    runs-on: ubuntu-latest
+    needs: setup
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Audit Frontend Dependencies
+        working-directory: ./frontend
+        run: pnpm audit --audit-level=high || true
+
+      - name: Audit Backend Dependencies
+        working-directory: ./backend
+        run: pnpm audit --audit-level=high || true
+
+  # Job 5: Frontend tests
+  test-frontend:
+    name: Frontend Tests
+    runs-on: ubuntu-latest
+    needs: setup
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Restore dependencies
+        uses: actions/cache@v3
+        with:
+          path: |
+            **/node_modules
+            ~/.pnpm-store
+          key: ${{ needs.setup.outputs.cache-key }}
+
+      - name: Run Frontend Unit Tests
+        working-directory: ./frontend
+        run: pnpm test -- --run --coverage
+        env:
+          CI: true
+
+      - name: Upload Frontend Coverage
+        uses: codecov/codecov-action@v3
+        with:
+          directory: ./frontend/coverage
+          flags: frontend
+          fail_ci_if_error: false
+
+  # Job 6: Backend tests
+  test-backend:
+    name: Backend Tests
+    runs-on: ubuntu-latest
+    needs: setup
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: password
+          POSTGRES_DB: saas_xray_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Restore dependencies
+        uses: actions/cache@v3
+        with:
+          path: |
+            **/node_modules
+            ~/.pnpm-store
+          key: ${{ needs.setup.outputs.cache-key }}
+
+      - name: Run Database Migrations
+        working-directory: ./backend
+        run: pnpm run migrate:test
+        env:
+          DATABASE_URL: postgresql://postgres:password@localhost:5432/saas_xray_test
+          REDIS_URL: redis://localhost:6379
+
+      - name: Run Backend Unit Tests
+        working-directory: ./backend
+        run: pnpm test -- --run --coverage
+        env:
+          CI: true
+          DATABASE_URL: postgresql://postgres:password@localhost:5432/saas_xray_test
+          REDIS_URL: redis://localhost:6379
+          NODE_ENV: test
+
+      - name: Upload Backend Coverage
+        uses: codecov/codecov-action@v3
+        with:
+          directory: ./backend/coverage
+          flags: backend
+          fail_ci_if_error: false
+
+  # Job 7: E2E tests
+  test-e2e:
+    name: E2E Tests
+    runs-on: ubuntu-latest
+    needs: setup
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: password
+          POSTGRES_DB: saas_xray_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Restore dependencies
+        uses: actions/cache@v3
+        with:
+          path: |
+            **/node_modules
+            ~/.pnpm-store
+          key: ${{ needs.setup.outputs.cache-key }}
+
+      - name: Install Playwright Browsers
+        working-directory: ./frontend
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Start Backend Server
+        working-directory: ./backend
+        run: |
+          pnpm run build
+          pnpm run start &
+          sleep 10
+        env:
+          DATABASE_URL: postgresql://postgres:password@localhost:5432/saas_xray_test
+          REDIS_URL: redis://localhost:6379
+          PORT: 3000
+          NODE_ENV: test
+
+      - name: Start Frontend Server
+        working-directory: ./frontend
+        run: |
+          pnpm run build
+          pnpm run preview --port 4200 &
+          sleep 5
+
+      - name: Run E2E Tests
+        working-directory: ./frontend
+        run: pnpm run test:e2e
+        env:
+          CI: true
+          VITE_API_URL: http://localhost:3000
+
+      - name: Upload E2E Test Results
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: playwright-report
+          path: frontend/playwright-report/
+          retention-days: 7
+
+  # Job 8: Build verification
+  build:
+    name: Build Verification
+    runs-on: ubuntu-latest
+    needs: setup
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Restore dependencies
+        uses: actions/cache@v3
+        with:
+          path: |
+            **/node_modules
+            ~/.pnpm-store
+          key: ${{ needs.setup.outputs.cache-key }}
+
+      - name: Build Shared Types
+        working-directory: ./shared-types
+        run: pnpm run build
+
+      - name: Build Frontend
+        working-directory: ./frontend
+        run: pnpm run build
+        env:
+          VITE_API_URL: https://api.singura.ai
+          VITE_CLERK_PUBLISHABLE_KEY: ${{ secrets.VITE_CLERK_PUBLISHABLE_KEY }}
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+
+      - name: Build Backend
+        working-directory: ./backend
+        run: pnpm run build
+
+      - name: Upload Build Artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: build-artifacts
+          path: |
+            frontend/dist/
+            backend/dist/
+          retention-days: 7
+
+  # Job 9: Auto-merge (only if all tests pass)
+  auto-merge:
+    name: Auto-Merge PR
+    runs-on: ubuntu-latest
+    needs: [typecheck, lint, security, test-frontend, test-backend, test-e2e, build]
+    if: contains(github.event.pull_request.labels.*.name, 'auto-merge')
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Auto-merge PR
+        uses: pascalgn/automerge-action@v0.15.6
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          MERGE_LABELS: auto-merge
+          MERGE_METHOD: squash
+          MERGE_RETRIES: 6
+          MERGE_RETRY_SLEEP: 10000
+
+  # Job 10: PR status summary
+  summary:
+    name: CI Summary
+    runs-on: ubuntu-latest
+    needs: [typecheck, lint, security, test-frontend, test-backend, test-e2e, build]
+    if: always()
+    steps:
+      - name: Check all jobs status
+        run: |
+          echo "CI Pipeline Summary:"
+          echo "===================="
+          echo "TypeCheck: ${{ needs.typecheck.result }}"
+          echo "Lint: ${{ needs.lint.result }}"
+          echo "Security: ${{ needs.security.result }}"
+          echo "Frontend Tests: ${{ needs.test-frontend.result }}"
+          echo "Backend Tests: ${{ needs.test-backend.result }}"
+          echo "E2E Tests: ${{ needs.test-e2e.result }}"
+          echo "Build: ${{ needs.build.result }}"
+
+          if [ "${{ needs.typecheck.result }}" != "success" ] || \
+             [ "${{ needs.lint.result }}" != "success" ] || \
+             [ "${{ needs.test-frontend.result }}" != "success" ] || \
+             [ "${{ needs.test-backend.result }}" != "success" ] || \
+             [ "${{ needs.test-e2e.result }}" != "success" ] || \
+             [ "${{ needs.build.result }}" != "success" ]; then
+            echo "❌ CI Pipeline Failed - PR cannot be merged"
+            exit 1
+          fi
+
+          echo "✅ All CI checks passed - PR ready for merge"
+
+      - name: Comment PR Status
+        if: always()
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const status = {
+              typecheck: '${{ needs.typecheck.result }}',
+              lint: '${{ needs.lint.result }}',
+              security: '${{ needs.security.result }}',
+              frontend: '${{ needs.test-frontend.result }}',
+              backend: '${{ needs.test-backend.result }}',
+              e2e: '${{ needs.test-e2e.result }}',
+              build: '${{ needs.build.result }}'
+            };
+
+            const allPassed = Object.values(status).every(s => s === 'success');
+            const emoji = allPassed ? '✅' : '❌';
+            const message = allPassed ? 'All checks passed!' : 'Some checks failed';
+
+            const body = `## ${emoji} CI Pipeline ${message}\n\n| Check | Status |\n|-------|--------|\n| TypeScript | ${status.typecheck === 'success' ? '✅' : '❌'} |\n| Linting | ${status.lint === 'success' ? '✅' : '❌'} |\n| Security | ${status.security === 'success' ? '✅' : '❌'} |\n| Frontend Tests | ${status.frontend === 'success' ? '✅' : '❌'} |\n| Backend Tests | ${status.backend === 'success' ? '✅' : '❌'} |\n| E2E Tests | ${status.e2e === 'success' ? '✅' : '❌'} |\n| Build | ${status.build === 'success' ? '✅' : '❌'} |\n\n${allPassed ? '🎉 This PR is ready to merge!' : '⚠️ Please fix failing checks before merging'}`;
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: body
+            });
