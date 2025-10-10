@@ -13,7 +13,7 @@ import {
   isValidMockDataToggleState
 } from '@saas-xray/shared-types';
 
-const router = Router();
+const router: Router = Router();
 
 // In-memory toggle state storage (development only)
 // Default to FALSE (use real database data) unless explicitly enabled

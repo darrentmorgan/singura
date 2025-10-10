@@ -95,6 +95,9 @@ importers:
       helmet:
         specifier: ^7.1.0
         version: 7.2.0
+      ioredis:
+        specifier: ^5.8.1
+        version: 5.8.1
       joi:
         specifier: ^17.11.0
         version: 17.13.3
@@ -128,6 +131,9 @@ importers:
       winston-daily-rotate-file:
         specifier: ^4.7.1
         version: 4.7.1(winston@3.18.3)
+      zod:
+        specifier: ^3.22.4
+        version: 3.25.76
     devDependencies:
       '@eslint/js':
         specifier: ^9.0.0
@@ -144,6 +150,9 @@ importers:
       '@types/express':
         specifier: ^4.17.21
         version: 4.17.23
+      '@types/ioredis':
+        specifier: ^5.0.0
+        version: 5.0.0
       '@types/jest':
         specifier: ^29.5.8
         version: 29.5.14
@@ -314,10 +323,10 @@ importers:
         specifier: ^18.2.17
         version: 18.3.7(@types/react@18.3.26)
       '@typescript-eslint/eslint-plugin':
-        specifier: ^6.14.0
+        specifier: ^6.21.0
         version: 6.21.0(@typescript-eslint/parser@6.21.0(eslint@8.57.1)(typescript@5.9.3))(eslint@8.57.1)(typescript@5.9.3)
       '@typescript-eslint/parser':
-        specifier: ^6.14.0
+        specifier: ^6.21.0
         version: 6.21.0(eslint@8.57.1)(typescript@5.9.3)
       '@vitejs/plugin-react':
         specifier: ^4.2.1
@@ -2013,6 +2022,10 @@ packages:
 
   '@types/http-errors@2.0.5':
     resolution: {integrity: sha512-r8Tayk8HJnX0FztbZN7oVqGccWgw98T/0neJphO91KkmOzug1KkofZURD4UaD5uH8AqcFLfdPErnBod0u71/qg==}
+
+  '@types/ioredis@5.0.0':
+    resolution: {integrity: sha512-zJbJ3FVE17CNl5KXzdeSPtdltc4tMT3TzC6fxQS0sQngkbFZ6h+0uTafsRqu+eSLIugf6Yb0Ea0SUuRr42Nk9g==}
+    deprecated: This is a stub types definition. ioredis provides its own type definitions, so you do not need this installed.
 
   '@types/is-stream@1.1.0':
     resolution: {integrity: sha512-jkZatu4QVbR60mpIzjINmtS1ZF4a/FqdTUTBeQDVOQ2PYyidtwFKr0B5G6ERukKwliq+7mIXvxyppwzG5EgRYg==}
@@ -7313,6 +7326,12 @@ snapshots:
       '@types/node': 20.19.20
 
   '@types/http-errors@2.0.5': {}
+
+  '@types/ioredis@5.0.0':
+    dependencies:
+      ioredis: 5.8.1
+    transitivePeerDependencies:
+      - supports-color
 
   '@types/is-stream@1.1.0':
     dependencies:

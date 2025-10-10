@@ -3,7 +3,7 @@
  * Express.js server with comprehensive security and OAuth integration
  */
 
-import express, { Request, Response, NextFunction } from 'express';
+import express, { Request, Response, NextFunction, Application } from 'express';
 import compression from 'compression';
 import morgan from 'morgan';
 import dotenv from 'dotenv';
@@ -16,7 +16,7 @@ import correlationRoutes from './routes/correlation';
 // Load environment variables
 dotenv.config();
 
-const app = express();
+const app: Application = express();
 const PORT = process.env.PORT || 3001;
 const NODE_ENV = process.env.NODE_ENV || 'development';
 

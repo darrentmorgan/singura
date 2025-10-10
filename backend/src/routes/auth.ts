@@ -12,7 +12,7 @@ import { oauthService } from '../services/oauth-service';
 import { PlatformType } from '../types/database';
 import { Platform } from '@saas-xray/shared-types';
 
-const router = Router();
+const router: Router = Router();
 
 // Apply security middleware to all auth routes
 router.use(securityMiddleware.authRateLimitingMiddleware());

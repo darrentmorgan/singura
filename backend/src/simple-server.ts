@@ -7,7 +7,7 @@
 import dotenv from 'dotenv';
 dotenv.config();
 
-import express, { Request, Response } from 'express';
+import express, { Request, Response, Application } from 'express';
 import cors from 'cors';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
@@ -29,7 +29,7 @@ import { runMigrations } from './database/migrate';
 // Use singleton OAuth credential storage service
 const oauthStorage = oauthCredentialStorage;
 
-const app = express();
+const app: Application = express();
 const PORT = process.env.PORT || 4201;
 const NODE_ENV = process.env.NODE_ENV || 'development';
 

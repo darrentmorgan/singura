@@ -115,7 +115,7 @@ interface Automation {
   name: string;
   platform: string;
   riskScore: number;
-  riskLevel: 'high' | 'medium' | 'low';
+  riskLevel: 'high' | 'medium' | 'low' | 'critical' | 'unknown';
   status: string;
   discoveredAt: string;
   lastActivity?: string;

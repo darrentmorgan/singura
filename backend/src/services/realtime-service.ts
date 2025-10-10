@@ -308,7 +308,7 @@ export class RealTimeService {
       subscriber.subscribe(channel);
     });
 
-    subscriber.on('message', (channel, message) => {
+    subscriber.on('message', (channel: string, message: string) => {
       try {
         const event = JSON.parse(message);
         this.handleRedisEvent(channel, event);
@@ -317,7 +317,7 @@ export class RealTimeService {
       }
     });
 
-    subscriber.on('error', (error) => {
+    subscriber.on('error', (error: Error) => {
       console.error('Redis subscriber error:', error);
     });
   }
