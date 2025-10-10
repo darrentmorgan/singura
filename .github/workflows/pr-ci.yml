@@ -32,20 +32,24 @@ jobs:
         with:
           version: ${{ env.PNPM_VERSION }}
 
-      - name: Setup pnpm cache
-        uses: actions/cache@v3
-        with:
-          path: ~/.pnpm-store
-          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
-          restore-keys: |
-            ${{ runner.os }}-pnpm-store-
-
       - name: Generate cache key
         id: cache-keys
         run: |
-          echo "cache-key=${{ runner.os }}-deps-${{ hashFiles('**/pnpm-lock.yaml') }}" >> $GITHUB_OUTPUT
+          echo "cache-key=${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}" >> $GITHUB_OUTPUT
+
+      - name: Cache pnpm modules
+        uses: actions/cache@v4
+        id: pnpm-cache
+        with:
+          path: |
+            ~/.pnpm-store
+            **/node_modules
+          key: ${{ steps.cache-keys.outputs.cache-key }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-
 
       - name: Install all workspace dependencies
+        if: steps.pnpm-cache.outputs.cache-hit != 'true'
         run: pnpm install --frozen-lockfile
 
       - name: Build shared types
@@ -72,12 +76,13 @@ jobs:
           version: ${{ env.PNPM_VERSION }}
 
       - name: Restore dependencies
-        uses: actions/cache@v3
+        uses: actions/cache/restore@v4
         with:
           path: |
-            **/node_modules
             ~/.pnpm-store
+            **/node_modules
           key: ${{ needs.setup.outputs.cache-key }}
+          fail-on-cache-miss: true
 
       - name: TypeScript check - Shared Types
         working-directory: ./shared-types
@@ -111,12 +116,13 @@ jobs:
           version: ${{ env.PNPM_VERSION }}
 
       - name: Restore dependencies
-        uses: actions/cache@v3
+        uses: actions/cache/restore@v4
         with:
           path: |
-            **/node_modules
             ~/.pnpm-store
+            **/node_modules
           key: ${{ needs.setup.outputs.cache-key }}
+          fail-on-cache-miss: true
 
       - name: Lint Frontend
         working-directory: ./frontend
@@ -187,12 +193,13 @@ jobs:
           version: ${{ env.PNPM_VERSION }}
 
       - name: Restore dependencies
-        uses: actions/cache@v3
+        uses: actions/cache/restore@v4
         with:
           path: |
-            **/node_modules
             ~/.pnpm-store
+            **/node_modules
           key: ${{ needs.setup.outputs.cache-key }}
+          fail-on-cache-miss: true
 
       - name: Run Frontend Unit Tests
         working-directory: ./frontend
@@ -252,12 +259,13 @@ jobs:
           version: ${{ env.PNPM_VERSION }}
 
       - name: Restore dependencies
-        uses: actions/cache@v3
+        uses: actions/cache/restore@v4
         with:
           path: |
-            **/node_modules
             ~/.pnpm-store
+            **/node_modules
           key: ${{ needs.setup.outputs.cache-key }}
+          fail-on-cache-miss: true
 
       - name: Run Database Migrations
         working-directory: ./backend
@@ -322,12 +330,13 @@ jobs:
           version: ${{ env.PNPM_VERSION }}
 
       - name: Restore dependencies
-        uses: actions/cache@v3
+        uses: actions/cache/restore@v4
         with:
           path: |
-            **/node_modules
             ~/.pnpm-store
+            **/node_modules
           key: ${{ needs.setup.outputs.cache-key }}
+          fail-on-cache-miss: true
 
       - name: Install Playwright Browsers
         working-directory: ./frontend
@@ -361,7 +370,7 @@ jobs:
 
       - name: Upload E2E Test Results
         if: always()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: playwright-report
           path: frontend/playwright-report/
@@ -387,12 +396,13 @@ jobs:
           version: ${{ env.PNPM_VERSION }}
 
       - name: Restore dependencies
-        uses: actions/cache@v3
+        uses: actions/cache/restore@v4
         with:
           path: |
-            **/node_modules
             ~/.pnpm-store
+            **/node_modules
           key: ${{ needs.setup.outputs.cache-key }}
+          fail-on-cache-miss: true
 
       - name: Build Shared Types
         working-directory: ./shared-types
@@ -412,7 +422,7 @@ jobs:
         run: pnpm run build
 
       - name: Upload Build Artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: build-artifacts
           path: |
