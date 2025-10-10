@@ -45,9 +45,7 @@ const Hero = ({ onJoinWaitlist }: HeroProps) => {
           <Button
             size="lg"
             variant="outline"
-            onClick={() => {
-              document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' });
-            }}
+            onClick={() => document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' })}
             className="font-medium px-8 h-12"
           >
             {CONTENT.hero.cta.secondary}

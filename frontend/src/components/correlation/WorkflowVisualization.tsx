@@ -525,19 +525,19 @@ export const WorkflowVisualization: React.FC<WorkflowVisualizationProps> = ({
                           <div className="grid grid-cols-2 gap-4">
                             <div>
                               <div className="text-sm text-muted-foreground">Data Exposure</div>
-                              <div className="text-lg font-bold">{selectedChain.riskAssessment.riskFactors.dataExposure}/100</div>
+                              <div className="text-lg font-bold">{selectedChain.riskAssessment.dataExposure.riskScore}/100</div>
                             </div>
                             <div>
                               <div className="text-sm text-muted-foreground">Compliance Impact</div>
-                              <div className="text-lg font-bold">{selectedChain.riskAssessment.riskFactors.complianceImpact}/100</div>
+                              <div className="text-lg font-bold">{selectedChain.riskAssessment.complianceImpact.overallComplianceRisk.replace(/_/g, ' ').toUpperCase()}</div>
                             </div>
                             <div>
-                              <div className="text-sm text-muted-foreground">Permission Escalation</div>
-                              <div className="text-lg font-bold">{selectedChain.riskAssessment.riskFactors.permissionEscalation}/100</div>
+                              <div className="text-sm text-muted-foreground">Business Impact</div>
+                              <div className="text-lg font-bold">{selectedChain.riskAssessment.businessImpact.impactLevel.toUpperCase()}</div>
                             </div>
                             <div>
-                              <div className="text-sm text-muted-foreground">Operational Dependency</div>
-                              <div className="text-lg font-bold">{selectedChain.riskAssessment.riskFactors.operationalDependency}/100</div>
+                              <div className="text-sm text-muted-foreground">Overall Risk</div>
+                              <div className="text-lg font-bold">{selectedChain.riskAssessment.overallRisk.toUpperCase()}</div>
                             </div>
                           </div>
 

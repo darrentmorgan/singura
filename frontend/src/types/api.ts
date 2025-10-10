@@ -125,6 +125,8 @@ export interface AutomationDiscovery {
   lastTriggered?: string;
   permissions?: string[];
   riskLevel: RiskLevel;
+  riskScore: number;
+  discoveredAt: string;
   metadata?: {
     isInternal?: boolean;
     version?: string;

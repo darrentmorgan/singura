@@ -6,13 +6,14 @@ import React from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom';
+import { vi } from 'vitest';
 import { AutomationDetailsModal } from '../AutomationDetailsModal';
 import { AutomationDiscovery } from '@/types/api';
 
 // Mock the API
-jest.mock('@/services/api', () => ({
+vi.mock('@/services/api', () => ({
   automationsApi: {
-    getAutomationDetails: jest.fn(),
+    getAutomationDetails: vi.fn(),
   },
 }));
 
@@ -27,6 +28,8 @@ describe('AutomationDetailsModal', () => {
     description: 'Test automation description',
     createdBy: 'test@example.com',
     createdAt: '2024-01-01T00:00:00Z',
+    riskScore: 65,
+    discoveredAt: '2024-01-01T00:00:00Z',
   };
 
   const mockAutomationWithUndefinedRisk: AutomationDiscovery = {
@@ -36,6 +39,8 @@ describe('AutomationDetailsModal', () => {
     platform: 'google',
     status: 'active',
     riskLevel: undefined as any, // Simulate undefined risk level
+    riskScore: 50,
+    discoveredAt: '2024-01-01T00:00:00Z',
   };
 
   it('renders without crashing when risk level is defined', () => {

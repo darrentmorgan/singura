@@ -8,7 +8,8 @@
 import React from 'react';
 import { useOrganization } from '@clerk/clerk-react';
 import { PlatformCard } from './PlatformCard';
-import type { PlatformType, PlatformConnection } from '@saas-xray/shared-types';
+import type { PlatformType } from '@saas-xray/shared-types';
+import type { PlatformConnection } from '@/types/api';
 
 interface ClerkConnectionWrapperProps {
   platform: PlatformType;
@@ -37,7 +38,17 @@ export const ClerkConnectionWrapper: React.FC<ClerkConnectionWrapperProps> = (pr
   }
 
   // Pass through to PlatformCard with organization context available
-  return <PlatformCard {...props} />;
+  // Map connection to match PlatformCard's expected type
+  const mappedConnection = props.connection ? {
+    id: props.connection.id,
+    status: props.connection.status,
+    displayName: props.connection.display_name,
+    lastSync: props.connection.last_sync_at,
+    error: props.connection.error_message,
+    automationCount: 0, // TODO: Get from metadata if available
+  } : undefined;
+
+  return <PlatformCard {...props} connection={mappedConnection} />;
 };
 
 /**

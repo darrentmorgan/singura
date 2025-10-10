@@ -134,7 +134,7 @@ export const AutomationMetrics: React.FC<AutomationMetricsProps> = ({
             title="Total Automations"
             value={stats.totalAutomations}
             icon={<Bot className="h-8 w-8 text-blue-500" />}
-            description={`Across ${Object.keys(stats.byPlatform).filter(p => stats.byPlatform[p] > 0).length} platforms`}
+            description={`Across ${(Object.keys(stats.byPlatform) as Array<keyof typeof stats.byPlatform>).filter(p => stats.byPlatform[p] > 0).length} platforms`}
           />
         </div>
         

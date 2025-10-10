@@ -367,12 +367,12 @@ export const useConnectionsStore = create<ConnectionsStore>()(
     // Real-time update actions
     updateConnectionStatus: (connectionId: string, status: ConnectionStatus, error?: string) => {
       set(state => ({
-        connections: state.connections.map(conn => 
-          conn.id === connectionId 
-            ? { 
-                ...conn, 
-                status, 
-                error_message: error || null,
+        connections: state.connections.map(conn =>
+          conn.id === connectionId
+            ? {
+                ...conn,
+                status,
+                error_message: error || undefined,
                 updated_at: new Date().toISOString(),
                 last_sync_at: status === 'active' ? new Date().toISOString() : conn.last_sync_at,
               }
