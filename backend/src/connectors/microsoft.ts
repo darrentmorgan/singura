@@ -134,7 +134,8 @@ export class MicrosoftConnector implements PlatformConnector {
    */
   async discoverAutomations(): Promise<AutomationEvent[]> {
     if (!this.client) {
-      throw new Error('Microsoft client not authenticated');
+      console.error('Microsoft client not authenticated - cannot discover automations');
+      return [];
     }
 
     const automations: AutomationEvent[] = [];
@@ -163,7 +164,8 @@ export class MicrosoftConnector implements PlatformConnector {
       return automations;
     } catch (error) {
       console.error('Error discovering Microsoft 365 automations:', error);
-      throw new Error(`Failed to discover Microsoft 365 automations: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      // Return empty array on error for graceful degradation
+      return [];
     }
   }
 
