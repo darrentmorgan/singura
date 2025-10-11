@@ -11,7 +11,7 @@ import {
   OAuthCredentials,
   PlatformConnection,
   Platform 
-} from '@saas-xray/shared-types';
+} from '@singura/shared-types';
 import { oauthSecurityService, OAuthConfig, TokenResponse } from '../security/oauth';
 import { encryptionService, EncryptedData } from '../security/encryption';
 import { securityAuditService } from '../security/audit';

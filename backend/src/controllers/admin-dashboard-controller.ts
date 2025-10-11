@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import { 
   AdminDashboardDataRequest, 
   AdminDashboardDataResponse 
-} from '@saas-xray/shared-types';
+} from '@singura/shared-types';
 import { detectionService } from '../services/detection-service';
 import '../types/express'; // Import express augmentation
 

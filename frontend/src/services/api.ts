@@ -9,7 +9,7 @@ import {
   LoginResponse,
   RefreshTokenRequest,
   RefreshTokenResponse
-} from '@saas-xray/shared-types';
+} from '@singura/shared-types';
 import {
   PlatformConnection,
   ConnectionsListResponse,

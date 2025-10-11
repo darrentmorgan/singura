@@ -1,5 +1,5 @@
 import { GoogleOAuthAIDetectorService } from '../google-oauth-ai-detector.service';
-import { AIplatformAuditLog } from '@saas-xray/shared-types';
+import { AIplatformAuditLog } from '@singura/shared-types';
 
 describe('GoogleOAuthAIDetectorService', () => {
   let detector: GoogleOAuthAIDetectorService;

@@ -6,7 +6,7 @@
  * Technical Objective: Enhanced accuracy with live data validation
  */
 
-import { AutomationEvent } from '@saas-xray/shared-types';
+import { AutomationEvent } from '@singura/shared-types';
 import { MLBehavioralInferenceService } from './ml-behavioral-inference.service';
 import { BehavioralBaselineLearningService } from './behavioral-baseline-learning.service';
 

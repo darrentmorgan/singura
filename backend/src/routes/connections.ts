@@ -14,7 +14,7 @@ import {
   GetConnectionsResponse,
   UpdateConnectionRequest,
   APIResponse 
-} from '@saas-xray/shared-types';
+} from '@singura/shared-types';
 
 // Define missing response type
 interface UpdateConnectionResponse {

@@ -5,7 +5,7 @@
 
 import { RealDataProvider } from './services/data-provider';
 import { OAuthCredentialStorageService } from './services/oauth-credential-storage-service';
-import { GoogleOAuthCredentials } from '@saas-xray/shared-types';
+import { GoogleOAuthCredentials } from '@singura/shared-types';
 
 async function testProductionIntegration() {
   console.log('🧪 Testing Production Google Workspace API Integration...');

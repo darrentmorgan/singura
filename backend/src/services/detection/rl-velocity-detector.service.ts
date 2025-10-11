@@ -7,7 +7,7 @@ import {
   VelocityDetector,
   GoogleWorkspaceEvent,
   TemporalPattern
-} from '@saas-xray/shared-types';
+} from '@singura/shared-types';
 import { VelocityDetectorService } from './velocity-detector.service';
 import { reinforcementLearningService } from '../reinforcement-learning.service';
 

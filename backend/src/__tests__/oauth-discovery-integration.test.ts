@@ -9,7 +9,7 @@
 import { OAuthCredentialStorageService } from '../services/oauth-credential-storage-service';
 import { RealDataProvider } from '../services/data-provider';
 import { hybridStorage } from '../services/hybrid-storage';
-import { GoogleOAuthCredentials, SlackOAuthCredentials } from '@saas-xray/shared-types';
+import { GoogleOAuthCredentials, SlackOAuthCredentials } from '@singura/shared-types';
 
 describe('OAuth Discovery Integration', () => {
   let oauthStorage: OAuthCredentialStorageService;

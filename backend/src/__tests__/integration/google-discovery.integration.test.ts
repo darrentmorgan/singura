@@ -10,7 +10,7 @@ import { hybridStorage } from '../../services/hybrid-storage';
 import { oauthCredentialStorage } from '../../services/oauth-credential-storage-service';
 import { google } from 'googleapis';
 import { OAuthCredentials } from '../../connectors/types';
-import { GoogleOAuthCredentials } from '@saas-xray/shared-types';
+import { GoogleOAuthCredentials } from '@singura/shared-types';
 
 // Mock googleapis
 jest.mock('googleapis');

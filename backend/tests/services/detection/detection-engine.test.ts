@@ -3,7 +3,7 @@ import {
   GoogleActivityPattern, 
   RiskIndicator,
   ActivityTimeframe
-} from '@saas-xray/shared-types';
+} from '@singura/shared-types';
 import { DetectionEngineService } from '../../../src/services/detection/detection-engine.service';
 
 describe('DetectionEngineService', () => {

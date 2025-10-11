@@ -35,7 +35,7 @@ import {
 
 import {
   AutomationWorkflowChain
-} from '@saas-xray/shared-types';
+} from '@singura/shared-types';
 
 /**
  * Workflow visualization props and configuration

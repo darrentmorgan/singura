@@ -1,7 +1,7 @@
 import { 
   BatchOperationDetector, 
   GoogleWorkspaceEvent 
-} from '@saas-xray/shared-types';
+} from '@singura/shared-types';
 import { BatchOperationDetectorService } from '../../../src/services/detection/batch-operation-detector.service';
 
 describe('BatchOperationDetectorService', () => {

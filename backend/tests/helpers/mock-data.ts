@@ -14,7 +14,7 @@ import {
   TokenInfo,
   OAuthConfiguration,
   PlatformConnection
-} from '@saas-xray/shared-types';
+} from '@singura/shared-types';
 
 type CredentialType = 'access_token' | 'refresh_token' | 'api_key' | 'webhook_secret';
 

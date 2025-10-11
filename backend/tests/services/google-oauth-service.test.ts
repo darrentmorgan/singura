@@ -12,7 +12,7 @@ import {
   GoogleOAuthRawResponse,
   GoogleWorkspaceUserInfo,
   isValidGoogleOAuthCredentials
-} from '@saas-xray/shared-types';
+} from '@singura/shared-types';
 
 // Mock googleapis
 jest.mock('googleapis', () => ({

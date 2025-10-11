@@ -5,7 +5,7 @@
 
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import { User, LoginRequest } from '@saas-xray/shared-types';
+import { User, LoginRequest } from '@singura/shared-types';
 import { RefreshTokenResponse } from '@/types/api';
 import { authApi } from '@/services/api';
 

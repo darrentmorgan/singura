@@ -2,7 +2,7 @@ import {
   AutomationSignature,
   GoogleWorkspaceEvent,
   RiskIndicator
-} from '@saas-xray/shared-types';
+} from '@singura/shared-types';
 
 export class AIProviderDetectorService {
   private readonly AI_DETECTION_PATTERNS = {

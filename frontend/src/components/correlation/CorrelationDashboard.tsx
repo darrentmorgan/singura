@@ -28,7 +28,7 @@ import { Loader2, Activity, TrendingUp, AlertTriangle, CheckCircle2, Download, R
 import {
   CorrelationAnalysisResult,
   ExecutiveRiskReport
-} from '@saas-xray/shared-types';
+} from '@singura/shared-types';
 
 /**
  * Correlation dashboard configuration and state management

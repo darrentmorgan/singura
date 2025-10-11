@@ -25,7 +25,7 @@ import {
   SlackActivityEvent,
   AutomationEventData,
   isValidCorrelationAnalysisResult
-} from '@saas-xray/shared-types';
+} from '@singura/shared-types';
 
 import { CrossPlatformCorrelationService } from './detection/cross-platform-correlation.service';
 import { GoogleAPIClientService } from './google-api-client-service';

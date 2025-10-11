@@ -7,7 +7,7 @@ import {
   AdminDashboardDataResponse,
   PlatformType,
   DetectionAlgorithm
-} from '@saas-xray/shared-types';
+} from '@singura/shared-types';
 
 export class DetectionService {
   private scanEvents: AdminScanEvent[] = [];

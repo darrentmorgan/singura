@@ -17,7 +17,7 @@ import {
   GoogleWorkspaceDomain,
   isValidGoogleOAuthCredentials,
   isValidGoogleOAuthRawResponse
-} from '@saas-xray/shared-types';
+} from '@singura/shared-types';
 
 export class GoogleOAuthService {
   private oAuth2Client: Auth.OAuth2Client;

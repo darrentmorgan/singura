@@ -1,5 +1,5 @@
 import { DataVolumeDetectorService } from '../../../src/services/detection/data-volume-detector.service';
-import { GoogleWorkspaceEvent } from '@saas-xray/shared-types';
+import { GoogleWorkspaceEvent } from '@singura/shared-types';
 
 describe('DataVolumeDetectorService', () => {
   let detector: DataVolumeDetectorService;

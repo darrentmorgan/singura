@@ -28,7 +28,7 @@ import {
   isValidAutomationWorkflowChain,
   isValidMultiPlatformRiskAssessment,
   isValidCorrelationAnalysisResult
-} from '@saas-xray/shared-types';
+} from '@singura/shared-types';
 
 describe('CrossPlatformCorrelationService', () => {
   let correlationService: CrossPlatformCorrelationService;

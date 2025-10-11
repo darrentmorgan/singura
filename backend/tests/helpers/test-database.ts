@@ -10,7 +10,7 @@ import {
   OrganizationRecord,
   ConnectionRecord,
   UUID
-} from '@saas-xray/shared-types';
+} from '@singura/shared-types';
 import { MockDataGenerator } from './mock-data';
 
 export class TestDatabase {

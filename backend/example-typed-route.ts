@@ -10,7 +10,7 @@ import {
   APIResponse,
   APIValidationSchemas,
   ValidationErrorFormatter
-} from '@saas-xray/shared-types';
+} from '@singura/shared-types';
 
 const exampleRouter = Router();
 

@@ -3,7 +3,7 @@ import {
   GoogleWorkspaceEvent,
   ActivityTimeframe,
   GoogleActivityPattern
-} from '@saas-xray/shared-types';
+} from '@singura/shared-types';
 
 import { DateTime } from 'luxon';
 

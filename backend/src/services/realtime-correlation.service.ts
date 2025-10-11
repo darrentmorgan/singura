@@ -25,7 +25,7 @@ import {
   AutomationWorkflowChain,
   ExecutiveRiskReport,
   MultiPlatformRiskAssessment
-} from '@saas-xray/shared-types';
+} from '@singura/shared-types';
 
 import { CorrelationOrchestratorService, CorrelationEvents } from './correlation-orchestrator.service';
 

@@ -1,5 +1,5 @@
 import { PermissionEscalationDetectorService } from '../../../src/services/detection/permission-escalation-detector.service';
-import { GoogleWorkspaceEvent } from '@saas-xray/shared-types';
+import { GoogleWorkspaceEvent } from '@singura/shared-types';
 
 describe('PermissionEscalationDetectorService', () => {
   let detector: PermissionEscalationDetectorService;

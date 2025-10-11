@@ -8,7 +8,7 @@
 import React from 'react';
 import { useOrganization } from '@clerk/clerk-react';
 import { PlatformCard } from './PlatformCard';
-import type { PlatformType } from '@saas-xray/shared-types';
+import type { PlatformType } from '@singura/shared-types';
 import type { PlatformConnection } from '@/types/api';
 
 interface ClerkConnectionWrapperProps {

@@ -8,7 +8,7 @@ import * as crypto from 'crypto';
 import { URL } from 'url';
 import { Request, Response } from 'express';
 import axios from 'axios';
-import { isObject, isString } from '@saas-xray/shared-types';
+import { isObject, isString } from '@singura/shared-types';
 
 export interface OAuthConfig {
   clientId: string;

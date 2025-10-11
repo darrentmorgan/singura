@@ -13,7 +13,7 @@ module.exports = {
     }]
   },
   transformIgnorePatterns: [
-    'node_modules/(?!(@saas-xray/shared-types)/)'
+    'node_modules/(?!(@singura/shared-types)/)'
   ],
   collectCoverageFrom: [
     'src/**/*.ts',
@@ -42,7 +42,7 @@ module.exports = {
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1',
     '^@tests/(.*)$': '<rootDir>/tests/$1',
-    '^@saas-xray/shared-types$': '<rootDir>/../shared-types/src/index.ts'
+    '^@singura/shared-types$': '<rootDir>/../shared-types/src/index.ts'
   },
   // Clear mocks between tests
   clearMocks: true,

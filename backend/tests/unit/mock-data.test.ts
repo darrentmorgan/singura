@@ -5,7 +5,7 @@
  */
 
 import { MockDataGenerator } from '../helpers/mock-data';
-import { Platform, ConnectionStatus } from '@saas-xray/shared-types';
+import { Platform, ConnectionStatus } from '@singura/shared-types';
 
 describe('MockDataGenerator', () => {
   describe('createMockOrganization', () => {

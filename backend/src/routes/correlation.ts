@@ -23,7 +23,7 @@ import {
   AutomationWorkflowChain,
   isValidCorrelationAnalysisResult,
   SlackOAuthCredentials
-} from '@saas-xray/shared-types';
+} from '@singura/shared-types';
 
 import { CrossPlatformCorrelationService } from '../services/detection/cross-platform-correlation.service';
 import { CorrelationOrchestratorService } from '../services/correlation-orchestrator.service';

@@ -11,7 +11,7 @@ import {
   StorageMode,
   HybridStorageConfig,
   StorageOperationResult
-} from '@saas-xray/shared-types';
+} from '@singura/shared-types';
 
 /**
  * Configuration for in-memory storage

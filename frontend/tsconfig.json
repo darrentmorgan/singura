@@ -25,7 +25,7 @@
     "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"],
-      "@saas-xray/shared-types": ["../shared-types/src"]
+      "@singura/shared-types": ["../shared-types/src"]
     }
   },
   "include": ["src"],

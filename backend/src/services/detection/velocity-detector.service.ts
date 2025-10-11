@@ -3,7 +3,7 @@ import {
   GoogleWorkspaceEvent, 
   TemporalPattern, 
   isValidGoogleActivityPattern 
-} from '@saas-xray/shared-types';
+} from '@singura/shared-types';
 
 export class VelocityDetectorService implements VelocityDetector {
   detectVelocityAnomalies(events: GoogleWorkspaceEvent[]): TemporalPattern[] {

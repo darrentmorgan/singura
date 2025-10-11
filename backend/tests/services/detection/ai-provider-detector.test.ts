@@ -2,7 +2,7 @@ import {
   GoogleWorkspaceEvent, 
   AutomationSignature,
   RiskIndicator
-} from '@saas-xray/shared-types';
+} from '@singura/shared-types';
 import { AIProviderDetectorService } from '../../../src/services/detection/ai-provider-detector.service';
 
 describe('AIProviderDetectorService', () => {
