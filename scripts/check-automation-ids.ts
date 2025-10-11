@@ -5,7 +5,7 @@
 
 import { Pool } from 'pg';
 
-const DATABASE_URL = process.env.DATABASE_URL || 'postgresql://postgres:password@localhost:5433/saas_xray';
+const DATABASE_URL = process.env.DATABASE_URL || 'postgresql://postgres:password@localhost:5433/singura';
 
 async function main() {
   const pool = new Pool({ connectionString: DATABASE_URL });

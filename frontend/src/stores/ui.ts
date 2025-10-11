@@ -451,7 +451,7 @@ export const useUIStore = create<UIStore>()(
       },
     }),
     {
-      name: 'saas-xray-ui',
+      name: 'singura-ui',
       storage: createJSONStorage(() => localStorage),
       partialize: (state) => ({
         theme: state.theme,

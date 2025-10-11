@@ -57,7 +57,7 @@ export class OAuthSecurityService {
     this.allowedRedirectHosts = new Set([
       'localhost',
       '127.0.0.1',
-      process.env.FRONTEND_DOMAIN || 'app.saas-xray.com'
+      process.env.FRONTEND_DOMAIN || 'app.singura.com'
     ].filter(Boolean));
   }
 

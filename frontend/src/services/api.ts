@@ -183,7 +183,7 @@ class ApiService {
 
   private getAccessToken(): string | null {
     try {
-      const authData = localStorage.getItem('saas-xray-auth');
+      const authData = localStorage.getItem('singura-auth');
       if (authData) {
         const parsed = JSON.parse(authData);
         return parsed.state?.accessToken || null;
@@ -196,7 +196,7 @@ class ApiService {
 
   private getRefreshToken(): string | null {
     try {
-      const authData = localStorage.getItem('saas-xray-auth');
+      const authData = localStorage.getItem('singura-auth');
       if (authData) {
         const parsed = JSON.parse(authData);
         return parsed.state?.refreshToken || null;
@@ -220,12 +220,12 @@ class ApiService {
 
       if (response.data.success && response.data.accessToken) {
         // Update tokens in localStorage
-        const authData = localStorage.getItem('saas-xray-auth');
+        const authData = localStorage.getItem('singura-auth');
         if (authData) {
           const parsed = JSON.parse(authData);
           parsed.state.accessToken = response.data.accessToken;
           parsed.state.refreshToken = response.data.refreshToken;
-          localStorage.setItem('saas-xray-auth', JSON.stringify(parsed));
+          localStorage.setItem('singura-auth', JSON.stringify(parsed));
         }
         
         return response.data.accessToken;
@@ -240,7 +240,7 @@ class ApiService {
 
   private handleAuthFailure() {
     // Clear auth data and redirect to login
-    localStorage.removeItem('saas-xray-auth');
+    localStorage.removeItem('singura-auth');
     
     // Only redirect if we're not already on the login page
     if (window.location.pathname !== '/login') {

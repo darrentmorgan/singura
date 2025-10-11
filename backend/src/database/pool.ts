@@ -42,7 +42,7 @@ class DatabasePool {
       statement_timeout: parseInt(process.env.DB_STATEMENT_TIMEOUT || '300000', 10),
       
       // Application name for debugging
-      application_name: 'saas-xray-backend',
+      application_name: 'singura-backend',
     };
 
     const pool = new Pool(config);

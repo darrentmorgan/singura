@@ -49,7 +49,7 @@ export class EncryptionService {
 
   private readonly masterKeys: Map<string, Buffer> = new Map();
   private readonly keyMetadata: Map<string, { created: Date; rotated?: Date }> = new Map();
-  private readonly aad = Buffer.from('saas-xray-oauth-credential', 'utf-8');
+  private readonly aad = Buffer.from('singura-oauth-credential', 'utf-8');
 
   constructor() {
     this.initializeKeys();
@@ -66,7 +66,7 @@ export class EncryptionService {
     }
 
     // Derive default key using PBKDF2
-    const defaultSalt = Buffer.from(process.env.ENCRYPTION_SALT || 'saas-xray-default-salt-2025', 'utf-8');
+    const defaultSalt = Buffer.from(process.env.ENCRYPTION_SALT || 'singura-default-salt-2025', 'utf-8');
     const derivedKey = pbkdf2Sync(masterKey, defaultSalt, this.config.keyDerivationRounds, this.config.keyLength, 'sha256');
     
     this.masterKeys.set('default', derivedKey);

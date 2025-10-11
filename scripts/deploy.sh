@@ -30,7 +30,7 @@ success() {
 }
 
 # Configuration
-DOCKER_IMAGE="saas-xray"
+DOCKER_IMAGE="singura"
 DOCKER_TAG=${1:-latest}
 ENV_FILE=${2:-.env.production}
 COMPOSE_FILE="docker-compose.prod.yml"
@@ -159,7 +159,7 @@ deploy_application() {
     
     # Deploy application
     log "Starting application services..."
-    docker-compose -f "$COMPOSE_FILE" --env-file "$ENV_FILE" up -d saas-xray
+    docker-compose -f "$COMPOSE_FILE" --env-file "$ENV_FILE" up -d singura
     
     # Wait for application to start
     log "Waiting for application to start..."

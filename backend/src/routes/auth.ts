@@ -90,7 +90,7 @@ router.post('/login',
           organization: {
             id: organizationId,
             name: 'Demo Organization',
-            domain: 'demo.saas-xray.com',
+            domain: 'demo.singura.com',
             tier: 'enterprise',
             status: 'active',
             createdAt: new Date(),

@@ -188,7 +188,7 @@ export const useAuthStore = create<AuthStore>()(
       },
     }),
     {
-      name: 'saas-xray-auth',
+      name: 'singura-auth',
       storage: createJSONStorage(() => localStorage),
       partialize: (state) => ({
         user: state.user,

@@ -57,8 +57,8 @@ export class JWTService {
     algorithm: process.env.NODE_ENV === 'test' ? 'HS256' : 'RS256', // Use HMAC for testing, RSA for production
     accessTokenTTL: '15m', // Short-lived access tokens
     refreshTokenTTL: '7d', // Longer-lived refresh tokens
-    issuer: 'saas-xray-platform',
-    audience: 'saas-xray-clients',
+    issuer: 'singura-platform',
+    audience: 'singura-clients',
     clockTolerance: 30, // 30 seconds clock skew tolerance
     maxTokenAge: 24 * 60 * 60 // 24 hours maximum token age
   };
@@ -178,7 +178,7 @@ export class JWTService {
         header: {
           typ: 'JWT',
           alg: this.config.algorithm,
-          kid: 'saas-xray-2025' // Key ID for key rotation
+          kid: 'singura-2025' // Key ID for key rotation
         }
       });
 
@@ -187,7 +187,7 @@ export class JWTService {
         header: {
           typ: 'JWT',
           alg: this.config.algorithm,
-          kid: 'saas-xray-2025'
+          kid: 'singura-2025'
         }
       });
 

@@ -8,10 +8,10 @@ process.env.NODE_ENV = 'test';
 // Database configuration - Using PostgreSQL test database (Docker)
 process.env.DB_HOST = 'localhost';
 process.env.DB_PORT = '5433';
-process.env.DB_NAME = 'saas_xray_test';
+process.env.DB_NAME = 'singura_test';
 process.env.DB_USER = 'postgres';
 process.env.DB_PASSWORD = 'password';
-process.env.TEST_DATABASE_URL = 'postgresql://postgres:password@localhost:5433/saas_xray_test';
+process.env.TEST_DATABASE_URL = 'postgresql://postgres:password@localhost:5433/singura_test';
 
 // JWT configuration for testing - use simple secret for HMAC
 process.env.JWT_SECRET = 'test-jwt-secret-with-sufficient-entropy-for-hmac-sha256-algorithm';

@@ -61,14 +61,14 @@ if [ "$CI" != "true" ]; then
         echo "🐳 Starting test database with Docker..."
         
         # Stop existing test containers
-        docker stop saas-xray-test-db 2>/dev/null || true
-        docker rm saas-xray-test-db 2>/dev/null || true
+        docker stop singura-test-db 2>/dev/null || true
+        docker rm singura-test-db 2>/dev/null || true
         
         # Start test PostgreSQL
         docker run -d \
-            --name saas-xray-test-db \
+            --name singura-test-db \
             -p 5433:5432 \
-            -e POSTGRES_DB=saas_xray_test \
+            -e POSTGRES_DB=singura_test \
             -e POSTGRES_USER=test_user \
             -e POSTGRES_PASSWORD=test_password \
             postgres:15-alpine
@@ -78,7 +78,7 @@ if [ "$CI" != "true" ]; then
         sleep 10
         
         # Test database connection
-        docker exec saas-xray-test-db pg_isready -U test_user -d saas_xray_test
+        docker exec singura-test-db pg_isready -U test_user -d singura_test
         check_success "Database connection"
     else
         echo -e "${YELLOW}⚠️  Docker not available. Please ensure PostgreSQL is running on port 5433${NC}"
@@ -157,8 +157,8 @@ echo "✅ Test suite performance within acceptable limits"
 print_section "Cleanup"
 if [ "$CI" != "true" ] && command -v docker &> /dev/null; then
     echo "Cleaning up test containers..."
-    docker stop saas-xray-test-db 2>/dev/null || true
-    docker rm saas-xray-test-db 2>/dev/null || true
+    docker stop singura-test-db 2>/dev/null || true
+    docker rm singura-test-db 2>/dev/null || true
     echo "✅ Cleanup completed"
 fi
 
