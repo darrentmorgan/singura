@@ -1,4 +1,4 @@
-# Multi-stage Dockerfile for SaaS X-Ray Production Deployment
+# Multi-stage Dockerfile for Singura Production Deployment
 # Optimized for security, performance, and minimal attack surface
 
 # =============================================
@@ -14,8 +14,8 @@ RUN apk update && apk upgrade && apk add --no-cache \
 
 # Create app directory and user
 WORKDIR /app
-RUN addgroup -g 1001 -S saasxray && \
-    adduser -S saasxray -u 1001
+RUN addgroup -g 1001 -S singura && \
+    adduser -S singura -u 1001
 
 # Copy package files
 COPY package*.json ./
@@ -80,23 +80,23 @@ RUN apk update && apk upgrade && apk add --no-cache \
 
 # Create app directory and non-root user
 WORKDIR /app
-RUN addgroup -g 1001 -S saasxray && \
-    adduser -S saasxray -u 1001
+RUN addgroup -g 1001 -S singura && \
+    adduser -S singura -u 1001
 
 # Copy production dependencies
-COPY --from=dependencies --chown=saasxray:saasxray /app/node_modules ./node_modules
-COPY --from=dependencies --chown=saasxray:saasxray /app/backend/node_modules ./backend/node_modules
+COPY --from=dependencies --chown=singura:singura /app/node_modules ./node_modules
+COPY --from=dependencies --chown=singura:singura /app/backend/node_modules ./backend/node_modules
 
 # Copy built backend
-COPY --from=backend-builder --chown=saasxray:saasxray /app/backend/dist ./backend/dist
-COPY --from=backend-builder --chown=saasxray:saasxray /app/backend/package*.json ./backend/
+COPY --from=backend-builder --chown=singura:singura /app/backend/dist ./backend/dist
+COPY --from=backend-builder --chown=singura:singura /app/backend/package*.json ./backend/
 
 # Copy built frontend
-COPY --from=frontend-builder --chown=saasxray:saasxray /app/frontend/dist ./frontend/dist
+COPY --from=frontend-builder --chown=singura:singura /app/frontend/dist ./frontend/dist
 
 # Copy configuration files
-COPY --chown=saasxray:saasxray package*.json ./
-COPY --chown=saasxray:saasxray docker-entrypoint.sh ./
+COPY --chown=singura:singura package*.json ./
+COPY --chown=singura:singura docker-entrypoint.sh ./
 
 # Make entrypoint executable
 RUN chmod +x docker-entrypoint.sh
@@ -104,10 +104,10 @@ RUN chmod +x docker-entrypoint.sh
 # Create necessary directories
 RUN mkdir -p /app/logs && \
     mkdir -p /app/uploads && \
-    chown -R saasxray:saasxray /app
+    chown -R singura:singura /app
 
 # Switch to non-root user
-USER saasxray
+USER singura
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
