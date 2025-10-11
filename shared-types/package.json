@@ -1,7 +1,7 @@
 {
-  "name": "@saas-xray/shared-types",
+  "name": "@singura/shared-types",
   "version": "1.0.0",
-  "description": "Shared TypeScript types for SaaS X-Ray platform",
+  "description": "Shared TypeScript types for Singura platform",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
@@ -13,10 +13,10 @@
   "keywords": [
     "typescript",
     "types",
-    "saas-xray",
+    "singura",
     "shared"
   ],
-  "author": "SaaS X-Ray Team",
+  "author": "Singura Team",
   "license": "MIT",
   "devDependencies": {
     "@types/socket.io": "^3.0.1",

@@ -1,7 +1,7 @@
 {
-  "name": "@saas-xray/frontend",
+  "name": "@singura/frontend",
   "version": "1.0.0",
-  "description": "SaaS X-Ray Frontend Dashboard",
+  "description": "Singura Frontend Dashboard",
   "type": "module",
   "scripts": {
     "dev": "vite",
