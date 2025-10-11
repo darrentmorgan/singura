@@ -58,10 +58,10 @@ Testing of OAuth scope enrichment and risk level display was **blocked by authen
 - Security working as designed - no data leakage without auth
 
 ### 3. E2E Test Infrastructure
-**Config:** `/Users/darrenmorgan/AI_Projects/saas-xray/playwright.config.ts`
+**Config:** `/Users/darrenmorgan/AI_Projects/singura/playwright.config.ts`
 
 **Issues Found:**
-- Global setup at `/Users/darrenmorgan/AI_Projects/saas-xray/e2e/global-setup.ts` fails
+- Global setup at `/Users/darrenmorgan/AI_Projects/singura/e2e/global-setup.ts` fails
 - Timeout waiting for `[data-testid="email-input"]` (30 seconds)
 - Tests cannot proceed without authenticated session
 
@@ -70,7 +70,7 @@ Testing of OAuth scope enrichment and risk level display was **blocked by authen
 ## Code Analysis - Risk Level Display Logic
 
 ### AutomationCard Component
-**File:** `/Users/darrenmorgan/AI_Projects/saas-xray/frontend/src/components/automations/AutomationCard.tsx`
+**File:** `/Users/darrenmorgan/AI_Projects/singura/frontend/src/components/automations/AutomationCard.tsx`
 
 **Risk Level Implementation (Lines 37-42):**
 ```typescript
@@ -137,7 +137,7 @@ Based on code analysis (without live data verification):
 ## Required Actions for Complete Testing
 
 ### 1. Fix Playwright Authentication (CRITICAL)
-**File:** `/Users/darrenmorgan/AI_Projects/saas-xray/e2e/global-setup.ts`
+**File:** `/Users/darrenmorgan/AI_Projects/singura/e2e/global-setup.ts`
 
 **Issue:** Timeout waiting for `[data-testid="email-input"]`
 
@@ -243,7 +243,7 @@ test('should display enriched OAuth scopes', async ({ page }) => {
 
 ## Files Created During Testing
 
-1. `/Users/darrenmorgan/AI_Projects/saas-xray/e2e/tests/oauth-debug.spec.ts` - Debug test script
+1. `/Users/darrenmorgan/AI_Projects/singura/e2e/tests/oauth-debug.spec.ts` - Debug test script
 2. `/tmp/oauth-test-home.png` - Screenshot of marketing page
 3. `/tmp/oauth-test-automations.png` - Screenshot of Clerk auth modal
 4. `/tmp/playwright-output.log` - Full test execution log
@@ -330,4 +330,4 @@ This allows testing all three risk levels plus AI platform detection.
 
 **QA Agent:** Claude Code QA Expert
 **Test Date:** 2025-10-09
-**Report Location:** `/Users/darrenmorgan/AI_Projects/saas-xray/TEST_REPORT_OAUTH_SCOPE_ENRICHMENT.md`
+**Report Location:** `/Users/darrenmorgan/AI_Projects/singura/TEST_REPORT_OAUTH_SCOPE_ENRICHMENT.md`

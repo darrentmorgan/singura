@@ -87,12 +87,12 @@ The final screenshot (`clerk-debug-final.png`) shows:
 
 **Left Panel (Marketing):**
 - "Discover Hidden Automations" headline
-- "Gain complete visibility into your organization's automation ecosystem with SaaS X-Ray"
+- "Gain complete visibility into your organization's automation ecosystem with Singura"
 - Real-time Discovery, Security Analysis, Enterprise Ready features
 - SOC 2 Compliant, GDPR Ready, 99.9% Uptime badges
 
 **Right Panel (Authentication):**
-- SaaS X-Ray logo with shield icon
+- Singura logo with shield icon
 - "Welcome back" header
 - Email address input field
 - Password input field with visibility toggle
@@ -129,7 +129,7 @@ The final screenshot (`clerk-debug-final.png`) shows:
 ## 📁 Test Artifacts Generated
 
 ### Test Files Created:
-- `/Users/darrenmorgan/AI_Projects/saas-xray/e2e/tests/clerk-integration.spec.ts`
+- `/Users/darrenmorgan/AI_Projects/singura/e2e/tests/clerk-integration.spec.ts`
 
 ### Reports Generated:
 - `playwright-report/index.html` (HTML report)
@@ -196,8 +196,8 @@ The final screenshot (`clerk-debug-final.png`) shows:
 ## 📋 Test Configuration
 
 ### Playwright Setup:
-- **Config:** `/Users/darrenmorgan/AI_Projects/saas-xray/playwright.config.ts`
-- **Test Dir:** `/Users/darrenmorgan/AI_Projects/saas-xray/e2e/tests/`
+- **Config:** `/Users/darrenmorgan/AI_Projects/singura/playwright.config.ts`
+- **Test Dir:** `/Users/darrenmorgan/AI_Projects/singura/e2e/tests/`
 - **Browser:** Chromium (Chrome)
 - **Viewport:** 1280x720
 - **Base URL:** http://localhost:4200

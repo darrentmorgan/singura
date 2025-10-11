@@ -1,4 +1,4 @@
-# SaaS X-Ray Documentation
+# Singura Documentation
 **Enterprise Shadow AI & Automation Detection Platform**
 
 *Last Updated: September 2025 - Production-Ready Documentation*
@@ -53,7 +53,7 @@ Microsoft: 🔄 Coming soon
 ```
 
 ### **Key Architecture Achievements**
-- **@saas-xray/shared-types**: 9,500+ lines of centralized type definitions
+- **@singura/shared-types**: 9,500+ lines of centralized type definitions
 - **Repository Pattern**: T | null standardization across all data access
 - **OAuth Security**: ExtendedTokenResponse pattern with encrypted credentials
 - **PDF Generation**: Professional report generation with type-safe data handling

@@ -22,7 +22,7 @@ The user is **NOT AUTHENTICATED** in the browser session being tested. The appli
 ![Connections Page Screenshot](diagnostic-screenshots/01-connections-page.png)
 
 **What the screenshot shows:**
-- Clerk sign-in page with "Sign in to SaaS X-Ray" heading
+- Clerk sign-in page with "Sign in to Singura" heading
 - Google OAuth button ("Continue with Google")
 - Email/password sign-in form
 - "Development mode" badge at bottom
@@ -57,7 +57,7 @@ Total /api/connections requests captured: 0
 
 ### Browser Storage Inspection
 
-**localStorage["saas-xray-auth"] State:**
+**localStorage["singura-auth"] State:**
 ```json
 {
   "state": {

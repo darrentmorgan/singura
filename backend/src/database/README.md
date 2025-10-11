@@ -1,8 +1,8 @@
-# SaaS X-Ray Database Foundation
+# Singura Database Foundation
 
 ## Overview
 
-This directory contains the complete database foundation for SaaS X-Ray, providing secure, scalable multi-tenant support with proper encryption and relationship modeling.
+This directory contains the complete database foundation for Singura, providing secure, scalable multi-tenant support with proper encryption and relationship modeling.
 
 ## Architecture
 
@@ -128,7 +128,7 @@ migrations/
 Required environment variables:
 
 ```env
-DATABASE_URL=postgresql://postgres:password@localhost:5433/saas_xray
+DATABASE_URL=postgresql://postgres:password@localhost:5433/singura
 ENCRYPTION_KEY=your-32-character-encryption-key-here
 DB_POOL_MIN=2
 DB_POOL_MAX=20

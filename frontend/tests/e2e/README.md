@@ -1,6 +1,6 @@
 # E2E Testing Guide
 
-Comprehensive end-to-end testing setup for SaaS X-Ray frontend using Playwright.
+Comprehensive end-to-end testing setup for Singura frontend using Playwright.
 
 ---
 

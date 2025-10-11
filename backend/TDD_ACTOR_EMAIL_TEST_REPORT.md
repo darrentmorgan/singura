@@ -13,7 +13,7 @@
 ### Unit Tests Created
 
 #### 1. **Actor Email Extraction Tests**
-**File:** `/Users/darrenmorgan/AI_Projects/saas-xray/backend/src/__tests__/services/google-oauth-actor-extraction.test.ts`
+**File:** `/Users/darrenmorgan/AI_Projects/singura/backend/src/__tests__/services/google-oauth-actor-extraction.test.ts`
 
 **Test Count:** 18 tests
 **Status:** All FAILING (expected)
@@ -53,7 +53,7 @@ describe('Multiple Users - Same App Scenarios', () => {
 ---
 
 #### 2. **API Mapping Tests**
-**File:** `/Users/darrenmorgan/AI_Projects/saas-xray/backend/src/__tests__/services/google-oauth-api-mapping.test.ts`
+**File:** `/Users/darrenmorgan/AI_Projects/singura/backend/src/__tests__/services/google-oauth-api-mapping.test.ts`
 
 **Test Count:** 14 tests
 **Status:** All FAILING (expected)
@@ -85,7 +85,7 @@ describe('Backwards Compatibility - owner_info Fallback', () => {
 ---
 
 #### 3. **Integration Tests**
-**File:** `/Users/darrenmorgan/AI_Projects/saas-xray/backend/src/__tests__/integration/google-oauth-actor-persistence.integration.test.ts`
+**File:** `/Users/darrenmorgan/AI_Projects/singura/backend/src/__tests__/integration/google-oauth-actor-persistence.integration.test.ts`
 
 **Test Count:** 8 integration tests
 **Status:** Schema updated, ready to test after implementation
@@ -208,7 +208,7 @@ for (const event of allEvents) {
 ```
 
 **Files to Modify:**
-- ✅ `/Users/darrenmorgan/AI_Projects/saas-xray/backend/src/services/google-api-client-service.ts` (lines 622-678)
+- ✅ `/Users/darrenmorgan/AI_Projects/singura/backend/src/services/google-api-client-service.ts` (lines 622-678)
 
 **Tests to Pass:** 18 tests in `google-oauth-actor-extraction.test.ts`
 
@@ -239,7 +239,7 @@ await db.query(
 ```
 
 **Files to Modify:**
-- ✅ `/Users/darrenmorgan/AI_Projects/saas-xray/backend/src/services/discovery-service.ts`
+- ✅ `/Users/darrenmorgan/AI_Projects/singura/backend/src/services/discovery-service.ts`
 
 ---
 
@@ -264,8 +264,8 @@ createdBy:
 ```
 
 **Files to Modify:**
-- ✅ `/Users/darrenmorgan/AI_Projects/saas-xray/backend/src/routes/automations-mock.ts` (line 287)
-- ✅ `/Users/darrenmorgan/AI_Projects/saas-xray/backend/src/routes/automations.ts` (similar logic)
+- ✅ `/Users/darrenmorgan/AI_Projects/singura/backend/src/routes/automations-mock.ts` (line 287)
+- ✅ `/Users/darrenmorgan/AI_Projects/singura/backend/src/routes/automations.ts` (similar logic)
 
 **Tests to Pass:** 14 tests in `google-oauth-api-mapping.test.ts`
 

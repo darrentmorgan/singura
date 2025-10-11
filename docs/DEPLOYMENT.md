@@ -1,8 +1,8 @@
-# SaaS X-Ray Frontend Deployment Guide
+# Singura Frontend Deployment Guide
 
 ## Vercel Deployment
 
-This guide covers deploying the SaaS X-Ray frontend to Vercel.
+This guide covers deploying the Singura frontend to Vercel.
 
 ### Prerequisites
 
@@ -12,7 +12,7 @@ This guide covers deploying the SaaS X-Ray frontend to Vercel.
 
 ### Project Structure
 
-- **Root**: `/Users/darrenmorgan/AI_Projects/saas-xray`
+- **Root**: `/Users/darrenmorgan/AI_Projects/singura`
 - **Frontend**: `frontend/` (Vite + React + TypeScript)
 - **Backend**: `backend/` (Node.js + Express) - NOT deployed to Vercel
 - **Package Manager**: npm workspaces
@@ -66,7 +66,7 @@ VITE_NODE_ENV=production
 
 3. **Deploy from project root**:
    ```bash
-   cd /Users/darrenmorgan/AI_Projects/saas-xray
+   cd /Users/darrenmorgan/AI_Projects/singura
    vercel
    ```
 
@@ -74,7 +74,7 @@ VITE_NODE_ENV=production
    - Set up and deploy? **Y**
    - Which scope? Select your account/team
    - Link to existing project? **N** (first time)
-   - Project name: **saas-xray** (or your preferred name)
+   - Project name: **singura** (or your preferred name)
    - Directory: **.** (root directory)
    - Override settings? **N** (vercel.json handles configuration)
 
@@ -95,7 +95,7 @@ VITE_NODE_ENV=production
 
 2. **Import Git Repository**:
    - Connect GitHub account
-   - Select repository: `darrentmorgan/saas-xray`
+   - Select repository: `darrentmorgan/singura`
 
 3. **Configure Project**:
    - Framework Preset: **Vite**
@@ -116,7 +116,7 @@ VITE_NODE_ENV=production
 ### Post-Deployment Verification
 
 1. **Check deployment URL**:
-   - Vercel will provide a URL like `https://saas-xray-xxxxx.vercel.app`
+   - Vercel will provide a URL like `https://singura-xxxxx.vercel.app`
 
 2. **Verify functionality**:
    - Landing page loads correctly

@@ -1,6 +1,6 @@
-# SaaS X-Ray Business Case & Go-to-Market Strategy
+# Singura Business Case & Go-to-Market Strategy
 
-**Executive Summary**: SaaS X-Ray addresses a $2.8B market opportunity by providing enterprise shadow AI detection, targeting CISOs managing 20-50 unauthorized AI agents per organization.
+**Executive Summary**: Singura addresses a $2.8B market opportunity by providing enterprise shadow AI detection, targeting CISOs managing 20-50 unauthorized AI agents per organization.
 
 ## Market Opportunity
 
@@ -187,7 +187,7 @@
 **Competitive Pricing Analysis**:
 - Varonis DatAdvantage: $15-25 per user/month
 - Netskope CASB: $3-8 per user/month  
-- SaaS X-Ray positioning: Premium but justified by specialization
+- Singura positioning: Premium but justified by specialization
 
 **Pricing Tactics**:
 - Annual prepay discount: 20%

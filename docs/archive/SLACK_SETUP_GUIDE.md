@@ -4,7 +4,7 @@
 
 1. **Visit [Slack API Console](https://api.slack.com/apps)**
 2. **Click "Create New App"** → **"From scratch"**
-3. **App Name**: `SaaS X-Ray Scanner`
+3. **App Name**: `Singura Scanner`
 4. **Select your workspace** for development/testing
 5. **Click "Create App"**
 
@@ -49,7 +49,7 @@ Go to **"Basic Information"** in the left sidebar:
 
 ## Step 5: Update Your .env File
 
-Open `/Users/darrenmorgan/AI_Projects/saas-xray/.env` and replace:
+Open `/Users/darrenmorgan/AI_Projects/singura/.env` and replace:
 
 ```bash
 # Replace these placeholder values with your real Slack credentials:
@@ -81,7 +81,7 @@ SLACK_CLIENT_SECRET=abc123def456ghi789jkl012mno345pqr678
 
 ## What You'll See After Setup
 
-Once connected, SaaS X-Ray will discover:
+Once connected, Singura will discover:
 - ✅ **Installed bots** and their permissions
 - ✅ **Workflow automations** (if you have Workflow Builder workflows)
 - ✅ **App integrations** and webhooks

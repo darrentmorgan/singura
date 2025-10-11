@@ -6,9 +6,9 @@
     - generic [ref=e7]:
       - generic [ref=e8]:
         - img [ref=e9]
-        - heading "SaaS X-Ray" [level=1] [ref=e11]
+        - heading "Singura" [level=1] [ref=e11]
       - heading "Discover Hidden Automations" [level=2] [ref=e12]
-      - paragraph [ref=e13]: Gain complete visibility into your organization's automation ecosystem with SaaS X-Ray.
+      - paragraph [ref=e13]: Gain complete visibility into your organization's automation ecosystem with Singura.
     - generic [ref=e14]:
       - generic [ref=e18]:
         - heading "Real-time Discovery" [level=3] [ref=e19]
@@ -32,7 +32,7 @@
   - generic [ref=e50]:
     - generic [ref=e51]:
       - generic [ref=e53]:
-        - heading "Sign in to SaaS X-Ray" [level=1] [ref=e54]
+        - heading "Sign in to Singura" [level=1] [ref=e54]
         - paragraph [ref=e55]: Welcome back! Please sign in to continue
       - generic [ref=e56]:
         - button "Sign in with Google Continue with Google" [ref=e59] [cursor=pointer]:

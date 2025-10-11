@@ -1,11 +1,11 @@
-# SaaS X-Ray MVP Demo Guide
+# Singura MVP Demo Guide
 ## Business Partner Meeting - January 2, 2025
 
 ---
 
 ## 🎯 **Demo Overview**
 **Duration**: 10 minutes (casual meeting)
-**Objective**: Show how SaaS X-Ray discovers AI automations that pose GDPR and PII compliance risks
+**Objective**: Show how Singura discovers AI automations that pose GDPR and PII compliance risks
 **Key Message**: "We find AI automations with access to sensitive data that your security team doesn't know exist"
 
 **Important**: This is a discovery and risk assessment tool - we identify automations with risky permissions, not actual data flows.

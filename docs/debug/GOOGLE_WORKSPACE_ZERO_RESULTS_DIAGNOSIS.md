@@ -9,7 +9,7 @@
 
 ## Executive Summary
 
-The user has connected a **personal Gmail account** (`gmail.com`) to SaaS X-Ray, but the system is attempting to use **Google Workspace Admin APIs** that require:
+The user has connected a **personal Gmail account** (`gmail.com`) to Singura, but the system is attempting to use **Google Workspace Admin APIs** that require:
 1. A Google Workspace organization (not personal Gmail)
 2. Admin-level permissions (domain super admin)
 3. Workspace-specific APIs (Apps Script API, Admin SDK, IAM API)
@@ -40,7 +40,7 @@ The user has connected a **personal Gmail account** (`gmail.com`) to SaaS X-Ray,
 
 ### 2. OAuth Scopes Granted
 
-From `/Users/darrenmorgan/AI_Projects/saas-xray/backend/src/simple-server.ts` (lines 363-371):
+From `/Users/darrenmorgan/AI_Projects/singura/backend/src/simple-server.ts` (lines 363-371):
 
 ```typescript
 const scopes = [
@@ -60,7 +60,7 @@ const scopes = [
 
 ### 3. Discovery Methods Analysis
 
-From `/Users/darrenmorgan/AI_Projects/saas-xray/backend/src/services/google-api-client-service.ts`:
+From `/Users/darrenmorgan/AI_Projects/singura/backend/src/services/google-api-client-service.ts`:
 
 #### **Apps Script Discovery** (lines 335-345)
 ```typescript
@@ -131,7 +131,7 @@ async getEmailAutomations(): Promise<GoogleEmailAutomation[]> {
 
 ---
 
-#### **OAuth Applications Discovery** (from `/Users/darrenmorgan/AI_Projects/saas-xray/backend/src/connectors/google.ts` lines 507-551)
+#### **OAuth Applications Discovery** (from `/Users/darrenmorgan/AI_Projects/singura/backend/src/connectors/google.ts` lines 507-551)
 ```typescript
 private async discoverOAuthApplications(): Promise<AutomationEvent[]> {
   const automations: AutomationEvent[] = [];
@@ -163,7 +163,7 @@ private async discoverOAuthApplications(): Promise<AutomationEvent[]> {
 
 ### 4. AI Platform Detection Analysis
 
-From `/Users/darrenmorgan/AI_Projects/saas-xray/backend/src/services/detection/google-oauth-ai-detector.service.ts`:
+From `/Users/darrenmorgan/AI_Projects/singura/backend/src/services/detection/google-oauth-ai-detector.service.ts`:
 
 ```typescript
 export class GoogleOAuthAIDetectorService {
@@ -306,9 +306,9 @@ export class GoogleOAuthAIDetectorService {
    ```
 
 3. **User-Provided Browser Extension Data**
-   - Build Chrome/Firefox extension for SaaS X-Ray
+   - Build Chrome/Firefox extension for Singura
    - Extension reads browser's OAuth tokens and installed extensions
-   - Push data to SaaS X-Ray backend via API
+   - Push data to Singura backend via API
 
 ---
 
@@ -448,4 +448,4 @@ export class GoogleOAuthAIDetectorService {
 ---
 
 **Report Generated:** 2025-01-06  
-**Engineer:** Claude (SaaS X-Ray OAuth Integration Specialist)
+**Engineer:** Claude (Singura OAuth Integration Specialist)

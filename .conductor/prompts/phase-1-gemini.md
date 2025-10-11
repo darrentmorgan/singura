@@ -14,7 +14,7 @@ Extend the existing `GoogleConnector` with Gemini Reporting API capabilities to 
 
 ---
 
-## Available Types (from @saas-xray/shared-types)
+## Available Types (from @singura/shared-types)
 
 ```typescript
 import {
@@ -31,7 +31,7 @@ import {
   AIAuditLogQuery,
   AIAuditLogResult,
   UsageAnalytics
-} from '@saas-xray/shared-types';
+} from '@singura/shared-types';
 ```
 
 ---
@@ -63,7 +63,7 @@ import {
   GeminiAuditEvent,
   AIplatformAuditLog,
   AIAuditLogQuery
-} from '@saas-xray/shared-types';
+} from '@singura/shared-types';
 
 describe('GoogleConnector - Gemini Extension', () => {
   let connector: GoogleConnector;
@@ -206,7 +206,7 @@ import {
   AIActivityType,
   AIRiskIndicator,
   GeminiUsageMetrics
-} from '@saas-xray/shared-types';
+} from '@singura/shared-types';
 
 export class GeminiReportingAPI {
   private auth: any; // OAuth2Client

@@ -18,7 +18,7 @@ This document summarizes the QA testing approach for verifying the automation me
 
 ### Frontend Analysis
 
-**File**: `/Users/darrenmorgan/AI_Projects/saas-xray/frontend/src/components/automations/AutomationDetailsModal.tsx`
+**File**: `/Users/darrenmorgan/AI_Projects/singura/frontend/src/components/automations/AutomationDetailsModal.tsx`
 
 **Finding**: ✅ Correctly uses `automation.id` when calling API (line 79)
 
@@ -28,7 +28,7 @@ const response = await automationsApi.getAutomationDetails(automation.id);
 
 ### Backend Analysis
 
-**File**: `/Users/darrenmorgan/AI_Projects/saas-xray/backend/src/routes/automations.ts`
+**File**: `/Users/darrenmorgan/AI_Projects/singura/backend/src/routes/automations.ts`
 
 **Finding**: ✅ Correctly returns UUID `id` field in all endpoints
 
@@ -58,15 +58,15 @@ Due to Clerk authentication requirements, automated browser testing with Playwri
 ### Test Assets Created
 
 1. **Comprehensive Test Report**
-   - Location: `/Users/darrenmorgan/AI_Projects/saas-xray/AUTOMATION_DETAILS_TEST_REPORT.md`
+   - Location: `/Users/darrenmorgan/AI_Projects/singura/AUTOMATION_DETAILS_TEST_REPORT.md`
    - Contents: Complete test procedure, code analysis, success criteria, troubleshooting
 
 2. **Quick Reference Checklist**
-   - Location: `/Users/darrenmorgan/AI_Projects/saas-xray/QUICK_TEST_CHECKLIST.md`
+   - Location: `/Users/darrenmorgan/AI_Projects/singura/QUICK_TEST_CHECKLIST.md`
    - Contents: 2-minute quick test procedure, visual reference guide
 
 3. **Browser Console Test Script**
-   - Location: `/Users/darrenmorgan/AI_Projects/saas-xray/frontend/e2e/manual-automation-test.js`
+   - Location: `/Users/darrenmorgan/AI_Projects/singura/frontend/e2e/manual-automation-test.js`
    - Contents: Automated JavaScript test that runs in browser console
    - Features:
      - Automatically clicks "View Details" button
@@ -76,7 +76,7 @@ Due to Clerk authentication requirements, automated browser testing with Playwri
      - Logs detailed results
 
 4. **Playwright E2E Test (For Future Use)**
-   - Location: `/Users/darrenmorgan/AI_Projects/saas-xray/frontend/e2e/automation-details-test.spec.ts`
+   - Location: `/Users/darrenmorgan/AI_Projects/singura/frontend/e2e/automation-details-test.spec.ts`
    - Status: Created but requires auth configuration
    - Run with: `cd frontend && npm run test:e2e:headed`
 
@@ -94,7 +94,7 @@ Press **F12** → Go to **Network** tab
 
 ### Step 3: Open Console and Run Test Script
 1. Go to **Console** tab
-2. Copy and paste contents of `/Users/darrenmorgan/AI_Projects/saas-xray/frontend/e2e/manual-automation-test.js`
+2. Copy and paste contents of `/Users/darrenmorgan/AI_Projects/singura/frontend/e2e/manual-automation-test.js`
 3. Press Enter
 
 The script will:
@@ -234,7 +234,7 @@ Overall: [ ] PASS  [ ] FAIL
    ```
 
 5. **Review detailed test report**
-   - See `/Users/darrenmorgan/AI_Projects/saas-xray/AUTOMATION_DETAILS_TEST_REPORT.md`
+   - See `/Users/darrenmorgan/AI_Projects/singura/AUTOMATION_DETAILS_TEST_REPORT.md`
 
 ---
 
@@ -242,12 +242,12 @@ Overall: [ ] PASS  [ ] FAIL
 
 | File | Purpose | Location |
 |------|---------|----------|
-| Test Report | Comprehensive testing documentation | `/Users/darrenmorgan/AI_Projects/saas-xray/AUTOMATION_DETAILS_TEST_REPORT.md` |
-| Quick Checklist | 2-minute test guide | `/Users/darrenmorgan/AI_Projects/saas-xray/QUICK_TEST_CHECKLIST.md` |
-| Console Test Script | Automated browser test | `/Users/darrenmorgan/AI_Projects/saas-xray/frontend/e2e/manual-automation-test.js` |
-| Playwright Test | Future E2E automation | `/Users/darrenmorgan/AI_Projects/saas-xray/frontend/e2e/automation-details-test.spec.ts` |
-| Frontend Modal | Component under test | `/Users/darrenmorgan/AI_Projects/saas-xray/frontend/src/components/automations/AutomationDetailsModal.tsx` |
-| Backend Route | API endpoint | `/Users/darrenmorgan/AI_Projects/saas-xray/backend/src/routes/automations.ts` |
+| Test Report | Comprehensive testing documentation | `/Users/darrenmorgan/AI_Projects/singura/AUTOMATION_DETAILS_TEST_REPORT.md` |
+| Quick Checklist | 2-minute test guide | `/Users/darrenmorgan/AI_Projects/singura/QUICK_TEST_CHECKLIST.md` |
+| Console Test Script | Automated browser test | `/Users/darrenmorgan/AI_Projects/singura/frontend/e2e/manual-automation-test.js` |
+| Playwright Test | Future E2E automation | `/Users/darrenmorgan/AI_Projects/singura/frontend/e2e/automation-details-test.spec.ts` |
+| Frontend Modal | Component under test | `/Users/darrenmorgan/AI_Projects/singura/frontend/src/components/automations/AutomationDetailsModal.tsx` |
+| Backend Route | API endpoint | `/Users/darrenmorgan/AI_Projects/singura/backend/src/routes/automations.ts` |
 
 ---
 

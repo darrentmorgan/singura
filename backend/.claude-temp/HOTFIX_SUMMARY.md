@@ -162,7 +162,7 @@ b061ebe - fix: critical path resolution bug in setup.sh
 
 ## 🙏 Acknowledgments
 
-**Reported by**: User running setup in saas-xray project
+**Reported by**: User running setup in singura project
 **Impact**: Immediate (caught before widespread adoption)
 **Fixed by**: Automated fix + testing pipeline
 

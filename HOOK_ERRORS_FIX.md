@@ -2,7 +2,7 @@
 
 ## Problem Summary
 
-Both `adrocketx` and `saas-xray` projects were experiencing hook execution failures with "No such file or directory" errors for:
+Both `adrocketx` and `singura` projects were experiencing hook execution failures with "No such file or directory" errors for:
 - `.claude/hooks/agent-depth-guard.sh`
 - `.claude/hooks/agent-stack-manager.sh`
 - `.claude/hooks/delegation-logger.sh`
@@ -14,21 +14,21 @@ Both `adrocketx` and `saas-xray` projects were experiencing hook execution failu
    - These hooks referenced scripts that were created in an experimental session but never properly deployed
    - The hook scripts existed in backups but were not in the active projects
 
-2. **saas-xray broken symlink**:
+2. **singura broken symlink**:
    - `.claude/agents/configs` was a symlink pointing to `~/.claude/agents/shared/configs`
    - This global directory was deleted during the global-to-local settings migration
    - The broken symlink prevented Claude Code from loading ANY agent configurations
 
 ## Solution Applied
 
-### Phase 1: Fixed saas-xray Agent Configuration
+### Phase 1: Fixed singura Agent Configuration
 ✅ **Removed broken symlink**: Deleted `.claude/agents/configs` symlink
 ✅ **Created proper configs directory**: Copied all 20+ agent configs from template
 ✅ **Updated settings**: Synced `.claude/settings.local.json` with template
 
 ### Phase 2: Removed Experimental Task Hooks
 ✅ **Cleaned adrocketx hooks**: Removed `PreToolUse:Task` and `PostToolUse:Task` configurations
-✅ **Cleaned saas-xray hooks**: Ensured no Task hooks present
+✅ **Cleaned singura hooks**: Ensured no Task hooks present
 ✅ **Replaced with template hooks**: Used stable `PreToolUse:Bash` hooks from template
 
 ### Phase 3: Synced Hook Files
@@ -52,7 +52,7 @@ Added:
   .claude/hooks/user-prompt-submit.sh
 ```
 
-### saas-xray
+### singura
 ```
 Deleted:
   .claude/agents/configs              (broken symlink)
@@ -133,7 +133,7 @@ The `PreToolUse:Task` and `PostToolUse:Task` hooks were experimental features de
 
 After applying fixes:
 
-✅ **saas-xray**: Can now load agent configurations
+✅ **singura**: Can now load agent configurations
 ✅ **adrocketx**: No more hook errors
 ✅ **Both projects**: All hooks reference existing, working scripts
 ✅ **Template**: Remains the source of truth for hook configurations

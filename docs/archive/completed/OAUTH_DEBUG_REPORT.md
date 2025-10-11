@@ -86,8 +86,8 @@ if (credential.encrypted_value.startsWith('{')) {
 **PostgreSQL Container Status**:
 - ❌ `docker compose` containers exist but won't start (port conflicts)
 - ✅ Existing container `berlin-postgres-1` running on port 5433
-- ✅ Database `saas_xray` exists and is accessible
-- ✅ Backend correctly connects to `postgresql://postgres:password@localhost:5433/saas_xray`
+- ✅ Database `singura` exists and is accessible
+- ✅ Backend correctly connects to `postgresql://postgres:password@localhost:5433/singura`
 
 **Redis Status**:
 - ✅ Running locally on port 6379 (not Docker)
@@ -160,7 +160,7 @@ console.log('✅ Google OAuth credentials stored for connection:', connectionId)
 
 1. **Frontend**: http://localhost:4200/connections
 2. **Click**: "Reconnect" or "Connect Google Workspace" button
-3. **OAuth Flow**: Authorize SaaS X-Ray with Google OAuth consent screen
+3. **OAuth Flow**: Authorize Singura with Google OAuth consent screen
 4. **Callback**: Backend will receive real `access_token` and `refresh_token`
 5. **Storage**: Real credentials will be encrypted and stored in database
 
@@ -271,7 +271,7 @@ MASTER_ENCRYPTION_KEY=dev-master-encryption-key-with-sufficient-length-for-aes-2
 - IV length: 12 bytes (NIST recommended for GCM)
 - Auth tag: 16 bytes
 - Salt: 32 bytes
-- AAD: `saas-xray-oauth-credential`
+- AAD: `singura-oauth-credential`
 
 ### Audit Trail
 

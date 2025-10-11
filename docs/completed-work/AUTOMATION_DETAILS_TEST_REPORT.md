@@ -19,14 +19,14 @@
 
 ### Frontend Code Analysis
 
-**File**: `/Users/darrenmorgan/AI_Projects/saas-xray/frontend/src/components/automations/AutomationDetailsModal.tsx`
+**File**: `/Users/darrenmorgan/AI_Projects/singura/frontend/src/components/automations/AutomationDetailsModal.tsx`
 
 **Line 79**: The modal correctly uses `automation.id` when calling the API:
 ```typescript
 const response = await automationsApi.getAutomationDetails(automation.id);
 ```
 
-**API Service** (`/Users/darrenmorgan/AI_Projects/saas-xray/frontend/src/services/api.ts` line 358-360):
+**API Service** (`/Users/darrenmorgan/AI_Projects/singura/frontend/src/services/api.ts` line 358-360):
 ```typescript
 async getAutomationDetails(automationId: string): Promise<ApiResponse<any>> {
   return this.request<ApiResponse<any>>('GET', `/automations/${automationId}/details`);
@@ -39,7 +39,7 @@ async getAutomationDetails(automationId: string): Promise<ApiResponse<any>> {
 
 ### Backend Code Analysis
 
-**File**: `/Users/darrenmorgan/AI_Projects/saas-xray/backend/src/routes/automations.ts`
+**File**: `/Users/darrenmorgan/AI_Projects/singura/backend/src/routes/automations.ts`
 
 **Line 508-709**: The `/automations/:id/details` endpoint implementation
 
@@ -189,7 +189,7 @@ Copy and paste this script into the browser console on the automations page:
 // Paste the contents of frontend/e2e/manual-automation-test.js here
 ```
 
-**Location**: `/Users/darrenmorgan/AI_Projects/saas-xray/frontend/e2e/manual-automation-test.js`
+**Location**: `/Users/darrenmorgan/AI_Projects/singura/frontend/e2e/manual-automation-test.js`
 
 This script will:
 - Automatically click the first "View Details" button
@@ -267,7 +267,7 @@ To properly test, you need at least one automation in the database. If no automa
 
 An automated Playwright test has been created at:
 ```
-/Users/darrenmorgan/AI_Projects/saas-xray/frontend/e2e/automation-details-test.spec.ts
+/Users/darrenmorgan/AI_Projects/singura/frontend/e2e/automation-details-test.spec.ts
 ```
 
 To run when authentication is configured:
@@ -362,11 +362,11 @@ If the test fails (API still receiving `external_id` instead of UUID):
 
 ## Related Files
 
-- **Frontend Modal**: `/Users/darrenmorgan/AI_Projects/saas-xray/frontend/src/components/automations/AutomationDetailsModal.tsx`
-- **API Service**: `/Users/darrenmorgan/AI_Projects/saas-xray/frontend/src/services/api.ts`
-- **Backend Route**: `/Users/darrenmorgan/AI_Projects/saas-xray/backend/src/routes/automations.ts`
-- **Manual Test Script**: `/Users/darrenmorgan/AI_Projects/saas-xray/frontend/e2e/manual-automation-test.js`
-- **Automated Test**: `/Users/darrenmorgan/AI_Projects/saas-xray/frontend/e2e/automation-details-test.spec.ts`
+- **Frontend Modal**: `/Users/darrenmorgan/AI_Projects/singura/frontend/src/components/automations/AutomationDetailsModal.tsx`
+- **API Service**: `/Users/darrenmorgan/AI_Projects/singura/frontend/src/services/api.ts`
+- **Backend Route**: `/Users/darrenmorgan/AI_Projects/singura/backend/src/routes/automations.ts`
+- **Manual Test Script**: `/Users/darrenmorgan/AI_Projects/singura/frontend/e2e/manual-automation-test.js`
+- **Automated Test**: `/Users/darrenmorgan/AI_Projects/singura/frontend/e2e/automation-details-test.spec.ts`
 
 ---
 

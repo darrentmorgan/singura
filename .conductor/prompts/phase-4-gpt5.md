@@ -11,11 +11,11 @@
 
 ## Mission
 
-Build the GPT-5 powered intelligent analysis service that filters, prioritizes, and provides context for AI platform audit logs. This is the "secret sauce" that differentiates SaaS X-Ray from basic audit log collectors.
+Build the GPT-5 powered intelligent analysis service that filters, prioritizes, and provides context for AI platform audit logs. This is the "secret sauce" that differentiates Singura from basic audit log collectors.
 
 ---
 
-## Available Types (from @saas-xray/shared-types)
+## Available Types (from @singura/shared-types)
 
 ```typescript
 import {
@@ -46,7 +46,7 @@ import {
 
   // Input
   AIplatformAuditLog
-} from '@saas-xray/shared-types';
+} from '@singura/shared-types';
 ```
 
 ---
@@ -86,7 +86,7 @@ import {
   GPT5AnalysisRequest,
   AIplatformAuditLog,
   AnalysisContext
-} from '@saas-xray/shared-types';
+} from '@singura/shared-types';
 
 describe('GPT5AnalysisService', () => {
   let service: GPT5AnalysisService;
@@ -272,7 +272,7 @@ import {
   Alert,
   ContextualInsight,
   Recommendation
-} from '@saas-xray/shared-types';
+} from '@singura/shared-types';
 
 export class GPT5AnalysisService {
   private openai: OpenAI;
@@ -406,7 +406,7 @@ export class GPT5AnalysisService {
 Create: `backend/src/services/prompts/risk-assessment.ts`
 
 ```typescript
-import { GPT5PromptTemplate } from '@saas-xray/shared-types';
+import { GPT5PromptTemplate } from '@singura/shared-types';
 
 export const riskAssessmentPrompt: GPT5PromptTemplate = {
   name: 'risk_assessment',

@@ -81,7 +81,7 @@ Created comprehensive unit tests covering:
 
 ### 1. TypeScript Compilation
 ```bash
-cd /Users/darrenmorgan/AI_Projects/saas-xray/frontend
+cd /Users/darrenmorgan/AI_Projects/singura/frontend
 npx tsc --noEmit
 ```
 **Result:** ✅ No new TypeScript errors introduced
@@ -174,7 +174,7 @@ AutomationCard.tsx:
 
 ### Run Unit Tests
 ```bash
-cd /Users/darrenmorgan/AI_Projects/saas-xray/frontend
+cd /Users/darrenmorgan/AI_Projects/singura/frontend
 npm test -- AutomationDetailsModal
 ```
 

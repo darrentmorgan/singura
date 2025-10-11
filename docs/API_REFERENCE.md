@@ -1,7 +1,7 @@
-# SaaS X-Ray API Reference
+# Singura API Reference
 
 ## 🌐 API Overview
-Base URL: `https://api.saas-xray.com/v1`
+Base URL: `https://api.singura.com/v1`
 
 ## 🔐 Authentication
 All endpoints require OAuth 2.0 authentication with platform-specific tokens.
@@ -59,7 +59,7 @@ All endpoints require OAuth 2.0 authentication with platform-specific tokens.
 ### Detect Automations
 ```typescript
 // TypeScript example using shared types
-import { DetectionRequest, DetectionResponse } from '@saas-xray/shared-types';
+import { DetectionRequest, DetectionResponse } from '@singura/shared-types';
 
 const detectAutomations = async (platform: string): Promise<DetectionResponse> => {
   const request: DetectionRequest = {

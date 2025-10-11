@@ -1,8 +1,8 @@
-# SaaS X-Ray Project Brief
+# Singura Project Brief
 
 ## Executive Summary
 
-SaaS X-Ray is an enterprise security platform that automatically discovers and monitors unauthorized AI agents, bots, and automations running across an organization's SaaS applications. The platform provides real-time visibility into shadow AI usage, enabling security teams to identify risks before they become compliance violations or security breaches.
+Singura is an enterprise security platform that automatically discovers and monitors unauthorized AI agents, bots, and automations running across an organization's SaaS applications. The platform provides real-time visibility into shadow AI usage, enabling security teams to identify risks before they become compliance violations or security breaches.
 
 ## Market Opportunity
 

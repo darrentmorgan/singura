@@ -108,7 +108,7 @@ async getOptimizedThresholds(): Promise<any> {
 
 ### Option 1: Continue Phase 1 Fixes
 ```bash
-cd /Users/darrenmorgan/AI_Projects/saas-xray
+cd /Users/darrenmorgan/AI_Projects/singura
 git checkout fix/typescript-strict-errors
 
 # Fix the 3 new errors discovered:
@@ -127,7 +127,7 @@ git commit -m "fix(phase1): resolve remaining detection algorithm type errors"
 
 ### Option 2: Move to Phase 2
 ```bash
-cd /Users/darrenmorgan/AI_Projects/saas-xray
+cd /Users/darrenmorgan/AI_Projects/singura
 git checkout fix/typescript-strict-errors
 
 # Follow TYPESCRIPT_FIX_PLAN.md Phase 2 instructions

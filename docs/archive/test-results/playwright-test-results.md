@@ -85,7 +85,7 @@ PROGRESS UI STUCK AT 0% (❌)
    ```bash
    # Stop current process (bash_id: 972730)
    # Start correct server:
-   cd /Users/darrenmorgan/AI_Projects/saas-xray/backend
+   cd /Users/darrenmorgan/AI_Projects/singura/backend
    node -r ts-node/register src/server-with-socketio.ts
    ```
 
@@ -119,7 +119,7 @@ PROGRESS UI STUCK AT 0% (❌)
 1. **Stop current backend server** (running wrong server file)
 2. **Start correct backend server** with Socket.io support:
    ```bash
-   cd /Users/darrenmorgan/AI_Projects/saas-xray/backend
+   cd /Users/darrenmorgan/AI_Projects/singura/backend
    node -r ts-node/register src/server-with-socketio.ts
    ```
 3. **Test discovery flow** - Progress should now work correctly

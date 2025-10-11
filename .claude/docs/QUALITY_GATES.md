@@ -126,7 +126,7 @@ export interface Organization extends BaseEntity { name: string; }
 
 #### 4. Proper Imports
 **Requirements**:
-- ✅ Use `@saas-xray/shared-types` for all shared types
+- ✅ Use `@singura/shared-types` for all shared types
 - ✅ No local type duplicates
 - ✅ No cross-package direct imports (use package exports)
 
@@ -143,7 +143,7 @@ export interface User {  // Duplicate of shared type!
 import { User } from '../../../packages/shared-types/src/user';
 
 // ✅ PASSES - Use package import
-import { User } from '@saas-xray/shared-types';
+import { User } from '@singura/shared-types';
 ```
 
 ---
@@ -418,7 +418,7 @@ After deployment passes gates, continuous monitoring ensures quality:
 
 | Failure | Root Cause | Fix |
 |---------|-----------|-----|
-| TypeScript errors | Missing types | Add proper types from `@saas-xray/shared-types` |
+| TypeScript errors | Missing types | Add proper types from `@singura/shared-types` |
 | Test coverage low | Missing tests | Write tests for new code |
 | E2E test failure | Breaking change | Update tests or revert change |
 | Code review score low | Security issue | Fix vulnerability, add security test |

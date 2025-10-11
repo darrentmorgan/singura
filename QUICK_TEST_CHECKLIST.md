@@ -73,7 +73,7 @@ Click the "View Details" button on any automation card
 Paste this into browser console for automated test:
 
 ```javascript
-// Located at: /Users/darrenmorgan/AI_Projects/saas-xray/frontend/e2e/manual-automation-test.js
+// Located at: /Users/darrenmorgan/AI_Projects/singura/frontend/e2e/manual-automation-test.js
 // Copy and paste the contents of that file
 ```
 
@@ -111,8 +111,8 @@ _________________________________________________
    ```sql
    SELECT id, external_id, name FROM discovered_automations LIMIT 1;
    ```
-4. Review `/Users/darrenmorgan/AI_Projects/saas-xray/AUTOMATION_DETAILS_TEST_REPORT.md` for detailed troubleshooting
+4. Review `/Users/darrenmorgan/AI_Projects/singura/AUTOMATION_DETAILS_TEST_REPORT.md` for detailed troubleshooting
 
 ---
 
-**Full Test Report**: `/Users/darrenmorgan/AI_Projects/saas-xray/AUTOMATION_DETAILS_TEST_REPORT.md`
+**Full Test Report**: `/Users/darrenmorgan/AI_Projects/singura/AUTOMATION_DETAILS_TEST_REPORT.md`

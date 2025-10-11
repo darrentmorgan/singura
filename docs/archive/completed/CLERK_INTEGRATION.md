@@ -2,7 +2,7 @@
 
 ## Overview
 
-SaaS X-Ray now uses Clerk for authentication and organization management. This integration resolves the organization_id UUID issue and enables proper multi-tenant support.
+Singura now uses Clerk for authentication and organization management. This integration resolves the organization_id UUID issue and enables proper multi-tenant support.
 
 ## What Changed
 

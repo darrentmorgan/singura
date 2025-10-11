@@ -500,6 +500,6 @@ Legend:
 ---
 
 **For detailed test procedures, see:**
-- Main Report: `/Users/darrenmorgan/AI_Projects/saas-xray/AUTOMATION_DETAILS_TEST_REPORT.md`
-- Quick Guide: `/Users/darrenmorgan/AI_Projects/saas-xray/QUICK_TEST_CHECKLIST.md`
-- Summary: `/Users/darrenmorgan/AI_Projects/saas-xray/TEST_SUMMARY.md`
+- Main Report: `/Users/darrenmorgan/AI_Projects/singura/AUTOMATION_DETAILS_TEST_REPORT.md`
+- Quick Guide: `/Users/darrenmorgan/AI_Projects/singura/QUICK_TEST_CHECKLIST.md`
+- Summary: `/Users/darrenmorgan/AI_Projects/singura/TEST_SUMMARY.md`

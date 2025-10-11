@@ -371,7 +371,7 @@ When you ask Claude:
 - Add to template so projects get dependencies
 - Include pnpm-lock.yaml for reproducibility
 
-### 2. ✅ Test in Real Project (saas-xray)
+### 2. ✅ Test in Real Project (singura)
 - Create migration request to test full flow
 - Verify pre-request hook triggers
 - Confirm delegation happens automatically
@@ -397,6 +397,6 @@ Your claude-config-template installation is:
 ## Next Steps
 
 1. **Commit package.json** (new file)
-2. **Test in saas-xray** (verify pre-request hook triggers)
+2. **Test in singura** (verify pre-request hook triggers)
 3. **Update setup.sh** (optional: add pnpm install step)
 4. **Document package.json** in README (dependency requirements)

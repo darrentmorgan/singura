@@ -1,11 +1,11 @@
 # Shared Types Implementation Guide
-**SaaS X-Ray Platform - Comprehensive Type Sharing Architecture**
+**Singura Platform - Comprehensive Type Sharing Architecture**
 
 ---
 
 ## Package Overview
 
-The `@saas-xray/shared-types` package is the cornerstone of SaaS X-Ray's type safety strategy, providing a centralized repository of TypeScript definitions that ensure contract consistency between frontend and backend services.
+The `@singura/shared-types` package is the cornerstone of Singura's type safety strategy, providing a centralized repository of TypeScript definitions that ensure contract consistency between frontend and backend services.
 
 ### Architecture Philosophy
 
@@ -18,7 +18,7 @@ The `@saas-xray/shared-types` package is the cornerstone of SaaS X-Ray's type sa
 ### Package Structure
 
 ```
-@saas-xray/shared-types/
+@singura/shared-types/
 ├── src/
 │   ├── api/                    # API contract definitions
 │   │   ├── requests.ts         # Request payload interfaces
@@ -84,7 +84,7 @@ The `@saas-xray/shared-types` package is the cornerstone of SaaS X-Ray's type sa
 
 **Installation and Setup**:
 ```bash
-npm install @saas-xray/shared-types@latest
+npm install @singura/shared-types@latest
 ```
 
 **React Component Type Safety**:
@@ -94,7 +94,7 @@ import {
   CreateConnectionRequest,
   CreateConnectionResponse,
   APIError 
-} from '@saas-xray/shared-types';
+} from '@singura/shared-types';
 
 interface ConnectionCardProps {
   connection: PlatformConnection;
@@ -143,7 +143,7 @@ import {
   CreateConnectionResponse,
   PlatformConnection,
   PaginatedResult
-} from '@saas-xray/shared-types';
+} from '@singura/shared-types';
 
 class ConnectionsAPI {
   private baseURL = '/api/v1';
@@ -184,7 +184,7 @@ import {
   PlatformConnection, 
   APIError,
   ConnectionStatus 
-} from '@saas-xray/shared-types';
+} from '@singura/shared-types';
 
 interface ConnectionsStore {
   connections: PlatformConnection[];
@@ -224,7 +224,7 @@ import {
   CreateConnectionResponse,
   APIError,
   ValidationError
-} from '@saas-xray/shared-types';
+} from '@singura/shared-types';
 import { oauthService } from '../services/oauth-service';
 import { createAPIError, createValidationError } from '../utils/errors';
 
@@ -289,7 +289,7 @@ import {
   OAuthCredentials,
   Platform,
   ConnectionStatus 
-} from '@saas-xray/shared-types';
+} from '@singura/shared-types';
 import { platformConnectionRepository } from '../database/repositories/platform-connection';
 
 export class ConnectionService {
@@ -425,7 +425,7 @@ interface PaginatedResponse<T> extends BaseResponse {
 ```typescript
 // 1. Create new file: src/platforms/salesforce.ts
 /**
- * Salesforce platform-specific types for SaaS X-Ray integration
+ * Salesforce platform-specific types for Singura integration
  */
 
 import { Platform, OAuthCredentials } from '../oauth/platforms';
@@ -544,14 +544,14 @@ interface PlatformConnection {
 // package.json in consuming applications
 {
   "dependencies": {
-    "@saas-xray/shared-types": "^1.5.0"
+    "@singura/shared-types": "^1.5.0"
   }
 }
 
 // Pin exact versions for critical releases
 {
   "dependencies": {
-    "@saas-xray/shared-types": "1.5.2"
+    "@singura/shared-types": "1.5.2"
   }
 }
 ```
@@ -612,7 +612,7 @@ export function isOAuthCredentials(value: unknown): value is OAuthCredentials {
 }
 
 // Usage in application code
-import { isPlatformConnection } from '@saas-xray/shared-types';
+import { isPlatformConnection } from '@singura/shared-types';
 
 function processConnection(data: unknown) {
   if (isPlatformConnection(data)) {
@@ -780,7 +780,7 @@ import {
   CreateConnectionRequest,
   CreateConnectionResponse,
   PlatformConnection 
-} from '@saas-xray/shared-types';
+} from '@singura/shared-types';
 
 // Test that interfaces can be implemented correctly
 describe('Type Contract Tests', () => {
@@ -821,7 +821,7 @@ describe('Type Contract Tests', () => {
 ```typescript
 // src/validation/schemas.ts
 import { z } from 'zod';
-import { Platform, ConnectionStatus } from '@saas-xray/shared-types';
+import { Platform, ConnectionStatus } from '@singura/shared-types';
 
 // Create runtime validation schemas that match TypeScript interfaces
 export const PlatformSchema = z.enum(['slack', 'google', 'microsoft']);
@@ -861,7 +861,7 @@ import {
   CreateConnectionRequest,
   CreateConnectionResponse,
   APIError 
-} from '@saas-xray/shared-types';
+} from '@singura/shared-types';
 
 describe('API Contract Integration', () => {
   it('should create connection with proper response structure', async () => {
@@ -1056,7 +1056,7 @@ grep -r "type.*Platform" src/ --include="*.ts" --include="*.tsx"
 
 **Step 2: Install Shared Types Package**
 ```bash
-npm install @saas-xray/shared-types@latest
+npm install @singura/shared-types@latest
 ```
 
 **Step 3: Replace Legacy Imports**
@@ -1068,7 +1068,7 @@ interface Connection {
 }
 
 // After: Shared type imports
-import { PlatformConnection, Platform } from '@saas-xray/shared-types';
+import { PlatformConnection, Platform } from '@singura/shared-types';
 ```
 
 **Step 4: Update Implementation Code**
@@ -1079,7 +1079,7 @@ function createConnection(data: any): any {
 }
 
 // After: Strict typing with shared types
-import { CreateConnectionRequest, PlatformConnection } from '@saas-xray/shared-types';
+import { CreateConnectionRequest, PlatformConnection } from '@singura/shared-types';
 
 function createConnection(data: CreateConnectionRequest): Promise<PlatformConnection> {
   // Implementation with type safety
@@ -1120,12 +1120,12 @@ const migrationRules: MigrationRule[] = [
   {
     from: 'Connection',
     to: 'PlatformConnection',
-    importFrom: '@saas-xray/shared-types'
+    importFrom: '@singura/shared-types'
   },
   {
     from: 'CreateConnectionReq',
     to: 'CreateConnectionRequest', 
-    importFrom: '@saas-xray/shared-types'
+    importFrom: '@singura/shared-types'
   }
 ];
 
@@ -1158,7 +1158,7 @@ function createMigrationTransformer(): ts.TransformerFactory<ts.SourceFile> {
 
 ## Conclusion
 
-The `@saas-xray/shared-types` package serves as the foundation for type safety across the SaaS X-Ray platform. By centralizing type definitions, enforcing API contracts, and providing extensible patterns for platform-specific implementations, it ensures consistency and reliability throughout the application stack.
+The `@singura/shared-types` package serves as the foundation for type safety across the Singura platform. By centralizing type definitions, enforcing API contracts, and providing extensible patterns for platform-specific implementations, it ensures consistency and reliability throughout the application stack.
 
 The comprehensive architecture supports both current needs and future growth, with clear patterns for adding new platforms, extending existing interfaces, and maintaining backward compatibility. The combination of compile-time type safety and runtime validation provides confidence in both development and production environments.
 
@@ -1169,7 +1169,7 @@ Key benefits realized through this implementation:
 - **Simplified Maintenance**: Centralized type definitions reduce duplication and inconsistency
 - **Secure OAuth Implementation**: Type-safe credential handling prevents security vulnerabilities
 
-The patterns and practices documented here provide a blueprint for maintaining and extending the type system as the SaaS X-Ray platform continues to evolve.
+The patterns and practices documented here provide a blueprint for maintaining and extending the type system as the Singura platform continues to evolve.
 
 ---
 

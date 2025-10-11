@@ -144,7 +144,7 @@ CREATE TABLE schema_migrations (
 
 ### Step 2: Created Automated Migration System
 
-**File**: `/Users/darrenmorgan/AI_Projects/saas-xray/backend/src/database/migrate.ts`
+**File**: `/Users/darrenmorgan/AI_Projects/singura/backend/src/database/migrate.ts`
 
 **Features:**
 - Automatic migration detection (scans `/migrations/*.sql`)
@@ -267,10 +267,10 @@ ORDER BY id;
    ```bash
    # Test database
    export PGPASSWORD=password
-   psql -h localhost -p 5433 -U postgres -d saas_xray_test -f migrations/new_migration.sql
+   psql -h localhost -p 5433 -U postgres -d singura_test -f migrations/new_migration.sql
    
    # Verify results
-   psql -h localhost -p 5433 -U postgres -d saas_xray_test -c "\d table_name"
+   psql -h localhost -p 5433 -U postgres -d singura_test -c "\d table_name"
    ```
 
 ### For Deployments
@@ -299,16 +299,16 @@ ORDER BY id;
    docker compose logs postgres
    
    # Verify migrations applied
-   docker compose exec postgres psql -U postgres -d saas_xray -c "SELECT * FROM schema_migrations;"
+   docker compose exec postgres psql -U postgres -d singura -c "SELECT * FROM schema_migrations;"
    ```
 
 2. **Backup Before Major Migrations**
    ```bash
    # Backup database
-   docker compose exec postgres pg_dump -U postgres saas_xray > backup_$(date +%Y%m%d).sql
+   docker compose exec postgres pg_dump -U postgres singura > backup_$(date +%Y%m%d).sql
    
    # Restore if needed
-   docker compose exec -T postgres psql -U postgres saas_xray < backup_20251006.sql
+   docker compose exec -T postgres psql -U postgres singura < backup_20251006.sql
    ```
 
 ---
@@ -413,7 +413,7 @@ For questions about this fix or migration system:
 - **Documentation**: `/docs/DATABASE_MIGRATION_ISSUE_ROOT_CAUSE.md`
 - **Migration Files**: `/backend/migrations/`
 - **Migration Runner**: `/backend/src/database/migrate.ts`
-- **Database Schema**: `psql -h localhost -p 5433 -U postgres -d saas_xray`
+- **Database Schema**: `psql -h localhost -p 5433 -U postgres -d singura`
 
 ---
 

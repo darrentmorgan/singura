@@ -2,7 +2,7 @@
 
 ## Product Vision and Objectives
 
-SaaS X-Ray is an enterprise security platform designed to provide comprehensive visibility into shadow AI and automation usage across an organization's SaaS ecosystem. Our primary objectives are to:
+Singura is an enterprise security platform designed to provide comprehensive visibility into shadow AI and automation usage across an organization's SaaS ecosystem. Our primary objectives are to:
 
 1. Discover and map unauthorized AI agents and bots
 2. Assess and quantify security and compliance risks
@@ -15,7 +15,7 @@ SaaS X-Ray is an enterprise security platform designed to provide comprehensive 
 
 #### User Story 1.1: OAuth Integration
 **As a** CISO with a security budget
-**I want to** connect SaaS X-Ray to multiple platforms quickly
+**I want to** connect Singura to multiple platforms quickly
 **So that** I can immediately start discovering unauthorized automations
 
 **Requirements:**

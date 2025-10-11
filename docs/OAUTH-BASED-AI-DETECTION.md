@@ -184,7 +184,7 @@ import {
   AIPlatform,
   AIActivityType,
   AIRiskIndicator
-} from '@saas-xray/shared-types';
+} from '@singura/shared-types';
 
 export class GoogleOAuthAIDetectorService {
   private readonly AI_PLATFORM_PATTERNS = {

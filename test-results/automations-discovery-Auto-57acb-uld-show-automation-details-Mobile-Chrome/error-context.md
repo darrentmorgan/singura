@@ -4,7 +4,7 @@
 - generic [ref=e7]:
   - generic [ref=e8]:
     - generic [ref=e10]:
-      - heading "Sign in to SaaS X-Ray" [level=1] [ref=e11]
+      - heading "Sign in to Singura" [level=1] [ref=e11]
       - paragraph [ref=e12]: Welcome back! Please sign in to continue
     - generic [ref=e13]:
       - button "Sign in with Google Continue with Google" [ref=e16] [cursor=pointer]:

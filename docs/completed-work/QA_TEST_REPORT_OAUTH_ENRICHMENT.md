@@ -46,7 +46,7 @@ Current State (Pre-Discovery):
 
 ## Code Validation
 
-### Backend Google Connector (/Users/darrenmorgan/AI_Projects/saas-xray/backend/src/connectors/google.ts)
+### Backend Google Connector (/Users/darrenmorgan/AI_Projects/singura/backend/src/connectors/google.ts)
 
 **Line 934** - OAuth Scope Assignment:
 ```typescript
@@ -101,7 +101,7 @@ open http://localhost:4200
 
 **During Discovery - Monitor Backend Logs**:
 ```bash
-docker logs -f saas-xray-backend-1 --tail 50 | grep -i "oauth"
+docker logs -f singura-backend-1 --tail 50 | grep -i "oauth"
 ```
 Expected output:
 - "🔐 Searching for OAuth applications..."
@@ -136,7 +136,7 @@ Expected output:
 
 **Query 1: Check permissions_required field**
 ```bash
-docker exec saas-xray-postgres-1 psql -U postgres -d saas_xray -c "
+docker exec singura-postgres-1 psql -U postgres -d singura -c "
 SELECT 
   name,
   jsonb_array_length(permissions_required) as perm_count,
@@ -157,7 +157,7 @@ LIMIT 1;"
 
 **Query 2: Check risk assessment**
 ```bash
-docker exec saas-xray-postgres-1 psql -U postgres -d saas_xray -c "
+docker exec singura-postgres-1 psql -U postgres -d singura -c "
 SELECT 
   risk_level,
   risk_score,
@@ -197,7 +197,7 @@ WHERE automation_id = '4eea3f35-53ee-4f76-8c83-1d7b9f51ea45';"
 **Diagnosis Steps**:
 1. Check backend logs during discovery:
    ```bash
-   docker logs saas-xray-backend-1 --tail 200 | grep -A 5 "OAuth app"
+   docker logs singura-backend-1 --tail 200 | grep -A 5 "OAuth app"
    ```
 2. Verify token.scopes is being extracted (should see scope arrays in logs)
 3. Check if automation record is being created vs. updated
@@ -210,7 +210,7 @@ WHERE automation_id = '4eea3f35-53ee-4f76-8c83-1d7b9f51ea45';"
 **Fix**:
 ```bash
 # Delete old ChatGPT automation to force fresh creation
-docker exec saas-xray-postgres-1 psql -U postgres -d saas_xray -c "
+docker exec singura-postgres-1 psql -U postgres -d singura -c "
 DELETE FROM discovered_automations WHERE name = 'ChatGPT';"
 ```
 Then re-run discovery.
@@ -220,7 +220,7 @@ Then re-run discovery.
 **Diagnosis Steps**:
 1. Check if AI detection is working:
    ```bash
-   docker logs saas-xray-backend-1 --tail 200 | grep -i "chatgpt\|openai\|ai platform"
+   docker logs singura-backend-1 --tail 200 | grep -i "chatgpt\|openai\|ai platform"
    ```
 2. Verify risk assessment is being created in database
 3. Check frontend risk calculation logic
@@ -296,7 +296,7 @@ Then re-run discovery.
 
 ## References
 
-- Backend Code: `/Users/darrenmorgan/AI_Projects/saas-xray/backend/src/connectors/google.ts`
+- Backend Code: `/Users/darrenmorgan/AI_Projects/singura/backend/src/connectors/google.ts`
 - Database Schema: `discovered_automations` table
 - Risk Assessment: `risk_assessments` table
 - Test Automation ID: `4eea3f35-53ee-4f76-8c83-1d7b9f51ea45`

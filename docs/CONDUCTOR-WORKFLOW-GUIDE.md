@@ -45,12 +45,12 @@ docker ps | grep redis
 
 ### conductor.json (Already Created)
 
-Located at repository root: `/Users/darrenmorgan/AI_Projects/saas-xray/conductor.json`
+Located at repository root: `/Users/darrenmorgan/AI_Projects/singura/conductor.json`
 
 ```json
 {
   "scripts": {
-    "setup": "npm install && cd shared-types && npm install && npm run build && cd ../backend && npm install && npm link @saas-xray/shared-types && cd ../frontend && npm install",
+    "setup": "npm install && cd shared-types && npm install && npm run build && cd ../backend && npm install && npm link @singura/shared-types && cd ../frontend && npm install",
     "run": "cd backend && PORT=$CONDUCTOR_PORT npm run dev",
     "archive": "echo 'Archiving workspace'"
   },
@@ -78,7 +78,7 @@ open -a Conductor
 
 In Conductor UI:
 1. Click **"Add Repository"**
-2. Navigate to: `/Users/darrenmorgan/AI_Projects/saas-xray`
+2. Navigate to: `/Users/darrenmorgan/AI_Projects/singura`
 3. Click **"Open"**
 4. Conductor will detect `conductor.json` automatically
 
@@ -98,7 +98,7 @@ In Conductor UI:
 
 **Reference Documentation**: /docs/AI-PLATFORM-DETECTION-IMPLEMENTATION.md (Phase 1 section)
 
-**Types Available** (from @saas-xray/shared-types):
+**Types Available** (from @singura/shared-types):
 - GeminiAuditEvent
 - GeminiReportingAPIQuery
 - GeminiReportingAPIResponse
@@ -165,7 +165,7 @@ Use Docker PostgreSQL (local development)
 
 **Reference Documentation**: /docs/AI-PLATFORM-DETECTION-IMPLEMENTATION.md (Phase 2 section)
 
-**Types Available** (from @saas-xray/shared-types):
+**Types Available** (from @singura/shared-types):
 - ChatGPTAuditLogEntry
 - ChatGPTAuditLogQuery
 - ChatGPTComplianceAPIConfig
@@ -224,7 +224,7 @@ Test with: OPENAI_TEST_API_KEY and OPENAI_TEST_ORG_ID
 
 **Reference Documentation**: /docs/AI-PLATFORM-DETECTION-IMPLEMENTATION.md (Phase 3 section)
 
-**Types Available** (from @saas-xray/shared-types):
+**Types Available** (from @singura/shared-types):
 - ClaudeAuditLogEntry
 - ClaudeAuditLogExportRequest
 - ClaudeEnterpriseConfig
@@ -283,7 +283,7 @@ Test with: CLAUDE_TEST_API_KEY and CLAUDE_TEST_ORG_ID
 
 **Reference Documentation**: /docs/AI-PLATFORM-DETECTION-IMPLEMENTATION.md (Phase 4 section)
 
-**Types Available** (from @saas-xray/shared-types):
+**Types Available** (from @singura/shared-types):
 - GPT5AnalysisRequest
 - GPT5AnalysisResponse
 - GPT5PromptTemplate
@@ -372,7 +372,7 @@ git worktree list
 git branch -vv
 
 # View logs from specific worktree
-cd /Users/darrenmorgan/AI_Projects/saas-xray-worktrees/phase-1-gemini
+cd /Users/darrenmorgan/AI_Projects/singura-worktrees/phase-1-gemini
 git log --oneline -5
 ```
 
@@ -393,7 +393,7 @@ In Conductor, for each workspace:
 **From main workspace** (NOT in Conductor):
 
 ```bash
-cd /Users/darrenmorgan/AI_Projects/saas-xray
+cd /Users/darrenmorgan/AI_Projects/singura
 
 # Ensure on main branch
 git checkout main
@@ -438,10 +438,10 @@ git push origin main
 
 **Manually** (if needed):
 ```bash
-git worktree remove /Users/darrenmorgan/AI_Projects/saas-xray-worktrees/phase-1-gemini
-git worktree remove /Users/darrenmorgan/AI_Projects/saas-xray-worktrees/phase-2-chatgpt
-git worktree remove /Users/darrenmorgan/AI_Projects/saas-xray-worktrees/phase-3-claude
-git worktree remove /Users/darrenmorgan/AI_Projects/saas-xray-worktrees/phase-4-gpt5
+git worktree remove /Users/darrenmorgan/AI_Projects/singura-worktrees/phase-1-gemini
+git worktree remove /Users/darrenmorgan/AI_Projects/singura-worktrees/phase-2-chatgpt
+git worktree remove /Users/darrenmorgan/AI_Projects/singura-worktrees/phase-3-claude
+git worktree remove /Users/darrenmorgan/AI_Projects/singura-worktrees/phase-4-gpt5
 
 # Prune references
 git worktree prune
@@ -455,7 +455,7 @@ Available in all scripts:
 
 | Variable | Description | Example |
 |----------|-------------|---------|
-| `$CONDUCTOR_ROOT_PATH` | Path to main repository | `/Users/.../saas-xray` |
+| `$CONDUCTOR_ROOT_PATH` | Path to main repository | `/Users/.../singura` |
 | `$CONDUCTOR_PORT` | Dynamically assigned port | `4201`, `4202`, `4203`, `4204` |
 | `$CONDUCTOR_WORKSPACE_NAME` | Workspace name | `phase-1-gemini` |
 
@@ -482,7 +482,7 @@ Available in all scripts:
 
 ## Context
 You are working in an isolated git worktree for implementing Gemini audit log detection.
-Phase 0 (shared types) is complete and available in @saas-xray/shared-types.
+Phase 0 (shared types) is complete and available in @singura/shared-types.
 
 ## Your Mission
 Extend the existing GoogleConnector with Gemini Reporting API capabilities.
@@ -518,14 +518,14 @@ describe('GoogleConnector - Gemini Extension', () => {
 ### 3. Implement Connector Extension
 Create: `backend/src/connectors/extensions/gemini-reporting-api.ts`
 
-Use types from @saas-xray/shared-types:
+Use types from @singura/shared-types:
 ```typescript
 import {
   GeminiAuditEvent,
   GeminiReportingAPIQuery,
   AIplatformAuditLog,
   AIAuditLogQuery
-} from '@saas-xray/shared-types';
+} from '@singura/shared-types';
 
 export class GeminiReportingAPI {
   async getGeminiAuditLogs(query: AIAuditLogQuery): Promise<AIAuditLogResult> {
@@ -553,7 +553,7 @@ GOOGLE_TEST_CREDENTIALS=... npm test -- gemini.integration
 - [ ] Real API calls working
 
 ## Key Files
-- Types: `@saas-xray/shared-types/platforms/gemini-workspace`
+- Types: `@singura/shared-types/platforms/gemini-workspace`
 - Connector: `backend/src/connectors/extensions/gemini-reporting-api.ts`
 - Tests: `backend/src/connectors/__tests__/google-gemini-extension.test.ts`
 - Docs: `/docs/AI-PLATFORM-DETECTION-IMPLEMENTATION.md`
@@ -576,7 +576,7 @@ GOOGLE_TEST_CREDENTIALS=... npm test -- gemini.integration
 
 ## Context
 You are working in an isolated git worktree for implementing ChatGPT Enterprise detection.
-Phase 0 (shared types) is complete and available in @saas-xray/shared-types.
+Phase 0 (shared types) is complete and available in @singura/shared-types.
 
 ## Your Mission
 Create a new ChatGPT Enterprise Compliance API connector from scratch.
@@ -607,7 +607,7 @@ import {
   ChatGPTComplianceAPIConfig,
   ChatGPTAuditLogEntry,
   AIplatformAuditLog
-} from '@saas-xray/shared-types';
+} from '@singura/shared-types';
 
 export class ChatGPTEnterpriseConnector implements AIPlatformConnector {
   // Implementation
@@ -649,7 +649,7 @@ OPENAI_TEST_API_KEY=... npm test -- chatgpt.integration
 
 ## Context
 You are working in an isolated git worktree for implementing Claude Enterprise detection.
-Phase 0 (shared types) is complete and available in @saas-xray/shared-types.
+Phase 0 (shared types) is complete and available in @singura/shared-types.
 
 ## Your Mission
 Create Claude Enterprise audit log export connector.
@@ -677,7 +677,7 @@ import {
   AIPlatformConnector,
   ClaudeEnterpriseConfig,
   ClaudeAuditLogEntry
-} from '@saas-xray/shared-types';
+} from '@singura/shared-types';
 
 export class ClaudeEnterpriseConnector implements AIPlatformConnector {
   // Export-based log retrieval
@@ -707,7 +707,7 @@ CLAUDE_TEST_API_KEY=... npm test -- claude.integration
 
 ## Context
 You are working in an isolated git worktree for implementing GPT-5 analysis.
-Phase 0 (shared types) is complete and available in @saas-xray/shared-types.
+Phase 0 (shared types) is complete and available in @singura/shared-types.
 
 ## Your Mission
 Build intelligent AI-powered analysis service for filtering and prioritizing AI platform events.
@@ -736,7 +736,7 @@ Create: `backend/src/services/gpt5-analysis.service.ts`
 import {
   GPT5AnalysisRequest,
   GPT5AnalysisResponse
-} from '@saas-xray/shared-types';
+} from '@singura/shared-types';
 
 export class GPT5AnalysisService {
   async analyzeEvents(request: GPT5AnalysisRequest): Promise<GPT5AnalysisResponse> {
@@ -785,14 +785,14 @@ Ensure run script uses: `PORT=$CONDUCTOR_PORT npm run dev`
 
 ### Issue: Shared-Types Not Found
 
-**Symptom**: "Cannot find module '@saas-xray/shared-types'"
+**Symptom**: "Cannot find module '@singura/shared-types'"
 **Solution**:
 ```bash
 # In workspace
 cd shared-types
 npm run build
 cd ../backend
-npm link @saas-xray/shared-types
+npm link @singura/shared-types
 ```
 
 ### Issue: Tests Failing in One Workspace
@@ -893,7 +893,7 @@ git worktree list
 ### Run Tests in Specific Workspace
 ```bash
 # Navigate to workspace first
-cd /Users/darrenmorgan/AI_Projects/saas-xray-worktrees/phase-1-gemini
+cd /Users/darrenmorgan/AI_Projects/singura-worktrees/phase-1-gemini
 npm test -- --testPathPattern=gemini
 ```
 

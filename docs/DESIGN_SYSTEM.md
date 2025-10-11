@@ -1,4 +1,4 @@
-# SaaS X-Ray Landing Page Design System
+# Singura Landing Page Design System
 
 **Version:** 1.0.0
 **Last Updated:** October 7, 2025
@@ -230,7 +230,7 @@ card:hover { box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3); }
 
 ### Navigation Bar
 ```typescript
-// Fixed, glassmorphic header with SaaS X-Ray branding
+// Fixed, glassmorphic header with Singura branding
 <nav className="fixed top-0 left-0 right-0 z-50
                 border-b border-border/50
                 bg-background/80 backdrop-blur-xl">

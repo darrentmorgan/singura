@@ -174,7 +174,7 @@ All screenshots saved in `/test-results/`:
 The final screenshot shows:
 - ✅ **Left Panel:** Marketing content ("Discover Hidden Automations") rendering correctly
 - ✅ **Right Panel:** Clerk sign-in form with email/password fields
-- ✅ **Branding:** SaaS X-Ray logo and "Welcome back" header
+- ✅ **Branding:** Singura logo and "Welcome back" header
 - ✅ **UI Elements:** All form inputs, buttons, and links visible
 - ✅ **Security Notice:** JWT token and encryption messaging displayed
 
@@ -262,13 +262,13 @@ The final screenshot shows:
 ## 📋 Test Configuration Files:
 
 ### Playwright Configuration:
-- **Config File:** `/Users/darrenmorgan/AI_Projects/saas-xray/playwright.config.ts`
-- **Test Directory:** `/Users/darrenmorgan/AI_Projects/saas-xray/e2e/tests/`
+- **Config File:** `/Users/darrenmorgan/AI_Projects/singura/playwright.config.ts`
+- **Test Directory:** `/Users/darrenmorgan/AI_Projects/singura/e2e/tests/`
 - **Base URL:** `http://localhost:4200`
 - **Browser:** Chromium (Chrome channel)
 
 ### Test Files:
-- **Clerk Integration Test:** `/Users/darrenmorgan/AI_Projects/saas-xray/e2e/tests/clerk-integration.spec.ts`
+- **Clerk Integration Test:** `/Users/darrenmorgan/AI_Projects/singura/e2e/tests/clerk-integration.spec.ts`
 
 ---
 

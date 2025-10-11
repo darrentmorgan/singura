@@ -1,11 +1,11 @@
 # Repository Patterns Implementation Guide
-**SaaS X-Ray Platform - Database Access Layer Architecture**
+**Singura Platform - Database Access Layer Architecture**
 
 ---
 
 ## Pattern Overview
 
-The SaaS X-Ray repository pattern provides a standardized, type-safe abstraction layer for database operations, ensuring consistency, security, and maintainability across all data access operations in the platform.
+The Singura repository pattern provides a standardized, type-safe abstraction layer for database operations, ensuring consistency, security, and maintainability across all data access operations in the platform.
 
 ### Design Philosophy
 
@@ -141,7 +141,7 @@ import {
   CreateAutomationInput, 
   UpdateAutomationInput,
   Platform 
-} from '@saas-xray/shared-types';
+} from '@singura/shared-types';
 
 interface AutomationFilters {
   organization_id?: string;
@@ -1314,7 +1314,7 @@ import {
   AutomationEntity, 
   CreateAutomationInput,
   Platform 
-} from '@saas-xray/shared-types';
+} from '@singura/shared-types';
 import { testDb } from '../helpers/test-database';
 import { createTestAutomation, createTestOrganization } from '../helpers/test-data';
 
@@ -1800,7 +1800,7 @@ describe('Repository Integration Tests', () => {
 
 ## Conclusion
 
-The SaaS X-Ray repository pattern implementation provides a robust, type-safe foundation for database operations across the platform. The BaseRepository<T, CreateInput, UpdateInput> pattern, combined with the T | null standardization and comprehensive type constraints, ensures consistency, security, and maintainability.
+The Singura repository pattern implementation provides a robust, type-safe foundation for database operations across the platform. The BaseRepository<T, CreateInput, UpdateInput> pattern, combined with the T | null standardization and comprehensive type constraints, ensures consistency, security, and maintainability.
 
 ### Key Benefits Achieved
 
