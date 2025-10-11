@@ -1,8 +1,8 @@
-# SaaS X-Ray Architecture & QA Review Notes
+# Singura Architecture & QA Review Notes
 
 ## Architecture Snapshot
 - **Monorepo & Build Orchestration** – npm workspaces coordinate shared/ backend/frontend builds and scripts (`package.json#L7-L39`).
-- **Shared Type System** – `@saas-xray/shared-types` exports all API/database/OAuth contracts consumed across services (`shared-types/package.json#L1-L35`, `shared-types/src/api/requests.ts#L1-L60`).
+- **Shared Type System** – `@singura/shared-types` exports all API/database/OAuth contracts consumed across services (`shared-types/package.json#L1-L35`, `shared-types/src/api/requests.ts#L1-L60`).
 - **Backend Service Layer** – Express entrypoint with layered security middleware and route mounting (`backend/src/server.ts#L1-L125`), data-provider abstraction bridging mock vs. live connectors (`backend/src/services/data-provider.ts#L1-L120`), and Bull-powered background queues for discovery/risk jobs (`backend/src/jobs/queue.ts#L1-L200`).
 - **Frontend SPA** – Vite/React dashboard with Clerk auth and centralized Axios client/interceptors (`frontend/package.json#L1-L78`, `frontend/src/services/api.ts#L1-L200`).
 - **Testing & Tooling** – Playwright e2e harness (`e2e/README.md#L1-L32`), supplemental Jest suites (`backend/src/__tests__`), container orchestration (`docker-compose.yml#L1-L70`), multi-stage build (`Dockerfile#L1-L60`), and production deploy script with safety checks (`scripts/deploy.sh#L1-L200`).

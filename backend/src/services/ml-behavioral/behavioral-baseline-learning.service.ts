@@ -6,7 +6,7 @@
  * Technical Objective: Learn organizational patterns for accurate anomaly detection
  */
 
-import { AutomationEvent } from '@saas-xray/shared-types';
+import { AutomationEvent } from '@singura/shared-types';
 
 // Organizational Behavioral Baseline
 export interface OrganizationalBaseline {

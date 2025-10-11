@@ -11,7 +11,7 @@ import {
   MockDataToggleRequest,
   MockDataAuditEntry,
   isValidMockDataToggleState
-} from '@saas-xray/shared-types';
+} from '@singura/shared-types';
 
 const router: Router = Router();
 

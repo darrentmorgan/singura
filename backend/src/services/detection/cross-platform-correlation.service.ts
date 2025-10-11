@@ -11,7 +11,7 @@
  *
  * Technical Foundation:
  * - Builds on existing 4-algorithm detection framework
- * - Leverages @saas-xray/shared-types for correlation data models
+ * - Leverages @singura/shared-types for correlation data models
  * - Integrates with Socket.io infrastructure for real-time processing
  * - Maintains sub-2-second correlation response time requirements
  */
@@ -35,7 +35,7 @@ import {
   isValidAutomationWorkflowChain,
   isValidMultiPlatformRiskAssessment,
   isValidCorrelationAnalysisResult
-} from '@saas-xray/shared-types';
+} from '@singura/shared-types';
 
 /**
  * Advanced correlation configuration for enterprise requirements

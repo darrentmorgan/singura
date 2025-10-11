@@ -1,4 +1,4 @@
-# SaaS X-Ray Security Architecture
+# Singura Security Architecture
 
 ## 🔒 Enterprise-Grade Security Design
 

@@ -377,7 +377,7 @@ npm pkg set scripts.test:integration="jest tests/integration"
 **Documentation Required**:
 Create `tests/README.md`:
 ```markdown
-# SaaS X-Ray Test Suite
+# Singura Test Suite
 
 ## Test Categories
 

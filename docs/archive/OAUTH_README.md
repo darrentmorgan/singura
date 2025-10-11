@@ -1,6 +1,6 @@
-# SaaS X-Ray OAuth Backend Implementation
+# Singura OAuth Backend Implementation
 
-This document provides a comprehensive overview of the OAuth backend implementation for SaaS X-Ray Stage 1, including setup instructions, API documentation, and security features.
+This document provides a comprehensive overview of the OAuth backend implementation for Singura Stage 1, including setup instructions, API documentation, and security features.
 
 ## Architecture Overview
 
@@ -169,7 +169,7 @@ Authorization: Bearer <access_token>
 
 ```bash
 # Database
-DATABASE_URL=postgresql://user:pass@localhost:5433/saas_xray
+DATABASE_URL=postgresql://user:pass@localhost:5433/singura
 
 # JWT & Encryption
 JWT_SECRET=your-super-secret-jwt-key-minimum-32-chars
@@ -182,7 +182,7 @@ SLACK_REDIRECT_URI=http://localhost:3001/api/auth/callback/slack
 
 # Security
 FRONTEND_URL=http://localhost:3000
-CORS_ORIGINS=http://localhost:3000,https://app.saas-xray.com
+CORS_ORIGINS=http://localhost:3000,https://app.singura.com
 ```
 
 See `.env.example` for complete configuration options.

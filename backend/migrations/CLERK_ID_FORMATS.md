@@ -1,6 +1,6 @@
 # Clerk ID Format Reference
 
-**Quick reference for developers working with Clerk-integrated SaaS X-Ray database**
+**Quick reference for developers working with Clerk-integrated Singura database**
 
 ---
 

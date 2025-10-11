@@ -19,7 +19,7 @@ import {
   MultiPlatformEvent,
   GoogleWorkspaceEvent,
   AutomationEventData
-} from '@saas-xray/shared-types';
+} from '@singura/shared-types';
 
 import { GoogleAPIClientService } from '../google-api-client-service';
 import { google } from 'googleapis';

@@ -74,8 +74,8 @@ export class SecurityMiddleware {
         origins: [
           frontendUrl,
           corsOrigin,
-          'https://app.saas-xray.com',
-          'https://saas-xray.com',
+          'https://app.singura.com',
+          'https://singura.com',
           // Add support for ngrok subdomains in development
           ...(process.env.NODE_ENV === 'development' ? [
             'http://localhost:4200', 

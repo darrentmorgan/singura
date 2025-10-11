@@ -21,7 +21,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
-import { ScrollArea } from '../ui/scroll-area';
 import {
   ArrowRight,
   Clock,
@@ -35,10 +34,8 @@ import {
 } from 'lucide-react';
 
 import {
-  AutomationWorkflowChain,
-  WorkflowStage,
-  MultiPlatformEvent
-} from '@saas-xray/shared-types';
+  AutomationWorkflowChain
+} from '@singura/shared-types';
 
 /**
  * Workflow visualization props and configuration

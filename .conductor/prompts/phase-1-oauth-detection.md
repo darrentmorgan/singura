@@ -32,7 +32,7 @@ Create `GoogleOAuthAIDetectorService` to detect AI platform logins (ChatGPT, Cla
 
 ---
 
-## Available Types (from @saas-xray/shared-types)
+## Available Types (from @singura/shared-types)
 
 ```typescript
 import {
@@ -44,7 +44,7 @@ import {
 
   // Google types (for input)
   // Note: We'll process raw Google Admin SDK events
-} from '@saas-xray/shared-types';
+} from '@singura/shared-types';
 ```
 
 ---
@@ -90,7 +90,7 @@ Create: `backend/src/services/detection/__tests__/google-oauth-ai-detector.test.
 
 ```typescript
 import { GoogleOAuthAIDetectorService } from '../google-oauth-ai-detector.service';
-import { AIplatformAuditLog } from '@saas-xray/shared-types';
+import { AIplatformAuditLog } from '@singura/shared-types';
 
 describe('GoogleOAuthAIDetectorService', () => {
   let detector: GoogleOAuthAIDetectorService;
@@ -288,7 +288,7 @@ import {
   AIPlatform,
   AIActivityType,
   AIRiskIndicator
-} from '@saas-xray/shared-types';
+} from '@singura/shared-types';
 
 /**
  * Detects AI platform logins via Google Workspace OAuth audit logs
@@ -602,7 +602,7 @@ Update: `backend/src/connectors/google.ts`
 
 ```typescript
 import { googleOAuthAIDetector } from '../services/detection/google-oauth-ai-detector.service';
-import { AIAuditLogQuery, AIAuditLogResult } from '@saas-xray/shared-types';
+import { AIAuditLogQuery, AIAuditLogResult } from '@singura/shared-types';
 
 export class GoogleConnector implements PlatformConnector {
   // ... existing code ...

@@ -25,7 +25,7 @@ import {
   GoogleServiceAccountInfo,
   GoogleWorkspaceEvent,
   DateRange
-} from '@saas-xray/shared-types';
+} from '@singura/shared-types';
 
 export class GoogleAPIClientService implements GoogleAPIClient {
   private auth: Auth.OAuth2Client;

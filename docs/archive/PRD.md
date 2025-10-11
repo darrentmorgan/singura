@@ -1,4 +1,4 @@
-# SaaS X-Ray Product Requirements Document
+# Singura Product Requirements Document
 
 **Version:** 1.0  
 **Date:** January 2025  
@@ -9,7 +9,7 @@
 
 ## Executive Summary
 
-SaaS X-Ray is an enterprise security platform that automatically discovers and monitors unauthorized AI agents, bots, and automations running across an organization's SaaS applications. The platform provides real-time visibility into shadow AI usage, enabling security teams to identify risks before they become compliance violations or security breaches.
+Singura is an enterprise security platform that automatically discovers and monitors unauthorized AI agents, bots, and automations running across an organization's SaaS applications. The platform provides real-time visibility into shadow AI usage, enabling security teams to identify risks before they become compliance violations or security breaches.
 
 **Market Opportunity:** $2.3B shadow IT security market growing at 23% CAGR, with 89% of enterprises reporting unauthorized SaaS usage.
 
@@ -173,7 +173,7 @@ Modern enterprises are experiencing an explosion of unauthorized AI and automati
 
 #### User Story 1.1: OAuth Integration
 **As a** Security Analyst  
-**I want to** connect SaaS X-Ray to our Slack, Google Workspace, and Microsoft 365  
+**I want to** connect Singura to our Slack, Google Workspace, and Microsoft 365  
 **So that** I can start monitoring our automation usage immediately
 
 **Acceptance Criteria:**
@@ -467,7 +467,7 @@ Modern enterprises are experiencing an explosion of unauthorized AI and automati
 - **Time to Value:** Target <24 hours from signup to first automation discovered
 
 #### Market Metrics
-- **Market Penetration:** % of target enterprises using SaaS X-Ray
+- **Market Penetration:** % of target enterprises using Singura
 - **Competitive Win Rate:** % of competitive deals won
 - **Brand Awareness:** Unaided brand recognition in target market
 - **Thought Leadership:** Speaking engagements, publications, analyst mentions

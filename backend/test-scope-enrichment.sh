@@ -24,7 +24,7 @@ echo "✅ PostgreSQL is running"
 echo ""
 
 # Set database URL for test
-export DATABASE_URL="postgresql://postgres:password@localhost:5433/saas_xray"
+export DATABASE_URL="postgresql://postgres:password@localhost:5433/singura"
 
 # Run ts-node with the test script
 echo "Running enrichment tests..."

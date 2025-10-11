@@ -20,7 +20,7 @@ jobs:
       postgres:
         image: postgres:15
         env:
-          POSTGRES_DB: saas_xray_test
+          POSTGRES_DB: singura_test
           POSTGRES_USER: test_user
           POSTGRES_PASSWORD: test_password
         options: >-
@@ -70,7 +70,7 @@ jobs:
         NODE_ENV=test
         DB_HOST=localhost
         DB_PORT=5433
-        DB_NAME=saas_xray_test
+        DB_NAME=singura_test
         DB_USER=test_user
         DB_PASSWORD=test_password
         REDIS_URL=redis://localhost:6380

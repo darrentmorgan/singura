@@ -1,8 +1,8 @@
-# SaaS X-Ray Platform Architecture
+# Singura Platform Architecture
 
 ## 🚀 Platform Overview
 
-SaaS X-Ray is a revolutionary enterprise-grade platform designed to detect and monitor unauthorized AI agents, bots, and automations across organizational SaaS ecosystems.
+Singura is a revolutionary enterprise-grade platform designed to detect and monitor unauthorized AI agents, bots, and automations across organizational SaaS ecosystems.
 
 ## 🏗️ Architectural Layers
 
@@ -39,7 +39,7 @@ graph TD
 - Microsoft 365 (Upcoming)
 
 ## 🔍 Key Architectural Principles
-- Type-first development with @saas-xray/shared-types
+- Type-first development with @singura/shared-types
 - Security-first design
 - Real-time, event-driven architecture
 - Modular, extensible connector framework

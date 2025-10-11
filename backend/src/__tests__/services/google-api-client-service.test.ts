@@ -6,7 +6,7 @@
 
 import { GoogleAPIClientService } from '../../services/google-api-client-service';
 import { google } from 'googleapis';
-import { GoogleOAuthCredentials } from '@saas-xray/shared-types';
+import { GoogleOAuthCredentials } from '@singura/shared-types';
 
 // Mock the googleapis library
 jest.mock('googleapis');

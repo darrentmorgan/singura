@@ -1,4 +1,4 @@
-import { test, expect, Page } from '@playwright/test';
+import { test, expect } from '@playwright/test';
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -8,8 +8,15 @@ const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{
 // Screenshot directory
 const SCREENSHOT_DIR = path.join(__dirname, '..', 'test-results', 'automation-details');
 
+interface NetworkRequest {
+  url: string;
+  status: number;
+  body: unknown;
+  headers: Record<string, string>;
+}
+
 test.describe('Automation Details Modal - Metadata Fix Verification', () => {
-  let networkRequests: any[] = [];
+  let networkRequests: NetworkRequest[] = [];
   let consoleErrors: string[] = [];
 
   test.beforeAll(() => {
@@ -197,7 +204,7 @@ test.describe('Automation Details Modal - Metadata Fix Verification', () => {
     console.log('Status:', apiStatus);
 
     // Extract ID from URL
-    const idMatch = apiUrl.match(/\/api\/automations\/([^\/]+)\/details/);
+    const idMatch = apiUrl.match(/\/api\/automations\/([^/]+)\/details/);
     const extractedId = idMatch ? idMatch[1] : 'NOT_FOUND';
 
     console.log('Extracted ID:', extractedId);

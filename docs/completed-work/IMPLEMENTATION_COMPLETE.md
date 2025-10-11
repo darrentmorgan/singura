@@ -2,7 +2,7 @@
 
 ## Summary
 
-Successfully resolved E2E test failures and implemented comprehensive auto-merge functionality for the SaaS X-Ray repository.
+Successfully resolved E2E test failures and implemented comprehensive auto-merge functionality for the Singura repository.
 
 ## Issues Resolved
 
@@ -130,7 +130,7 @@ gh pr merge <PR_NUMBER> --disable-auto
 4. **Configure Branch Protection** (Recommended):
    ```bash
    # Enable required status checks
-   gh api repos/darrentmorgan/saas-xray/branches/main/protection \
+   gh api repos/darrentmorgan/singura/branches/main/protection \
      -X PUT \
      -f required_status_checks='{"strict":true,"contexts":["E2E Tests (chromium)","E2E Tests (firefox)","E2E Tests (webkit)"]}'
    ```

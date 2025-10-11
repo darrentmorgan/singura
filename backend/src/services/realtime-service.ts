@@ -16,7 +16,7 @@ import {
   ConnectionEventData,
   RiskEventData,
   SystemEventData
-} from '@saas-xray/shared-types';
+} from '@singura/shared-types';
 
 // Event types for type safety
 export interface RealTimeEvents {

@@ -5,14 +5,10 @@
 
 import { create } from 'zustand';
 import { subscribeWithSelector } from 'zustand/middleware';
-import { 
-  PlatformConnection, 
-  PlatformType, 
-  ConnectionStatus, 
-  ConnectionsListResponse,
-  OAuthInitiateResponse,
-  OAuthCallbackResponse,
-  ConnectionStatsResponse
+import {
+  PlatformConnection,
+  PlatformType,
+  ConnectionStatus
 } from '@/types/api';
 import { connectionsApi, oauthApi } from '@/services/api';
 

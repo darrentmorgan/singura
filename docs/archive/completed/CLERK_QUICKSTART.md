@@ -30,7 +30,7 @@ Your OAuth AI detection feature is complete but blocked by the organization_id U
 
 ### Backend
 ```bash
-cd /Users/darrenmorgan/AI_Projects/saas-xray/backend
+cd /Users/darrenmorgan/AI_Projects/singura/backend
 
 # Create .env file if it doesn't exist
 cp .env.example .env
@@ -42,7 +42,7 @@ echo "CLERK_SECRET_KEY=sk_test_..." >> .env
 
 ### Frontend
 ```bash
-cd /Users/darrenmorgan/AI_Projects/saas-xray/frontend
+cd /Users/darrenmorgan/AI_Projects/singura/frontend
 
 # Create .env.development file
 cp .env.example .env.development
@@ -67,19 +67,19 @@ echo "VITE_CLERK_PUBLISHABLE_KEY=pk_test_..." >> .env.development
 
 ### Terminal 1 - Start Database & Redis
 ```bash
-cd /Users/darrenmorgan/AI_Projects/saas-xray
+cd /Users/darrenmorgan/AI_Projects/singura
 docker compose up -d postgres redis
 ```
 
 ### Terminal 2 - Start Backend
 ```bash
-cd /Users/darrenmorgan/AI_Projects/saas-xray/backend
+cd /Users/darrenmorgan/AI_Projects/singura/backend
 npm run dev
 ```
 
 ### Terminal 3 - Start Frontend
 ```bash
-cd /Users/darrenmorgan/AI_Projects/saas-xray/frontend
+cd /Users/darrenmorgan/AI_Projects/singura/frontend
 npm run dev
 ```
 

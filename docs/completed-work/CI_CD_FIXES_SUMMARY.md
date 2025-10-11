@@ -1,7 +1,7 @@
 # CI/CD Fixes Summary
 
 ## Overview
-Successfully resolved E2E test failures and implemented auto-merge functionality for the saas-xray repository.
+Successfully resolved E2E test failures and implemented auto-merge functionality for the singura repository.
 
 ## Issues Resolved
 
@@ -128,7 +128,7 @@ To ensure auto-merge works optimally, configure these settings:
 ### How to Configure
 ```bash
 # Via GitHub CLI
-gh api repos/darrentmorgan/saas-xray/branches/main/protection \
+gh api repos/darrentmorgan/singura/branches/main/protection \
   -X PUT \
   -f required_status_checks='{"strict":true,"contexts":["E2E Tests (chromium)","E2E Tests (firefox)","E2E Tests (webkit)"]}' \
   -f allow_auto_merge=true

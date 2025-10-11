@@ -11,7 +11,7 @@ import { platformConnectionRepository } from '../database/repositories/platform-
 import { encryptedCredentialRepository } from '../database/repositories/encrypted-credential';
 import { DiscoveryRun, DiscoveredAutomation, PlatformType, DiscoveryStatus, PlatformConnection } from '../types/database';
 import { db } from '../database/pool';
-import { ConnectionRecord } from '@saas-xray/shared-types';
+import { ConnectionRecord } from '@singura/shared-types';
 
 export interface DiscoveryJobConfig {
   organizationId: string;

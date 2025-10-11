@@ -110,15 +110,15 @@ export interface ModalState {
 }
 
 // Table Types
-export interface TableColumn<T = any> {
+export interface TableColumn<T = Record<string, unknown>> {
   key: keyof T | string;
   label: string;
   sortable?: boolean;
   width?: string;
-  render?: (value: any, item: T) => React.ReactNode;
+  render?: (value: unknown, item: T) => React.ReactNode;
 }
 
-export interface TableProps<T = any> {
+export interface TableProps<T = Record<string, unknown>> {
   data: T[];
   columns: TableColumn<T>[];
   loading?: boolean;
@@ -190,7 +190,7 @@ export interface Theme {
 // Search and Filter Types
 export interface SearchState {
   query: string;
-  filters: Record<string, any>;
+  filters: Record<string, unknown>;
   sortBy?: string;
   sortOrder?: 'ASC' | 'DESC';
 }
@@ -206,7 +206,7 @@ export interface FilterGroup {
   key: string;
   type: 'select' | 'multiselect' | 'range' | 'date';
   options?: FilterOption[];
-  value?: any;
+  value?: unknown;
 }
 
 // Animation Types
@@ -259,7 +259,7 @@ export interface UseAsyncState<T> {
   data: T | null;
   loading: boolean;
   error: string | null;
-  execute: (...args: any[]) => Promise<void>;
+  execute: (...args: unknown[]) => Promise<void>;
   reset: () => void;
 }
 
@@ -282,7 +282,7 @@ export interface UsePagination {
 }
 
 // Event Types
-export interface CustomEvent<T = any> {
+export interface CustomEvent<T = unknown> {
   type: string;
   payload: T;
   timestamp: Date;

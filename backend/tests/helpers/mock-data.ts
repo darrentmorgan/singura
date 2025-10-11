@@ -14,7 +14,7 @@ import {
   TokenInfo,
   OAuthConfiguration,
   PlatformConnection
-} from '@saas-xray/shared-types';
+} from '@singura/shared-types';
 
 type CredentialType = 'access_token' | 'refresh_token' | 'api_key' | 'webhook_secret';
 
@@ -67,7 +67,7 @@ export class MockDataGenerator {
       last_error: undefined,
       expires_at: new Date(Date.now() + 3600000), // 1 hour from now
       metadata: this.getMockMetadata(platform),
-      webhook_url: `https://hooks.saas-xray.com/webhook/${connectionId}`,
+      webhook_url: `https://hooks.singura.com/webhook/${connectionId}`,
       webhook_secret_id: undefined,
       created_at: timestamp,
       updated_at: timestamp,
@@ -173,8 +173,8 @@ export class MockDataGenerator {
     
     return {
       sub: userId,
-      iss: 'saas-xray-platform',
-      aud: 'saas-xray-clients',
+      iss: 'singura-platform',
+      aud: 'singura-clients',
       iat: now,
       exp: now + 900, // 15 minutes
       nbf: now,

@@ -1,9 +1,9 @@
-# SaaS X-Ray Technical Stack
+# Singura Technical Stack
 
 ## 🖥️ Backend Technology
 - **Runtime**: Node.js 20+ with Express.js
 - **Language**: TypeScript (100% coverage)
-- **Shared Types**: @saas-xray/shared-types package
+- **Shared Types**: @singura/shared-types package
 - **API Framework**: REST + WebSocket (Socket.io)
 
 ## 🌐 Frontend Technology
@@ -32,9 +32,9 @@
 - **Proxy**: nginx reverse proxy
 
 ## 📦 Key Packages
-- `@saas-xray/shared-types`: 9,000+ lines of centralized type definitions
-- `@saas-xray/detection-engine`: Machine learning detection algorithms
-- `@saas-xray/oauth-connectors`: Platform-specific OAuth integrations
+- `@singura/shared-types`: 9,000+ lines of centralized type definitions
+- `@singura/detection-engine`: Machine learning detection algorithms
+- `@singura/oauth-connectors`: Platform-specific OAuth integrations
 
 ## 🔬 Development Philosophy
 - Type-first development

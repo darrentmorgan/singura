@@ -1,4 +1,4 @@
-# SaaS X-Ray Implementation Timeline
+# Singura Implementation Timeline
 ## Features-First Approach (Option B)
 
 **Strategy**: Build all AI platform detection features locally, then migrate to cloud as final step.
@@ -81,7 +81,7 @@ backend/src/database/
 
 **Objective**: Extend Google Workspace connector with Gemini audit log detection
 
-**Work Location**: Git worktree `../saas-xray-worktrees/phase-1-gemini`
+**Work Location**: Git worktree `../singura-worktrees/phase-1-gemini`
 **Branch**: `feature/gemini-reporting-api`
 
 **Dependencies**:
@@ -115,7 +115,7 @@ backend/src/database/
 
 **Objective**: Build ChatGPT Enterprise Compliance API connector
 
-**Work Location**: Git worktree `../saas-xray-worktrees/phase-2-chatgpt`
+**Work Location**: Git worktree `../singura-worktrees/phase-2-chatgpt`
 **Branch**: `feature/chatgpt-enterprise`
 
 **Dependencies**:
@@ -150,7 +150,7 @@ backend/src/database/
 
 **Objective**: Build Claude Enterprise audit log connector
 
-**Work Location**: Git worktree `../saas-xray-worktrees/phase-3-claude`
+**Work Location**: Git worktree `../singura-worktrees/phase-3-claude`
 **Branch**: `feature/claude-enterprise`
 
 **Dependencies**:
@@ -184,7 +184,7 @@ backend/src/database/
 
 **Objective**: Build GPT-5 intelligent filtering and analysis service
 
-**Work Location**: Git worktree `../saas-xray-worktrees/phase-4-gpt5`
+**Work Location**: Git worktree `../singura-worktrees/phase-4-gpt5`
 **Branch**: `feature/gpt5-analysis`
 
 **Dependencies**:
@@ -254,7 +254,7 @@ backend/src/database/
 
 **Tasks**:
 - [ ] Create Supabase project
-  - Project name: `saas-xray-production`
+  - Project name: `singura-production`
   - Region: `us-east-1`
   - Database password: [secure]
 - [ ] Export local PostgreSQL schema + data
@@ -325,54 +325,54 @@ backend/src/database/
 
 ```bash
 # Navigate to project root
-cd /Users/darrenmorgan/AI_Projects/saas-xray
+cd /Users/darrenmorgan/AI_Projects/singura
 
 # Create worktree directory
-mkdir -p ../saas-xray-worktrees
+mkdir -p ../singura-worktrees
 
 # Create worktrees for parallel development
-git worktree add ../saas-xray-worktrees/phase-1-gemini -b feature/gemini-reporting-api
-git worktree add ../saas-xray-worktrees/phase-2-chatgpt -b feature/chatgpt-enterprise
-git worktree add ../saas-xray-worktrees/phase-3-claude -b feature/claude-enterprise
-git worktree add ../saas-xray-worktrees/phase-4-gpt5 -b feature/gpt5-analysis
+git worktree add ../singura-worktrees/phase-1-gemini -b feature/gemini-reporting-api
+git worktree add ../singura-worktrees/phase-2-chatgpt -b feature/chatgpt-enterprise
+git worktree add ../singura-worktrees/phase-3-claude -b feature/claude-enterprise
+git worktree add ../singura-worktrees/phase-4-gpt5 -b feature/gpt5-analysis
 
 # Verify worktrees
 git worktree list
 
 # Expected output:
-# /Users/darrenmorgan/AI_Projects/saas-xray                          [main]
-# /Users/darrenmorgan/AI_Projects/saas-xray-worktrees/phase-1-gemini [feature/gemini-reporting-api]
-# /Users/darrenmorgan/AI_Projects/saas-xray-worktrees/phase-2-chatgpt [feature/chatgpt-enterprise]
-# /Users/darrenmorgan/AI_Projects/saas-xray-worktrees/phase-3-claude [feature/claude-enterprise]
-# /Users/darrenmorgan/AI_Projects/saas-xray-worktrees/phase-4-gpt5 [feature/gpt5-analysis]
+# /Users/darrenmorgan/AI_Projects/singura                          [main]
+# /Users/darrenmorgan/AI_Projects/singura-worktrees/phase-1-gemini [feature/gemini-reporting-api]
+# /Users/darrenmorgan/AI_Projects/singura-worktrees/phase-2-chatgpt [feature/chatgpt-enterprise]
+# /Users/darrenmorgan/AI_Projects/singura-worktrees/phase-3-claude [feature/claude-enterprise]
+# /Users/darrenmorgan/AI_Projects/singura-worktrees/phase-4-gpt5 [feature/gpt5-analysis]
 ```
 
 **Shared-Types Linking** (in each worktree):
 
 ```bash
 # Phase 1
-cd ../saas-xray-worktrees/phase-1-gemini
+cd ../singura-worktrees/phase-1-gemini
 npm install
 cd backend
-npm link @saas-xray/shared-types
+npm link @singura/shared-types
 
 # Phase 2
 cd ../../phase-2-chatgpt
 npm install
 cd backend
-npm link @saas-xray/shared-types
+npm link @singura/shared-types
 
 # Phase 3
 cd ../../phase-3-claude
 npm install
 cd backend
-npm link @saas-xray/shared-types
+npm link @singura/shared-types
 
 # Phase 4
 cd ../../phase-4-gpt5
 npm install
 cd backend
-npm link @saas-xray/shared-types
+npm link @singura/shared-types
 ```
 
 ---
@@ -384,7 +384,7 @@ npm link @saas-xray/shared-types
 **Single worktree** - work on main branch:
 
 ```bash
-cd /Users/darrenmorgan/AI_Projects/saas-xray
+cd /Users/darrenmorgan/AI_Projects/singura
 
 # Create types
 vim shared-types/src/platforms/chatgpt-enterprise.ts
@@ -407,7 +407,7 @@ git commit -m "feat(types): add ChatGPT Enterprise types"
 
 ```bash
 # Developer 1: Gemini
-cd ../saas-xray-worktrees/phase-1-gemini
+cd ../singura-worktrees/phase-1-gemini
 # Write tests
 vim backend/src/connectors/__tests__/google-gemini-extension.test.ts
 # Implement
@@ -418,7 +418,7 @@ npm test -- gemini
 git commit -m "test(gemini): add audit log fetch tests"
 
 # Developer 2: ChatGPT (simultaneously!)
-cd ../saas-xray-worktrees/phase-2-chatgpt
+cd ../singura-worktrees/phase-2-chatgpt
 # Write tests
 vim backend/src/connectors/__tests__/chatgpt-enterprise.test.ts
 # Implement
@@ -443,7 +443,7 @@ git commit -m "feat(chatgpt): implement compliance API connector"
 
 ```bash
 # Phase 1
-cd ../saas-xray-worktrees/phase-1-gemini/backend
+cd ../singura-worktrees/phase-1-gemini/backend
 npm test -- --testPathPattern=gemini
 
 # Phase 2
@@ -482,7 +482,7 @@ GPT5_TEST_API_KEY=... npm test -- gpt5.integration
 **Run after integration in Week 5**:
 
 ```bash
-cd /Users/darrenmorgan/AI_Projects/saas-xray
+cd /Users/darrenmorgan/AI_Projects/singura
 npm run test:e2e
 ```
 
@@ -678,7 +678,7 @@ Blockers: [Any issues]
 
 ### Phase 0 (Week 1)
 ```bash
-cd /Users/darrenmorgan/AI_Projects/saas-xray
+cd /Users/darrenmorgan/AI_Projects/singura
 git checkout -b feature/ai-detection-shared-types
 cd shared-types
 npm run build
@@ -691,7 +691,7 @@ npm test
 ./scripts/setup-worktrees.sh
 
 # Work in parallel
-cd ../saas-xray-worktrees/phase-1-gemini
+cd ../singura-worktrees/phase-1-gemini
 npm test
 
 cd ../phase-2-chatgpt
@@ -702,7 +702,7 @@ npm test
 
 ### Integration (Week 5)
 ```bash
-cd /Users/darrenmorgan/AI_Projects/saas-xray
+cd /Users/darrenmorgan/AI_Projects/singura
 git checkout main
 git merge feature/ai-detection-shared-types
 npm run build
@@ -726,5 +726,5 @@ vercel --prod
 
 **Document Version**: 1.0
 **Last Updated**: 2025-01-02
-**Author**: SaaS X-Ray Development Team
+**Author**: Singura Development Team
 **Approved By**: Product Owner

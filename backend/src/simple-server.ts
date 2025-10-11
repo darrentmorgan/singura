@@ -18,7 +18,7 @@ import { platformConnectionRepository } from './database/repositories/platform-c
 import { hybridStorage } from './services/hybrid-storage';
 import { oauthMemoryStorage } from './services/memory-storage';
 import { oauthCredentialStorage } from './services/oauth-credential-storage-service';
-import { GoogleOAuthRawResponse, GoogleOAuthCredentials, SlackOAuthRawResponse, SlackOAuthCredentials } from '@saas-xray/shared-types';
+import { GoogleOAuthRawResponse, GoogleOAuthCredentials, SlackOAuthRawResponse, SlackOAuthCredentials } from '@singura/shared-types';
 import { requireClerkAuth, optionalClerkAuth, getOrganizationId, ClerkAuthRequest } from './middleware/clerk-auth';
 import { runMigrations } from './database/migrate';
 

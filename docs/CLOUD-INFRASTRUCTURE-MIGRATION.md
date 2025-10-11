@@ -1,4 +1,4 @@
-# SaaS X-Ray Cloud Infrastructure Migration Plan
+# Singura Cloud Infrastructure Migration Plan
 
 ## Executive Summary
 
@@ -269,7 +269,7 @@ import {
   SupabaseDatabaseConfig,
   QueryResult,
   TransactionClient
-} from '@saas-xray/shared-types';
+} from '@singura/shared-types';
 
 export class SupabaseDatabaseAdapter implements DatabaseAdapter {
   provider: 'supabase' = 'supabase';
@@ -368,7 +368,7 @@ export class SupabaseDatabaseAdapter implements DatabaseAdapter {
 // backend/src/database/pool.ts (updated)
 import { SupabaseDatabaseAdapter } from './adapters/supabase-adapter';
 import { LocalDatabaseAdapter } from './adapters/local-adapter';
-import { DatabaseAdapter } from '@saas-xray/shared-types';
+import { DatabaseAdapter } from '@singura/shared-types';
 
 export let db: DatabaseAdapter;
 
@@ -386,7 +386,7 @@ export async function initializeDatabase(): Promise<void> {
     db = new LocalDatabaseAdapter({
       host: process.env.DB_HOST || 'localhost',
       port: parseInt(process.env.DB_PORT || '5433'),
-      database: process.env.DB_NAME || 'saas_xray',
+      database: process.env.DB_NAME || 'singura',
       user: process.env.DB_USER || 'postgres',
       password: process.env.DB_PASSWORD || 'password'
     });
@@ -490,10 +490,10 @@ DATABASE_PROVIDER=local
 # Local PostgreSQL (Docker)
 DB_HOST=localhost
 DB_PORT=5433
-DB_NAME=saas_xray
+DB_NAME=singura
 DB_USER=postgres
 DB_PASSWORD=password
-DATABASE_URL=postgresql://postgres:password@localhost:5433/saas_xray
+DATABASE_URL=postgresql://postgres:password@localhost:5433/singura
 
 # Local Redis (Docker)
 REDIS_URL=redis://localhost:6379
@@ -534,7 +534,7 @@ DATABASE_URL=${SUPABASE_CONNECTION_POOL_URL}
 REDIS_URL=rediss://default:[password]@xxxxx.upstash.io:6379
 
 # Backend (Vercel Functions)
-CORS_ORIGIN=https://staging-saas-xray.vercel.app
+CORS_ORIGIN=https://staging-singura.vercel.app
 
 # Encryption (Production-grade)
 MASTER_ENCRYPTION_KEY=prod-master-encryption-key-minimum-32-characters-long-for-aes-256-gcm-2025
@@ -542,11 +542,11 @@ MASTER_ENCRYPTION_KEY=prod-master-encryption-key-minimum-32-characters-long-for-
 # OAuth (Production)
 SLACK_CLIENT_ID=production-client-id
 SLACK_CLIENT_SECRET=production-client-secret
-SLACK_REDIRECT_URI=https://api-staging.saas-xray.com/api/auth/callback/slack
+SLACK_REDIRECT_URI=https://api-staging.singura.com/api/auth/callback/slack
 
 GOOGLE_CLIENT_ID=production-client-id
 GOOGLE_CLIENT_SECRET=production-client-secret
-GOOGLE_REDIRECT_URI=https://api-staging.saas-xray.com/api/auth/callback/google
+GOOGLE_REDIRECT_URI=https://api-staging.singura.com/api/auth/callback/google
 
 # AI Platform APIs (Phase 1-4)
 OPENAI_ENTERPRISE_API_KEY=sk-proj-xxxxx
@@ -834,7 +834,7 @@ supabase login
 
 # Create new project (or use dashboard)
 # https://supabase.com/dashboard
-# Project Name: saas-xray-production
+# Project Name: singura-production
 # Database Password: [generate strong password]
 # Region: us-east-1 (closest to Vercel iad1)
 ```
@@ -843,17 +843,17 @@ supabase login
 
 ```bash
 # Export schema + data from local PostgreSQL
-docker exec saas-xray-postgres-1 pg_dump \
+docker exec singura-postgres-1 pg_dump \
   -U postgres \
-  -d saas_xray \
+  -d singura \
   --no-owner \
   --no-acl \
   --clean \
   --if-exists \
-  -f /tmp/saas_xray_backup.sql
+  -f /tmp/singura_backup.sql
 
 # Copy backup to host
-docker cp saas-xray-postgres-1:/tmp/saas_xray_backup.sql ./backup/saas_xray_backup.sql
+docker cp singura-postgres-1:/tmp/singura_backup.sql ./backup/singura_backup.sql
 ```
 
 ### Step 3: Import to Supabase
@@ -864,7 +864,7 @@ supabase db push --db-url "postgresql://postgres:[password]@db.xxxxx.supabase.co
 
 # Option 2: Direct psql
 psql "postgresql://postgres:[password]@db.xxxxx.supabase.co:5432/postgres" \
-  -f ./backup/saas_xray_backup.sql
+  -f ./backup/singura_backup.sql
 ```
 
 ### Step 4: Validate Migration
@@ -881,7 +881,7 @@ import { Pool } from 'pg';
 
 async function validateMigration() {
   const local = new Pool({
-    connectionString: 'postgresql://postgres:password@localhost:5433/saas_xray'
+    connectionString: 'postgresql://postgres:password@localhost:5433/singura'
   });
 
   const supabase = new Pool({
@@ -970,7 +970,7 @@ jobs:
         image: postgres:16
         env:
           POSTGRES_PASSWORD: password
-          POSTGRES_DB: saas_xray_test
+          POSTGRES_DB: singura_test
         options: >-
           --health-cmd pg_isready
           --health-interval 10s
@@ -996,7 +996,7 @@ jobs:
 
       - name: Run backend tests
         env:
-          DATABASE_URL: postgresql://postgres:password@localhost:5432/saas_xray_test
+          DATABASE_URL: postgresql://postgres:password@localhost:5432/singura_test
           NODE_ENV: test
         run: cd backend && npm test
 
@@ -1045,7 +1045,7 @@ jobs:
 
       - name: Run E2E Tests
         env:
-          PLAYWRIGHT_BASE_URL: https://saas-xray.com
+          PLAYWRIGHT_BASE_URL: https://singura.com
         run: npm run test:e2e
 ```
 
@@ -1199,4 +1199,4 @@ Set up alerts in Vercel + Supabase:
 
 **Document Version**: 1.0
 **Last Updated**: 2025-01-02
-**Author**: SaaS X-Ray Infrastructure Team
+**Author**: Singura Infrastructure Team

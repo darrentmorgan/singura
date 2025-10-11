@@ -1,10 +1,10 @@
-# SaaS X-Ray Development - Quick Reference
+# Singura Development - Quick Reference
 
 ## 🚨 CRITICAL: Pre-Action Checklist (MANDATORY)
 
 **Before ANY response, check:**
 1. **Delegate?** → See matrix below (if YES → Task tool immediately)
-2. **SaaS X-Ray context?** → Use project patterns/pitfalls
+2. **Singura context?** → Use project patterns/pitfalls
 3. **Need docs?** → Context7 for up-to-date library info
 4. **Standards?** → TypeScript strict, TDD, security-first
 
@@ -75,12 +75,12 @@
 
 ---
 
-## SaaS X-Ray Tech Stack
+## Singura Tech Stack
 
 **Platform**: Enterprise security for discovering unauthorized AI agents/bots
 - **Frontend**: React 18, TS 5.2, Vite, Clerk, Zustand, TailwindCSS
 - **Backend**: Node 20, Express, TS 5.3, Clerk, PostgreSQL (port 5433), Redis (6379)
-- **Shared**: `@saas-xray/shared-types` (9,000+ lines centralized types)
+- **Shared**: `@singura/shared-types` (9,000+ lines centralized types)
 
 **Features**: Multi-tenant auth, Slack ✅, Google Workspace ✅, Microsoft 365 🔄, real-time discovery, AI detection
 
@@ -109,14 +109,14 @@ interface Repository<T> {
 
 ### 4. Shared-Types Imports
 ```typescript
-import { OAuthCredentials, User } from '@saas-xray/shared-types';
+import { OAuthCredentials, User } from '@singura/shared-types';
 ```
 
 ### 5. Docker Setup
 ```bash
 docker compose up -d postgres redis
 # PostgreSQL: 5433:5432 | Redis: 6379:6379
-DATABASE_URL=postgresql://postgres:password@localhost:5433/saas_xray
+DATABASE_URL=postgresql://postgres:password@localhost:5433/singura
 ```
 
 ### 6. Chrome DevTools MCP (MANDATORY)

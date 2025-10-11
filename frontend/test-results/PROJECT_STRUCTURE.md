@@ -3,7 +3,7 @@
 ## Complete File Tree
 
 ```
-saas-xray/
+singura/
 ├── .github/
 │   └── workflows/
 │       └── e2e-tests.yml ✅               # GitHub Actions CI/CD workflow

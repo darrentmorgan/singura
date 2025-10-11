@@ -52,10 +52,10 @@ await script.projects.list()
 ### 4. src/services/connectors/slack-correlation-connector.ts
 ```typescript
 // Line 18: Module has no exported member 'SlackActivityEvent'
-import { SlackActivityEvent } from '@saas-xray/shared-types'
+import { SlackActivityEvent } from '@singura/shared-types'
 
 // Line 19: No exported member 'AutomationEvent'
-import { AutomationEvent } from '@saas-xray/shared-types'
+import { AutomationEvent } from '@singura/shared-types'
 // Should be: AutomationEventData
 
 // Line 81: Property 'getStoredCredentials' does not exist
@@ -65,7 +65,7 @@ await slackOAuthService.getStoredCredentials()
 ### 5. src/services/correlation-orchestrator.service.ts
 ```typescript
 // Line 25: Module has no exported member 'SlackActivityEvent'
-import { SlackActivityEvent } from '@saas-xray/shared-types'
+import { SlackActivityEvent } from '@singura/shared-types'
 
 // Line 400: Property 'overallRisk' does not exist on assessment object
 assessment.overallRisk

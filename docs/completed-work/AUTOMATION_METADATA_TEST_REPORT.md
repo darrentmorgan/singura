@@ -129,7 +129,7 @@ console.log('Last details request:', lastRequest?.name);
 
 ```bash
 # Verify that the automation UUID exists
-PGPASSWORD=password psql -h localhost -p 5433 -U postgres -d saas_xray -c \
+PGPASSWORD=password psql -h localhost -p 5433 -U postgres -d singura -c \
   "SELECT id, name, external_id FROM discovered_automations WHERE id = 'aa28cdc1-8af7-4ab9-8be8-005991bb375d';"
 
 # Expected output:

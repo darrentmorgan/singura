@@ -8,7 +8,7 @@ import {
   StorageOperationResult,
   StorageMode,
   StorageStatus
-} from '@saas-xray/shared-types';
+} from '@singura/shared-types';
 import { platformConnectionRepository } from '../database/repositories/platform-connection';
 import { oauthMemoryStorage } from './memory-storage';
 import { PlatformConnection, ConnectionMetadata } from '../types/database';

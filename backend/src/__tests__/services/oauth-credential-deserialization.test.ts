@@ -5,7 +5,7 @@
  */
 
 import { GoogleAPIClientService } from '../../services/google-api-client-service';
-import { GoogleOAuthCredentials } from '@saas-xray/shared-types';
+import { GoogleOAuthCredentials } from '@singura/shared-types';
 
 describe('OAuth Credential Deserialization', () => {
   describe('GoogleAPIClientService', () => {

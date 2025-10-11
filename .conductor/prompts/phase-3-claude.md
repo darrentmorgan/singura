@@ -14,7 +14,7 @@ Build Claude Enterprise audit log connector with export/download workflow to tra
 
 ---
 
-## Available Types (from @saas-xray/shared-types)
+## Available Types (from @singura/shared-types)
 
 ```typescript
 import {
@@ -31,7 +31,7 @@ import {
   AIplatformAuditLog,
   AIAuditLogQuery,
   AIAuditLogResult
-} from '@saas-xray/shared-types';
+} from '@singura/shared-types';
 ```
 
 ---
@@ -57,7 +57,7 @@ import { ClaudeEnterpriseConnector } from '../claude-enterprise';
 import {
   ClaudeEnterpriseConfig,
   ClaudeAuditLogExportRequest
-} from '@saas-xray/shared-types';
+} from '@singura/shared-types';
 
 describe('ClaudeEnterpriseConnector', () => {
   let connector: ClaudeEnterpriseConnector;
@@ -198,7 +198,7 @@ import {
   AIAuditLogResult,
   UsageAnalytics,
   AIDateRange
-} from '@saas-xray/shared-types';
+} from '@singura/shared-types';
 
 export class ClaudeEnterpriseConnector implements AIPlatformConnector {
   platform: 'claude' = 'claude';

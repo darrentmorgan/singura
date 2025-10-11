@@ -10,7 +10,7 @@ import { securityMiddleware } from '../security/middleware';
 import { auditService } from '../security/audit';
 import { oauthService } from '../services/oauth-service';
 import { PlatformType } from '../types/database';
-import { Platform } from '@saas-xray/shared-types';
+import { Platform } from '@singura/shared-types';
 
 const router: Router = Router();
 
@@ -90,7 +90,7 @@ router.post('/login',
           organization: {
             id: organizationId,
             name: 'Demo Organization',
-            domain: 'demo.saas-xray.com',
+            domain: 'demo.singura.com',
             tier: 'enterprise',
             status: 'active',
             createdAt: new Date(),

@@ -1,8 +1,8 @@
-# SaaS X-Ray CI/CD Runbook
+# Singura CI/CD Runbook
 
 ## Emergency Contacts
-- **Repository**: https://github.com/darrentmorgan/saas-xray
-- **Actions**: https://github.com/darrentmorgan/saas-xray/actions
+- **Repository**: https://github.com/darrentmorgan/singura
+- **Actions**: https://github.com/darrentmorgan/singura/actions
 - **Owner**: @darrentmorgan
 
 ## Quick Reference

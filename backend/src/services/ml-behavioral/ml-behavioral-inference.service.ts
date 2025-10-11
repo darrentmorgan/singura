@@ -6,7 +6,7 @@
  * Technical Objective: <2 second real-time inference with 90%+ accuracy
  */
 
-import { AutomationEvent } from '@saas-xray/shared-types';
+import { AutomationEvent } from '@singura/shared-types';
 
 // ML Model Configuration
 export interface MLModelConfig {

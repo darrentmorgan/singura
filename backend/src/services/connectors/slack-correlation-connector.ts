@@ -17,7 +17,7 @@ import {
   MultiPlatformEvent,
   SlackActivityEvent,
   AutomationEvent
-} from '@saas-xray/shared-types';
+} from '@singura/shared-types';
 
 import { SlackOAuthService } from '../slack-oauth-service';
 import { WebClient } from '@slack/web-api';

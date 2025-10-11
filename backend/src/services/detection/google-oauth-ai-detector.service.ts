@@ -3,7 +3,7 @@ import {
   AIPlatform,
   AIActivityType,
   AIRiskIndicator
-} from '@saas-xray/shared-types';
+} from '@singura/shared-types';
 
 /**
  * Detects AI platform logins via Google Workspace OAuth audit logs

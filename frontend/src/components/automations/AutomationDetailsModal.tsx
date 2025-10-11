@@ -32,6 +32,59 @@ import { AutomationDiscovery } from '@/types/api';
 import { cn } from '@/lib/utils';
 import { automationsApi } from '@/services/api';
 
+// Extended type for detailed automation data with enriched permissions
+interface EnrichedScope {
+  displayName?: string;
+  serviceName?: string;
+  accessLevel?: string;
+  riskLevel?: string;
+  riskScore?: number;
+  description?: string;
+  dataTypes?: string[];
+  gdprImpact?: string;
+  alternatives?: string;
+}
+
+interface RiskBreakdownItem {
+  scope?: string;
+  contribution?: number;
+  riskScore?: number;
+}
+
+interface DetailedAutomationData extends Omit<AutomationDiscovery, 'permissions'> {
+  permissions?: string[] | {
+    total?: number;
+    enriched?: EnrichedScope[];
+    riskAnalysis?: {
+      riskLevel?: string;
+      overallRisk?: number;
+      highestRisk?: {
+        scope: string;
+        score: number;
+      };
+      breakdown?: RiskBreakdownItem[];
+    };
+  };
+  metadata?: AutomationDiscovery['metadata'] & {
+    isAIPlatform?: boolean;
+    platformName?: string;
+    riskFactors?: string[];
+    authorizedBy?: string;
+    clientId?: string;
+    firstAuthorization?: string;
+    detectionMethod?: string;
+  };
+  description?: string;
+  authorizedBy?: string;
+  lastActivity?: string;
+  authorizationAge?: string;
+  connection?: {
+    platform: string;
+    displayName: string;
+    status: string;
+  };
+}
+
 // Automation type icons
 const automationTypeIcons = {
   bot: Bot,
@@ -63,22 +116,16 @@ export const AutomationDetailsModal: React.FC<AutomationDetailsModalProps> = ({
   onAssessRisk
 }) => {
   const [isLoading, setIsLoading] = useState(false);
-  const [detailedData, setDetailedData] = useState<any>(null);
+  const [detailedData, setDetailedData] = useState<DetailedAutomationData | null>(null);
 
   const TypeIcon = automationTypeIcons[automation.type] || Bot;
-
-  useEffect(() => {
-    if (isOpen && automation.id) {
-      fetchDetailedData();
-    }
-  }, [isOpen, automation.id]);
 
   const fetchDetailedData = async () => {
     setIsLoading(true);
     try {
       const response = await automationsApi.getAutomationDetails(automation.id);
-      if (response.success && (response as any).automation) {
-        setDetailedData((response as any).automation);
+      if (response.success && 'automation' in response) {
+        setDetailedData(response.automation as DetailedAutomationData);
       }
     } catch (error) {
       console.error('Failed to fetch automation details:', error);
@@ -86,6 +133,13 @@ export const AutomationDetailsModal: React.FC<AutomationDetailsModalProps> = ({
       setIsLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (isOpen && automation.id) {
+      fetchDetailedData();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen, automation.id]);
 
   const handleAssessRisk = async () => {
     if (!onAssessRisk) return;
@@ -194,7 +248,7 @@ export const AutomationDetailsModal: React.FC<AutomationDetailsModalProps> = ({
           <div className="border-b px-6">
             <TabsList className="h-auto bg-transparent p-0">
               <TabsTrigger value="permissions" className="px-4 py-3">
-                Permissions {detailedData?.permissions?.total ? `(${detailedData.permissions.total})` : ''}
+                Permissions {detailedData?.permissions && typeof detailedData.permissions !== 'string' && 'total' in detailedData.permissions && detailedData.permissions.total ? `(${detailedData.permissions.total})` : ''}
               </TabsTrigger>
               <TabsTrigger value="risk" className="px-4 py-3">
                 Risk Analysis
@@ -216,7 +270,7 @@ export const AutomationDetailsModal: React.FC<AutomationDetailsModalProps> = ({
             <>
               {/* Permissions Tab */}
               <TabsContent value="permissions" className="mt-0 space-y-6">
-                {detailedData?.permissions ? (
+                {detailedData?.permissions && typeof detailedData.permissions === 'object' && !Array.isArray(detailedData.permissions) ? (
                   <>
                     {/* Overall Risk Summary */}
                     {detailedData.permissions.riskAnalysis && (
@@ -252,7 +306,7 @@ export const AutomationDetailsModal: React.FC<AutomationDetailsModalProps> = ({
                       {detailedData.permissions.enriched &&
                        Array.isArray(detailedData.permissions.enriched) &&
                        detailedData.permissions.enriched.length > 0 ? (
-                        detailedData.permissions.enriched.map((scope: any, index: number) => (
+                        detailedData.permissions.enriched.map((scope: EnrichedScope, index: number) => (
                           <Card key={index}>
                             <CardHeader>
                               <div className="flex justify-between items-start">
@@ -332,7 +386,7 @@ export const AutomationDetailsModal: React.FC<AutomationDetailsModalProps> = ({
                     <AlertTitle>AI Platform Detected</AlertTitle>
                     <AlertDescription>
                       {detailedData.metadata.platformName} integration detected.
-                      This automation sends your organization's data to external AI services.
+                      This automation sends your organization&apos;s data to external AI services.
                     </AlertDescription>
                   </Alert>
                 )}
@@ -361,7 +415,10 @@ export const AutomationDetailsModal: React.FC<AutomationDetailsModalProps> = ({
                 </Card>
 
                 {/* Permission Risk Breakdown */}
-                {detailedData?.permissions?.riskAnalysis?.breakdown &&
+                {detailedData?.permissions &&
+                 typeof detailedData.permissions === 'object' &&
+                 !Array.isArray(detailedData.permissions) &&
+                 detailedData.permissions.riskAnalysis?.breakdown &&
                  Array.isArray(detailedData.permissions.riskAnalysis.breakdown) &&
                  detailedData.permissions.riskAnalysis.breakdown.length > 0 && (
                   <Card>
@@ -370,13 +427,13 @@ export const AutomationDetailsModal: React.FC<AutomationDetailsModalProps> = ({
                     </CardHeader>
                     <CardContent>
                       <div className="space-y-3">
-                        {detailedData.permissions.riskAnalysis.breakdown.map((item: any, i: number) => (
+                        {detailedData.permissions.riskAnalysis.breakdown.map((item: RiskBreakdownItem, i: number) => (
                           <div key={i} className="flex items-center justify-between p-3 bg-muted rounded-lg">
                             <div className="flex-1">
                               <p className="text-sm font-medium">{item.scope || 'Unknown Scope'}</p>
                               <p className="text-xs text-muted-foreground">Contribution: {item.contribution || 0}%</p>
                             </div>
-                            <Badge className={getRiskBadgeClass(item.riskScore > 70 ? 'high' : item.riskScore > 40 ? 'medium' : 'low')}>
+                            <Badge className={getRiskBadgeClass((item.riskScore || 0) > 70 ? 'high' : (item.riskScore || 0) > 40 ? 'medium' : 'low')}>
                               {item.riskScore || 0}/100
                             </Badge>
                           </div>

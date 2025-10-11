@@ -1,4 +1,4 @@
-# SaaS X-Ray Detection Algorithm - Comprehensive Analysis
+# Singura Detection Algorithm - Comprehensive Analysis
 
 ## Executive Summary
 

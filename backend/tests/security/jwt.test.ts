@@ -82,8 +82,8 @@ describe('JWTService', () => {
         const payload = jwt.decode(tokens.accessToken) as TokenPayload;
 
         expect(payload.sub).toBe(testUserId);
-        expect(payload.iss).toBe('saas-xray-platform');
-        expect(payload.aud).toBe('saas-xray-clients');
+        expect(payload.iss).toBe('singura-platform');
+        expect(payload.aud).toBe('singura-clients');
         expect(payload.type).toBe('access');
         expect(payload.organizationId).toBe(testOrgId);
         expect(payload.permissions).toEqual(testPermissions);
@@ -204,8 +204,8 @@ describe('JWTService', () => {
         // Create token with very short expiration
         const shortLivedPayload = {
           sub: testUserId,
-          iss: 'saas-xray-platform',
-          aud: 'saas-xray-clients',
+          iss: 'singura-platform',
+          aud: 'singura-clients',
           iat: Math.floor(Date.now() / 1000) - 3600, // 1 hour ago
           exp: Math.floor(Date.now() / 1000) - 1800, // 30 minutes ago (expired)
           nbf: Math.floor(Date.now() / 1000) - 3600,
@@ -596,7 +596,7 @@ describe('JWTService', () => {
       const expectedAlgorithm = process.env.NODE_ENV === 'test' ? 'HS256' : 'RS256';
       expect(header?.alg).toBe(expectedAlgorithm);
       expect(header?.typ).toBe('JWT');
-      expect(header?.kid).toBe('saas-xray-2025');
+      expect(header?.kid).toBe('singura-2025');
     });
 
     it('should implement proper clock tolerance', () => {

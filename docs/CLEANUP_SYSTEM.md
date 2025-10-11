@@ -1,4 +1,4 @@
-# SaaS X-Ray Cleanup System
+# Singura Cleanup System
 
 ## Overview
 
@@ -70,7 +70,7 @@ Essential project files:
 ## Directory Structure
 
 ```
-saas-xray/
+singura/
 ├── README.md                    # Project overview
 ├── CLAUDE.md                    # Development guidelines
 ├── package.json                 # Dependencies
@@ -127,7 +127,7 @@ The script is idempotent - running it multiple times won't cause issues or dupli
 
 ```
 ========================================
-   SaaS X-Ray Root Folder Cleanup
+   Singura Root Folder Cleanup
 ========================================
 
 1. Moving screenshots...
@@ -177,7 +177,7 @@ All archived files are in `docs/archived-reports/` - simply move them back to ro
 
 The cleanup script list of reports to archive is defined in the script itself. To add new reports:
 
-1. Edit `/Users/darrenmorgan/AI_Projects/saas-xray/.claude/commands/cleanup.sh`
+1. Edit `/Users/darrenmorgan/AI_Projects/singura/.claude/commands/cleanup.sh`
 2. Add report filename to the `reports=()` array
 3. Run cleanup
 

@@ -2,7 +2,7 @@ import {
   GoogleWorkspaceEvent,
   GoogleActivityPattern,
   ActionType
-} from '@saas-xray/shared-types';
+} from '@singura/shared-types';
 
 /**
  * Timing Variance Detector Service

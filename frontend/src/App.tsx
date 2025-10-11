@@ -26,7 +26,7 @@ import AutomationsPage from '@/pages/AutomationsPage';
 import { websocketService } from '@/services/websocket';
 import { useAuth } from '@clerk/clerk-react';
 import { useUIActions, useNotifications, useTheme } from '@/stores/ui';
-import { BRAND, CONTENT } from '@/lib/brand';
+import { CONTENT } from '@/lib/brand';
 
 // Global Error Boundary
 import ErrorBoundary from '@/components/common/ErrorBoundary';
@@ -183,7 +183,7 @@ const NotFoundPage: React.FC = () => (
       <h1 className="text-4xl font-bold text-foreground">404</h1>
       <h2 className="text-xl font-semibold text-foreground">Page Not Found</h2>
       <p className="text-muted-foreground max-w-md">
-        The page you're looking for doesn't exist or has been moved.
+        The page you&apos;re looking for doesn&apos;t exist or has been moved.
       </p>
       <div className="space-x-4">
         <button

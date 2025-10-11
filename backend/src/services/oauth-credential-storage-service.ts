@@ -12,7 +12,7 @@ import {
   CredentialValidationResult,
   LiveConnectionManager,
   OAuthConnectionStatus
-} from '@saas-xray/shared-types';
+} from '@singura/shared-types';
 import { GoogleAPIClientService } from './google-api-client-service';
 import { encryptedCredentialRepository } from '../database/repositories/encrypted-credential';
 import { CredentialType } from '../types/database';

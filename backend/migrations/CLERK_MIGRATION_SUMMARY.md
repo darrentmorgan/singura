@@ -5,7 +5,7 @@
 
 ## Overview
 
-Successfully migrated the SaaS X-Ray database from UUID-based IDs to VARCHAR(255) to support Clerk authentication's string-based organization and connection IDs.
+Successfully migrated the Singura database from UUID-based IDs to VARCHAR(255) to support Clerk authentication's string-based organization and connection IDs.
 
 ## What Was Migrated
 

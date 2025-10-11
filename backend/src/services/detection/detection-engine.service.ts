@@ -4,7 +4,7 @@ import {
   RiskIndicator,
   ActivityTimeframe,
   TemporalPattern
-} from '@saas-xray/shared-types';
+} from '@singura/shared-types';
 
 import { VelocityDetectorService } from './velocity-detector.service';
 import { BatchOperationDetectorService } from './batch-operation-detector.service';

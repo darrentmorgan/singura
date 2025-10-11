@@ -8,7 +8,7 @@ interface LogEntry {
   timestamp: string;
   level: 'info' | 'success' | 'warning' | 'error';
   message: string;
-  details?: any;
+  details?: Record<string, unknown>;
 }
 
 interface DiscoveryEventCard {
@@ -228,13 +228,13 @@ export const AdminDashboard: React.FC = () => {
   };
 
   // Create static discovery event card from completed discovery
-  const createDiscoveryEventCard = (discoveryData: any) => {
+  const createDiscoveryEventCard = (discoveryData: Record<string, unknown>) => {
     const mockAutomationDetails: AutomationDetectionDetail[] = [
       {
         automationId: `auto-${Date.now()}-1`,
         name: 'ChatGPT Google Apps Script Integration',
         type: 'integration',
-        platform: discoveryData.platform || 'google',
+        platform: (discoveryData.platform as 'slack' | 'google' | 'microsoft' | 'jira') || 'google',
         confidence: 94.5,
         riskScore: 85,
         riskLevel: 'high',
@@ -285,9 +285,9 @@ export const AdminDashboard: React.FC = () => {
     const newDiscoveryEvent: DiscoveryEventCard = {
       id: `discovery-${Date.now()}`,
       eventId: `event-${Date.now()}`,
-      discoveryId: discoveryData.discoveryId,
-      connectionId: discoveryData.connectionId || '',
-      platform: discoveryData.platform || 'google',
+      discoveryId: String(discoveryData.discoveryId || ''),
+      connectionId: String(discoveryData.connectionId || ''),
+      platform: (discoveryData.platform as 'slack' | 'google' | 'microsoft' | 'jira') || 'google',
       triggeredAt: new Date(),
       completedAt: new Date(),
       status: 'completed',

@@ -816,7 +816,7 @@ describe('Authentication API Integration', () => {
     it('should handle preflight OPTIONS requests', async () => {
       const response = await request(app)
         .options('/auth/login')
-        .set('Origin', 'https://app.saas-xray.com')
+        .set('Origin', 'https://app.singura.com')
         .set('Access-Control-Request-Method', 'POST');
 
       // CORS headers should be present (depends on middleware configuration)

@@ -1,7 +1,7 @@
 {
-  "name": "@saas-xray/backend",
+  "name": "@singura/backend",
   "version": "1.0.0",
-  "description": "SaaS X-Ray Backend API Server",
+  "description": "Singura Backend API Server",
   "main": "dist/server.js",
   "scripts": {
     "dev": "ts-node src/simple-server.ts",
@@ -42,7 +42,7 @@
     "@clerk/backend": "^2.17.1",
     "@clerk/express": "^1.7.36",
     "@microsoft/microsoft-graph-client": "^3.0.7",
-    "@saas-xray/shared-types": "file:../shared-types",
+    "@singura/shared-types": "file:../shared-types",
     "@slack/oauth": "^3.0.4",
     "@slack/web-api": "^6.13.0",
     "@types/luxon": "^3.4.2",

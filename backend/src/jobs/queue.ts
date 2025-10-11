@@ -22,7 +22,7 @@ import {
   QueueStats,
   HighRiskAutomation,
   JobError
-} from '@saas-xray/shared-types';
+} from '@singura/shared-types';
 
 // Redis connection configuration
 const redisConfig = {
@@ -96,7 +96,7 @@ export {
   DiscoveryJobData,
   RiskAssessmentJobData,
   NotificationJobData
-} from '@saas-xray/shared-types';
+} from '@singura/shared-types';
 
 /**
  * Job Queue Manager - Orchestrates all background jobs

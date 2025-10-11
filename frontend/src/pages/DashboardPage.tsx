@@ -373,7 +373,7 @@ export const DashboardPage: React.FC = () => {
           <PDFGenerator
             automations={automations}
             reportType="security_summary"
-            organizationName={user?.organizationName || 'Your Organization'}
+            organizationName={'Your Organization'}
             className="justify-start h-auto p-4 border-gray-300 hover:bg-gray-50 dark:border-gray-600 dark:hover:bg-gray-800"
           />
         </div>

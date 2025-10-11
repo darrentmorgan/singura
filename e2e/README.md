@@ -1,6 +1,6 @@
-# SaaS X-Ray End-to-End Tests
+# Singura End-to-End Tests
 
-This directory contains comprehensive end-to-end tests for the SaaS X-Ray application using Playwright. The tests cover authentication flows, OAuth integrations, automation discovery, and dashboard functionality.
+This directory contains comprehensive end-to-end tests for the Singura application using Playwright. The tests cover authentication flows, OAuth integrations, automation discovery, and dashboard functionality.
 
 ## Test Architecture
 
@@ -106,10 +106,10 @@ Tests are automatically run in GitHub Actions:
 Tests use a dedicated PostgreSQL test database:
 ```bash
 # Create test database
-createdb saas_xray_test
+createdb singura_test
 
 # Run migrations
-DATABASE_URL=postgresql://postgres:password@localhost:5433/saas_xray_test npm run migrate
+DATABASE_URL=postgresql://postgres:password@localhost:5433/singura_test npm run migrate
 ```
 
 ### Environment Variables

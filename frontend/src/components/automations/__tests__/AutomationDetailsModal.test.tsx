@@ -2,9 +2,7 @@
  * AutomationDetailsModal Component Tests
  */
 
-import React from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom';
 import { vi } from 'vitest';
 import { AutomationDetailsModal } from '../AutomationDetailsModal';
@@ -41,7 +39,7 @@ describe('AutomationDetailsModal', () => {
     type: 'workflow',
     platform: 'google',
     status: 'active',
-    riskLevel: undefined as any, // Simulate undefined risk level
+    riskLevel: undefined as unknown as 'low' | 'medium' | 'high', // Simulate undefined risk level
     riskScore: 50,
     discoveredAt: '2024-01-01T00:00:00Z',
   };

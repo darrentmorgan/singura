@@ -12,7 +12,7 @@ import {
   MockDataToggleState, 
   MockDataToggleResponse,
   MockDataToggleRequest 
-} from '@saas-xray/shared-types';
+} from '@singura/shared-types';
 
 interface MockDataToggleProps {
   className?: string;

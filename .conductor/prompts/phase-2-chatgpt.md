@@ -14,7 +14,7 @@ Build a complete ChatGPT Enterprise Compliance API connector to track user login
 
 ---
 
-## Available Types (from @saas-xray/shared-types)
+## Available Types (from @singura/shared-types)
 
 ```typescript
 import {
@@ -31,7 +31,7 @@ import {
   AIplatformAuditLog,
   AIAuditLogQuery,
   AIAuditLogResult
-} from '@saas-xray/shared-types';
+} from '@singura/shared-types';
 ```
 
 ---
@@ -62,7 +62,7 @@ import { ChatGPTEnterpriseConnector } from '../chatgpt-enterprise';
 import {
   ChatGPTComplianceAPIConfig,
   AIAuditLogQuery
-} from '@saas-xray/shared-types';
+} from '@singura/shared-types';
 
 describe('ChatGPTEnterpriseConnector', () => {
   let connector: ChatGPTEnterpriseConnector;
@@ -228,7 +228,7 @@ import {
   AuditLogEntry,
   PermissionCheck,
   AICredentialValidation
-} from '@saas-xray/shared-types';
+} from '@singura/shared-types';
 
 export class ChatGPTEnterpriseConnector implements AIPlatformConnector {
   platform: 'chatgpt' = 'chatgpt';
@@ -333,7 +333,7 @@ OPENAI_ENTERPRISE_API_KEY=sk-proj-your-test-key
 OPENAI_ORGANIZATION_ID=org-your-test-org
 
 # Database (Docker local)
-DATABASE_URL=postgresql://postgres:password@localhost:5433/saas_xray
+DATABASE_URL=postgresql://postgres:password@localhost:5433/singura
 
 # Redis (Docker local)
 REDIS_URL=redis://localhost:6379
@@ -377,14 +377,14 @@ Before considering Phase 2 complete:
 
 ## Troubleshooting
 
-### Issue: Cannot find @saas-xray/shared-types
+### Issue: Cannot find @singura/shared-types
 
 **Solution**:
 ```bash
 cd shared-types
 npm run build
 cd ../backend
-npm link @saas-xray/shared-types
+npm link @singura/shared-types
 ```
 
 ### Issue: OpenAI API Rate Limits

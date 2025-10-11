@@ -5,7 +5,7 @@
  */
 
 import { OAuthCredentialStorageService } from './services/oauth-credential-storage-service';
-import { GoogleOAuthCredentials } from '@saas-xray/shared-types';
+import { GoogleOAuthCredentials } from '@singura/shared-types';
 
 async function testOAuthCredentialStorage(): Promise<void> {
   console.log('🧪 Testing OAuth credential storage for live Google detection...');

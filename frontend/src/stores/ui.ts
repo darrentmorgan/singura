@@ -234,7 +234,7 @@ export const useUIStore = create<UIStore>()(
         });
 
         // Auto-remove notification after duration
-        if (newNotification.duration > 0) {
+        if (newNotification.duration && newNotification.duration > 0) {
           setTimeout(() => {
             get().removeNotification(id);
           }, newNotification.duration);
@@ -451,7 +451,7 @@ export const useUIStore = create<UIStore>()(
       },
     }),
     {
-      name: 'saas-xray-ui',
+      name: 'singura-ui',
       storage: createJSONStorage(() => localStorage),
       partialize: (state) => ({
         theme: state.theme,

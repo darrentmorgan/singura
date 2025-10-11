@@ -2,7 +2,7 @@ import {
   OffHoursDetector, 
   GoogleWorkspaceEvent, 
   ActivityTimeframe 
-} from '@saas-xray/shared-types';
+} from '@singura/shared-types';
 import { OffHoursDetectorService } from '../../../src/services/detection/off-hours-detector.service';
 
 describe('OffHoursDetectorService', () => {

@@ -27,10 +27,8 @@ import { Loader2, Activity, TrendingUp, AlertTriangle, CheckCircle2, Download, R
 
 import {
   CorrelationAnalysisResult,
-  ExecutiveRiskReport,
-  AutomationWorkflowChain,
-  MultiPlatformRiskAssessment
-} from '@saas-xray/shared-types';
+  ExecutiveRiskReport
+} from '@singura/shared-types';
 
 /**
  * Correlation dashboard configuration and state management
@@ -103,6 +101,30 @@ export const CorrelationDashboard: React.FC<CorrelationDashboardProps> = ({
   });
 
   /**
+   * Fetch executive report for C-level presentation
+   */
+  const fetchExecutiveReport = useCallback(async () => {
+    try {
+      const response = await fetch(`/api/correlation/${organizationId}/executive-report`);
+
+      if (!response.ok) {
+        throw new Error(`Executive report failed: ${response.statusText}`);
+      }
+
+      const result = await response.json();
+
+      if (result.success) {
+        setState(prev => ({
+          ...prev,
+          executiveReport: result.data
+        }));
+      }
+    } catch (error) {
+      console.error('Executive report fetch failed:', error);
+    }
+  }, [organizationId]);
+
+  /**
    * Execute correlation analysis with real-time progress tracking
    */
   const executeCorrelationAnalysis = useCallback(async () => {
@@ -160,31 +182,7 @@ export const CorrelationDashboard: React.FC<CorrelationDashboardProps> = ({
         analysisStage: ''
       }));
     }
-  }, [organizationId]);
-
-  /**
-   * Fetch executive report for C-level presentation
-   */
-  const fetchExecutiveReport = useCallback(async () => {
-    try {
-      const response = await fetch(`/api/correlation/${organizationId}/executive-report`);
-
-      if (!response.ok) {
-        throw new Error(`Executive report failed: ${response.statusText}`);
-      }
-
-      const result = await response.json();
-
-      if (result.success) {
-        setState(prev => ({
-          ...prev,
-          executiveReport: result.data
-        }));
-      }
-    } catch (error) {
-      console.error('Executive report fetch failed:', error);
-    }
-  }, [organizationId]);
+  }, [organizationId, fetchExecutiveReport]);
 
   /**
    * Fetch correlation status and metrics
@@ -440,7 +438,7 @@ export const CorrelationDashboard: React.FC<CorrelationDashboardProps> = ({
                   <CardHeader>
                     <div className="flex items-center justify-between">
                       <CardTitle className="text-base">{chain.chainName}</CardTitle>
-                      <Badge variant={getRiskLevelColor(chain.riskLevel) as any}>
+                      <Badge variant={getRiskLevelColor(chain.riskLevel) as 'default' | 'secondary' | 'destructive' | 'outline'}>
                         {chain.riskLevel.toUpperCase()}
                       </Badge>
                     </div>

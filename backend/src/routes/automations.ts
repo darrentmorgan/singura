@@ -81,7 +81,7 @@ interface AutomationDetailQueryResult extends AutomationQueryResult {
 interface CountQueryResult {
   total: string;
 }
-import { QueryParameters } from '@saas-xray/shared-types';
+import { QueryParameters } from '@singura/shared-types';
 
 const router: Router = Router();
 

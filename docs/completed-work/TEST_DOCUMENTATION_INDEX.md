@@ -264,7 +264,7 @@ Capture all required screenshots
 
 ### Documentation
 ```
-/Users/darrenmorgan/AI_Projects/saas-xray/
+/Users/darrenmorgan/AI_Projects/singura/
 ├── QUICK_TEST_CHECKLIST.md              # Quick 2-min guide
 ├── AUTOMATION_DETAILS_TEST_REPORT.md    # Comprehensive test doc
 ├── TEST_SUMMARY.md                      # Executive summary
@@ -274,14 +274,14 @@ Capture all required screenshots
 
 ### Test Assets
 ```
-/Users/darrenmorgan/AI_Projects/saas-xray/frontend/e2e/
+/Users/darrenmorgan/AI_Projects/singura/frontend/e2e/
 ├── manual-automation-test.js            # Console test script
 └── automation-details-test.spec.ts      # Playwright E2E test
 ```
 
 ### Source Code
 ```
-/Users/darrenmorgan/AI_Projects/saas-xray/
+/Users/darrenmorgan/AI_Projects/singura/
 ├── frontend/src/components/automations/
 │   └── AutomationDetailsModal.tsx       # Modal component
 ├── frontend/src/services/

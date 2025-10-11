@@ -1,8 +1,8 @@
-# SaaS X-Ray 🔍
+# Singura 🔍
 
 **Enterprise Shadow AI & Automation Detection Platform**
 
-SaaS X-Ray automatically discovers and monitors unauthorized AI agents, bots, and automations running across your organization's SaaS applications. Our AI-focused detection engine identifies when employees are connecting ChatGPT, Claude, and other AI services to sensitive business data, giving security teams visibility into shadow AI usage before it becomes a compliance violation.
+Singura automatically discovers and monitors unauthorized AI agents, bots, and automations running across your organization's SaaS applications. Our AI-focused detection engine identifies when employees are connecting ChatGPT, Claude, and other AI services to sensitive business data, giving security teams visibility into shadow AI usage before it becomes a compliance violation.
 
 ## 🎯 Problem Statement
 
@@ -57,8 +57,8 @@ Most enterprises have **20-50 unauthorized AI integrations** already running in 
 
 ### 1. Clone and Install
 ```bash
-git clone https://github.com/your-org/saas-xray.git
-cd saas-xray
+git clone https://github.com/your-org/singura.git
+cd singura
 
 # Install shared types first (required for type safety)
 cd shared-types && npm install && npm run build
@@ -175,7 +175,7 @@ npm run test:ci
          └────────────────────────┼────────────────────────┘
                                   │
                  ┌─────────────────▼─────────────────┐
-                 │      @saas-xray/shared-types      │
+                 │      @singura/shared-types      │
                  │                                   │
                  │ • API Contracts                   │
                  │ • Database Models                 │
@@ -257,7 +257,7 @@ We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) f
 ## 🏗️ Project Structure
 
 ```
-saas-xray/
+singura/
 ├── shared-types/              # 🎯 Shared TypeScript definitions
 │   ├── src/
 │   │   ├── api/              # API request/response types
@@ -277,7 +277,7 @@ saas-xray/
 │   │   ├── middleware/       # Type-safe middleware
 │   │   └── database/         # Migration and connection
 │   ├── tests/                # Comprehensive test suite
-│   ├── package.json          # Includes @saas-xray/shared-types
+│   ├── package.json          # Includes @singura/shared-types
 │   └── tsconfig.json
 ├── frontend/                  # React + TypeScript SPA
 │   ├── src/
@@ -286,7 +286,7 @@ saas-xray/
 │   │   ├── hooks/            # Custom TypeScript hooks
 │   │   ├── services/         # API client with types
 │   │   └── stores/           # Zustand stores with types
-│   ├── package.json          # Includes @saas-xray/shared-types
+│   ├── package.json          # Includes @singura/shared-types
 │   └── tsconfig.json
 ├── docs/                      # Project documentation
 ├── docker-compose.yml
@@ -342,7 +342,7 @@ import {
   CreateAutomationRequest, 
   AutomationResponse,
   OAuthCredentials 
-} from '@saas-xray/shared-types';
+} from '@singura/shared-types';
 
 // Backend route with proper typing
 app.post('/api/automations', 
@@ -385,9 +385,9 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 Built by [Your Company Name] - Securing enterprise SaaS environments through intelligent automation detection.
 
 **Contact:**
-- Website: https://saas-xray.com
-- Email: hello@saas-xray.com
-- Twitter: @saasxray
+- Website: https://singura.com
+- Email: hello@singura.com
+- Twitter: @singura
 
 ---
 

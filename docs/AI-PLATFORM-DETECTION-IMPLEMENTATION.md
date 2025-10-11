@@ -2,7 +2,7 @@
 
 ## Executive Summary
 
-This document provides a comprehensive, test-driven implementation guide for adding native AI platform login detection (ChatGPT, Claude, Gemini) with GPT-5 intelligent filtering to SaaS X-Ray.
+This document provides a comprehensive, test-driven implementation guide for adding native AI platform login detection (ChatGPT, Claude, Gemini) with GPT-5 intelligent filtering to Singura.
 
 **Development Approach**: Types-First TDD with Parallel Git Worktree Execution
 
@@ -26,11 +26,11 @@ This document provides a comprehensive, test-driven implementation guide for add
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│                    SaaS X-Ray Platform                          │
+│                    Singura Platform                          │
 ├─────────────────────────────────────────────────────────────────┤
 │                                                                 │
 │  ┌──────────────────────────────────────────────────────────┐  │
-│  │         @saas-xray/shared-types (Phase 0)                │  │
+│  │         @singura/shared-types (Phase 0)                │  │
 │  │  • AI Platform Types (ChatGPT, Claude, Gemini)           │  │
 │  │  • GPT-5 Analysis Types                                  │  │
 │  │  • Audit Log Normalization Types                         │  │
@@ -73,7 +73,7 @@ Integration & Testing (SEQUENTIAL - Merge & Validate)
 
 ### Development Workflow
 
-1. **Phase 0**: Create all shared types in `@saas-xray/shared-types` package
+1. **Phase 0**: Create all shared types in `@singura/shared-types` package
 2. **Worktree Setup**: Create separate worktrees for each phase
 3. **Parallel Development**: Implement phases 1-4 simultaneously
 4. **Type Safety**: All phases import from compiled shared-types
@@ -85,7 +85,7 @@ Integration & Testing (SEQUENTIAL - Merge & Validate)
 
 ### Objective
 
-Create comprehensive TypeScript type definitions for all AI platform detection components in the `@saas-xray/shared-types` package.
+Create comprehensive TypeScript type definitions for all AI platform detection components in the `@singura/shared-types` package.
 
 ### Deliverables
 
@@ -959,13 +959,13 @@ Git worktrees allow multiple working directories from a single repository, enabl
 ### Worktree Structure
 
 ```
-saas-xray/                          # Main worktree (main branch)
+singura/                          # Main worktree (main branch)
 ├── .git/
 ├── backend/
 ├── frontend/
 └── shared-types/
 
-../saas-xray-worktrees/
+../singura-worktrees/
 ├── phase-1-gemini/                 # Worktree for Gemini integration
 │   ├── backend/
 │   └── shared-types/ (symlink or reference)
@@ -995,22 +995,22 @@ main
 
 ```bash
 # Navigate to project root
-cd /Users/darrenmorgan/AI_Projects/saas-xray
+cd /Users/darrenmorgan/AI_Projects/singura
 
 # Create worktree directory
-mkdir -p ../saas-xray-worktrees
+mkdir -p ../singura-worktrees
 
 # Phase 1: Gemini
-git worktree add ../saas-xray-worktrees/phase-1-gemini -b feature/gemini-reporting-api
+git worktree add ../singura-worktrees/phase-1-gemini -b feature/gemini-reporting-api
 
 # Phase 2: ChatGPT
-git worktree add ../saas-xray-worktrees/phase-2-chatgpt -b feature/chatgpt-enterprise
+git worktree add ../singura-worktrees/phase-2-chatgpt -b feature/chatgpt-enterprise
 
 # Phase 3: Claude
-git worktree add ../saas-xray-worktrees/phase-3-claude -b feature/claude-enterprise
+git worktree add ../singura-worktrees/phase-3-claude -b feature/claude-enterprise
 
 # Phase 4: GPT-5
-git worktree add ../saas-xray-worktrees/phase-4-gpt5 -b feature/gpt5-analysis
+git worktree add ../singura-worktrees/phase-4-gpt5 -b feature/gpt5-analysis
 
 # List all worktrees
 git worktree list
@@ -1023,13 +1023,13 @@ git worktree list
 **Option 1: Workspace Symlink** (Recommended)
 ```bash
 # In each worktree, after creation
-cd ../saas-xray-worktrees/phase-1-gemini
+cd ../singura-worktrees/phase-1-gemini
 npm install
 cd shared-types
 npm link
 
 cd ../backend
-npm link @saas-xray/shared-types
+npm link @singura/shared-types
 
 # Repeat for each worktree
 ```
@@ -1039,7 +1039,7 @@ npm link @saas-xray/shared-types
 // Each worktree's package.json
 {
   "dependencies": {
-    "@saas-xray/shared-types": "file:../../saas-xray/shared-types"
+    "@singura/shared-types": "file:../../singura/shared-types"
   }
 }
 ```
@@ -1081,7 +1081,7 @@ npm run test:e2e
 ### Phase 1: Gemini Reporting API Integration
 
 **Branch**: `feature/gemini-reporting-api`
-**Worktree**: `../saas-xray-worktrees/phase-1-gemini`
+**Worktree**: `../singura-worktrees/phase-1-gemini`
 **Duration**: 2 weeks
 **Dependencies**: Phase 0 (shared-types)
 
@@ -1100,7 +1100,7 @@ npm run test:e2e
 
 ```typescript
 import { GoogleConnector } from '../google';
-import { GeminiAuditEvent } from '@saas-xray/shared-types';
+import { GeminiAuditEvent } from '@singura/shared-types';
 
 describe('GoogleConnector - Gemini Extension', () => {
   let connector: GoogleConnector;
@@ -1171,7 +1171,7 @@ import {
   AIplatformAuditLog,
   AIAuditLogQuery,
   AIAuditLogResult
-} from '@saas-xray/shared-types';
+} from '@singura/shared-types';
 
 /**
  * Gemini-specific extension for GoogleConnector
@@ -1318,7 +1318,7 @@ describe('Gemini Reporting API Integration', () => {
 ### Phase 2: ChatGPT Enterprise Connector
 
 **Branch**: `feature/chatgpt-enterprise`
-**Worktree**: `../saas-xray-worktrees/phase-2-chatgpt`
+**Worktree**: `../singura-worktrees/phase-2-chatgpt`
 **Duration**: 2 weeks
 **Dependencies**: Phase 0 (shared-types)
 
@@ -1337,7 +1337,7 @@ describe('Gemini Reporting API Integration', () => {
 
 ```typescript
 import { ChatGPTEnterpriseConnector } from '../chatgpt-enterprise';
-import { ChatGPTComplianceAPIConfig } from '@saas-xray/shared-types';
+import { ChatGPTComplianceAPIConfig } from '@singura/shared-types';
 
 describe('ChatGPTEnterpriseConnector', () => {
   let connector: ChatGPTEnterpriseConnector;
@@ -1420,7 +1420,7 @@ import {
   AIAuditLogResult,
   OAuthCredentials,
   ConnectionResult
-} from '@saas-xray/shared-types';
+} from '@singura/shared-types';
 
 export class ChatGPTEnterpriseConnector implements AIPlatformConnector {
   platform: 'chatgpt' = 'chatgpt';
@@ -1702,7 +1702,7 @@ export class ChatGPTEnterpriseConnector implements AIPlatformConnector {
 ### Phase 3: Claude Enterprise Connector
 
 **Branch**: `feature/claude-enterprise`
-**Worktree**: `../saas-xray-worktrees/phase-3-claude`
+**Worktree**: `../singura-worktrees/phase-3-claude`
 **Duration**: 2 weeks
 **Dependencies**: Phase 0 (shared-types)
 
@@ -1729,7 +1729,7 @@ Similar structure to Phase 2, but for Claude Enterprise API.
 ### Phase 4: GPT-5 Analysis Service
 
 **Branch**: `feature/gpt5-analysis`
-**Worktree**: `../saas-xray-worktrees/phase-4-gpt5`
+**Worktree**: `../singura-worktrees/phase-4-gpt5`
 **Duration**: 3 weeks
 **Dependencies**: Phase 0 (shared-types), Phases 1-3 (optional but enhanced with data)
 
@@ -1749,7 +1749,7 @@ Similar structure to Phase 2, but for Claude Enterprise API.
 
 ```typescript
 import { GPT5AnalysisService } from '../gpt5-analysis.service';
-import { GPT5AnalysisRequest } from '@saas-xray/shared-types';
+import { GPT5AnalysisRequest } from '@singura/shared-types';
 
 describe('GPT5AnalysisService', () => {
   let service: GPT5AnalysisService;
@@ -1827,7 +1827,7 @@ import {
   Alert,
   ContextualInsight,
   Recommendation
-} from '@saas-xray/shared-types';
+} from '@singura/shared-types';
 
 export class GPT5AnalysisService {
   private openai: OpenAI;
@@ -2215,7 +2215,7 @@ phases:
 
   - id: phase-1
     name: Gemini Reporting API
-    worktree: ../saas-xray-worktrees/phase-1-gemini
+    worktree: ../singura-worktrees/phase-1-gemini
     branch: feature/gemini-reporting-api
     dependencies: [phase-0]
     tasks:
@@ -2228,7 +2228,7 @@ phases:
 
   - id: phase-2
     name: ChatGPT Enterprise Connector
-    worktree: ../saas-xray-worktrees/phase-2-chatgpt
+    worktree: ../singura-worktrees/phase-2-chatgpt
     branch: feature/chatgpt-enterprise
     dependencies: [phase-0]
     parallel: phase-1
@@ -2242,7 +2242,7 @@ phases:
 
   - id: phase-3
     name: Claude Enterprise Connector
-    worktree: ../saas-xray-worktrees/phase-3-claude
+    worktree: ../singura-worktrees/phase-3-claude
     branch: feature/claude-enterprise
     dependencies: [phase-0]
     parallel: [phase-1, phase-2]
@@ -2256,7 +2256,7 @@ phases:
 
   - id: phase-4
     name: GPT-5 Analysis Service
-    worktree: ../saas-xray-worktrees/phase-4-gpt5
+    worktree: ../singura-worktrees/phase-4-gpt5
     branch: feature/gpt5-analysis
     dependencies: [phase-0]
     parallel: [phase-1, phase-2, phase-3]
@@ -2380,4 +2380,4 @@ conductor rollback phase-2
 
 **Document Version**: 1.0
 **Last Updated**: 2025-01-02
-**Author**: SaaS X-Ray Development Team
+**Author**: Singura Development Team

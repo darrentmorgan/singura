@@ -19,7 +19,7 @@
 
 ### STEP 1: Fix Database Query (5 minutes)
 
-**File**: `/Users/darrenmorgan/AI_Projects/saas-xray/backend/src/database/repositories/discovered-automation.ts`
+**File**: `/Users/darrenmorgan/AI_Projects/singura/backend/src/database/repositories/discovered-automation.ts`
 
 **Location**: Lines 63-107 (inside `findManyCustom` method)
 
@@ -119,7 +119,7 @@ npm test -- src/__tests__/database/repositories/discovered-automation-join.test.
 
 ### STEP 2: Update API Mapping Logic (10 minutes)
 
-**File**: `/Users/darrenmorgan/AI_Projects/saas-xray/backend/src/routes/automations-mock.ts`
+**File**: `/Users/darrenmorgan/AI_Projects/singura/backend/src/routes/automations-mock.ts`
 
 **Location**: Lines 238-257 (inside the GET `/` route handler)
 
@@ -256,7 +256,7 @@ npm test -- src/__tests__/routes/automations-metadata-mapping.test.ts
 ### STEP 3: Run All Tests (2 minutes)
 
 ```bash
-cd /Users/darrenmorgan/AI_Projects/saas-xray/backend
+cd /Users/darrenmorgan/AI_Projects/singura/backend
 npm test -- --testPathPattern="automations-metadata-mapping|discovered-automation-join"
 ```
 
@@ -273,7 +273,7 @@ Time:        ~3s
 
 1. **Start Backend**:
 ```bash
-cd /Users/darrenmorgan/AI_Projects/saas-xray/backend
+cd /Users/darrenmorgan/AI_Projects/singura/backend
 npm run dev
 ```
 
@@ -357,8 +357,8 @@ curl http://localhost:3001/api/automations | jq
 ## Quick Reference
 
 ### Files to Modify
-1. `/Users/darrenmorgan/AI_Projects/saas-xray/backend/src/database/repositories/discovered-automation.ts` (lines 63-107)
-2. `/Users/darrenmorgan/AI_Projects/saas-xray/backend/src/routes/automations-mock.ts` (lines 238-257)
+1. `/Users/darrenmorgan/AI_Projects/singura/backend/src/database/repositories/discovered-automation.ts` (lines 63-107)
+2. `/Users/darrenmorgan/AI_Projects/singura/backend/src/routes/automations-mock.ts` (lines 238-257)
 
 ### Test Commands
 ```bash

@@ -196,7 +196,7 @@ According to the MCP mapping configuration (`/.claude/agents/mcp-mapping.json`),
 12. mcp__chrome-devtools__take_screenshot() // Final state
 ```
 
-**Alternative**: Manual testing script created at `/Users/darrenmorgan/AI_Projects/saas-xray/test-automation-metadata.js`
+**Alternative**: Manual testing script created at `/Users/darrenmorgan/AI_Projects/singura/test-automation-metadata.js`
 
 ---
 
@@ -230,7 +230,7 @@ According to the MCP mapping configuration (`/.claude/agents/mcp-mapping.json`),
 
 ```bash
 # Verify automation exists by UUID
-PGPASSWORD=password psql -h localhost -p 5433 -U postgres -d saas_xray -c \
+PGPASSWORD=password psql -h localhost -p 5433 -U postgres -d singura -c \
   "SELECT id, name, external_id FROM discovered_automations WHERE id = 'aa28cdc1-8af7-4ab9-8be8-005991bb375d';"
 
 # Expected output:
@@ -304,9 +304,9 @@ PGPASSWORD=password psql -h localhost -p 5433 -U postgres -d saas_xray -c \
 
 ## Test Artifacts
 
-1. **Test Report**: `/Users/darrenmorgan/AI_Projects/saas-xray/AUTOMATION_METADATA_TEST_REPORT.md`
-2. **Browser Test Script**: `/Users/darrenmorgan/AI_Projects/saas-xray/test-automation-metadata.js`
-3. **This Summary**: `/Users/darrenmorgan/AI_Projects/saas-xray/QA_AUTOMATION_METADATA_FIX_SUMMARY.md`
+1. **Test Report**: `/Users/darrenmorgan/AI_Projects/singura/AUTOMATION_METADATA_TEST_REPORT.md`
+2. **Browser Test Script**: `/Users/darrenmorgan/AI_Projects/singura/test-automation-metadata.js`
+3. **This Summary**: `/Users/darrenmorgan/AI_Projects/singura/QA_AUTOMATION_METADATA_FIX_SUMMARY.md`
 
 ---
 

@@ -3,7 +3,7 @@
 ## Pre-Test Cleanup (RECOMMENDED)
 ```bash
 # Delete old ChatGPT automation to force fresh creation
-docker exec saas-xray-postgres-1 psql -U postgres -d saas_xray -c "DELETE FROM discovered_automations WHERE name = 'ChatGPT';"
+docker exec singura-postgres-1 psql -U postgres -d singura -c "DELETE FROM discovered_automations WHERE name = 'ChatGPT';"
 ```
 
 ## Test Steps (5 minutes)
@@ -17,14 +17,14 @@ docker exec saas-xray-postgres-1 psql -U postgres -d saas_xray -c "DELETE FROM d
 ## Database Verification
 ```bash
 # Check permissions populated
-docker exec saas-xray-postgres-1 psql -U postgres -d saas_xray -c "
+docker exec singura-postgres-1 psql -U postgres -d singura -c "
 SELECT name, jsonb_array_length(permissions_required) as perm_count 
 FROM discovered_automations WHERE name = 'ChatGPT';"
 
 # Expected: perm_count = 4 (not 0)
 
 # Check risk assessment
-docker exec saas-xray-postgres-1 psql -U postgres -d saas_xray -c "
+docker exec singura-postgres-1 psql -U postgres -d singura -c "
 SELECT risk_level, risk_score FROM risk_assessments 
 WHERE automation_id = (SELECT id FROM discovered_automations WHERE name = 'ChatGPT' LIMIT 1);"
 
@@ -33,7 +33,7 @@ WHERE automation_id = (SELECT id FROM discovered_automations WHERE name = 'ChatG
 
 ## Monitor Discovery Logs
 ```bash
-docker logs -f saas-xray-backend-1 --tail 50 | grep -E "OAuth|ChatGPT|discovery"
+docker logs -f singura-backend-1 --tail 50 | grep -E "OAuth|ChatGPT|discovery"
 ```
 
 ## Success Checklist
@@ -43,4 +43,4 @@ docker logs -f saas-xray-backend-1 --tail 50 | grep -E "OAuth|ChatGPT|discovery"
 - [ ] Database risk_level = 'high'
 
 ## Full Report
-See: /Users/darrenmorgan/AI_Projects/saas-xray/QA_TEST_REPORT_OAUTH_ENRICHMENT.md
+See: /Users/darrenmorgan/AI_Projects/singura/QA_TEST_REPORT_OAUTH_ENRICHMENT.md

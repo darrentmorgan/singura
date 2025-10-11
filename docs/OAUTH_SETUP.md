@@ -1,10 +1,10 @@
 # OAuth Setup Documentation
 
-This document provides step-by-step instructions for configuring OAuth applications with Slack, Google Workspace, and Microsoft 365 to enable SaaS X-Ray's automation discovery capabilities.
+This document provides step-by-step instructions for configuring OAuth applications with Slack, Google Workspace, and Microsoft 365 to enable Singura's automation discovery capabilities.
 
 ## Overview
 
-SaaS X-Ray requires read-only access to your organization's SaaS platforms to discover and analyze automations, bots, and integrations. All OAuth configurations follow the principle of least privilege, requesting only the minimum permissions necessary for automation detection.
+Singura requires read-only access to your organization's SaaS platforms to discover and analyze automations, bots, and integrations. All OAuth configurations follow the principle of least privilege, requesting only the minimum permissions necessary for automation detection.
 
 ## Slack OAuth Setup
 
@@ -12,7 +12,7 @@ SaaS X-Ray requires read-only access to your organization's SaaS platforms to di
 
 1. Visit [Slack API Console](https://api.slack.com/apps)
 2. Click "Create New App" → "From scratch"
-3. App Name: `SaaS X-Ray Automation Scanner`
+3. App Name: `Singura Automation Scanner`
 4. Select your workspace for development
 5. Click "Create App"
 
@@ -60,7 +60,7 @@ SLACK_REDIRECT_URI=http://localhost:3001/api/auth/callback/slack
 3. Review permissions and click "Allow"
 4. Save the **Bot User OAuth Token** for testing
 
-### What SaaS X-Ray Detects in Slack:
+### What Singura Detects in Slack:
 - ✅ Installed bots and their permissions
 - ✅ Workflow automations and triggers
 - ✅ App integrations and webhooks
@@ -75,7 +75,7 @@ SLACK_REDIRECT_URI=http://localhost:3001/api/auth/callback/slack
 ### Step 1: Create Google Cloud Project
 
 1. Visit [Google Cloud Console](https://console.cloud.google.com/)
-2. Create new project: "SaaS X-Ray Scanner"
+2. Create new project: "Singura Scanner"
 3. Enable required APIs:
    - Admin SDK API
    - Apps Script API
@@ -88,7 +88,7 @@ SLACK_REDIRECT_URI=http://localhost:3001/api/auth/callback/slack
 1. Go to "APIs & Services" → "OAuth consent screen"
 2. Choose "External" user type (or "Internal" for Google Workspace organizations)
 3. Fill in application details:
-   - App name: `SaaS X-Ray`
+   - App name: `Singura`
    - User support email: Your email
    - Developer contact: Your email
 4. Add scopes (see Step 3)
@@ -117,7 +117,7 @@ SLACK_REDIRECT_URI=http://localhost:3001/api/auth/callback/slack
 1. Go to "APIs & Services" → "Credentials"
 2. Click "Create Credentials" → "OAuth client ID"
 3. Application type: "Web application"
-4. Name: "SaaS X-Ray Web Client"
+4. Name: "Singura Web Client"
 5. Authorized redirect URIs:
    - `http://localhost:3001/api/auth/callback/google`
    - `https://your-domain.com/api/auth/callback/google`
@@ -139,7 +139,7 @@ For deeper integration insights:
 3. Add to Google Workspace Admin Console
 4. Grant additional scopes for service account impersonation
 
-### What SaaS X-Ray Detects in Google Workspace:
+### What Singura Detects in Google Workspace:
 - ✅ Apps Script projects and triggers
 - ✅ Service accounts and API keys
 - ✅ OAuth applications and permissions
@@ -158,7 +158,7 @@ For deeper integration insights:
 1. Visit [Azure Portal](https://portal.azure.com/)
 2. Go to "Azure Active Directory" → "App registrations"
 3. Click "New registration"
-4. Name: `SaaS X-Ray Automation Scanner`
+4. Name: `Singura Automation Scanner`
 5. Account types: "Accounts in this organizational directory only"
 6. Redirect URI: `http://localhost:3001/api/auth/callback/microsoft`
 
@@ -201,7 +201,7 @@ In "Authentication":
 
 1. Go to "Certificates & secrets"
 2. Click "New client secret"
-3. Description: "SaaS X-Ray Client Secret"
+3. Description: "Singura Client Secret"
 4. Expires: 12 months (or per your security policy)
 5. Copy the secret value immediately
 
@@ -215,7 +215,7 @@ MICROSOFT_TENANT_ID=your-tenant-id
 MICROSOFT_REDIRECT_URI=http://localhost:3001/api/auth/callback/microsoft
 ```
 
-### What SaaS X-Ray Detects in Microsoft 365:
+### What Singura Detects in Microsoft 365:
 - ✅ Azure AD app registrations
 - ✅ Power Automate flows and connectors
 - ✅ Power Apps and custom connectors

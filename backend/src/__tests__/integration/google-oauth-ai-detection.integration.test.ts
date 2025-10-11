@@ -1,6 +1,6 @@
 import { GoogleConnector } from '../../connectors/google';
 import { googleOAuthAIDetector } from '../../services/detection/google-oauth-ai-detector.service';
-import { AIAuditLogQuery } from '@saas-xray/shared-types';
+import { AIAuditLogQuery } from '@singura/shared-types';
 
 describe('Google OAuth AI Detection Integration', () => {
   let connector: GoogleConnector;

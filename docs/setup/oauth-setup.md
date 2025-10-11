@@ -1,5 +1,5 @@
 # OAuth Platform Setup Guide
-**SaaS X-Ray - Enterprise Shadow AI Detection Platform**
+**Singura - Enterprise Shadow AI Detection Platform**
 
 *Last Updated: September 2025 - Production-Ready OAuth Integration*
 
@@ -24,7 +24,7 @@ This guide covers setting up OAuth integrations for discovering shadow AI and au
 
 1. **Visit [Slack API Console](https://api.slack.com/apps)**
 2. **Click "Create New App"** → **"From scratch"**
-3. **App Name**: `SaaS X-Ray Scanner`
+3. **App Name**: `Singura Scanner`
 4. **Select your workspace** for development/testing
 5. **Click "Create App"**
 
@@ -205,4 +205,4 @@ After successful OAuth setup, you should see:
 - ✅ **Audit trails** of OAuth grants and token usage
 - ✅ **Shadow AI detection** based on connected workspace data
 
-**Next Step**: Explore the discovered automations and AI integrations in your connected Slack workspace through the SaaS X-Ray dashboard.
+**Next Step**: Explore the discovered automations and AI integrations in your connected Slack workspace through the Singura dashboard.

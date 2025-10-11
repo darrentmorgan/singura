@@ -8,7 +8,7 @@ import * as crypto from 'crypto';
 import { URL } from 'url';
 import { Request, Response } from 'express';
 import axios from 'axios';
-import { isObject, isString } from '@saas-xray/shared-types';
+import { isObject, isString } from '@singura/shared-types';
 
 export interface OAuthConfig {
   clientId: string;
@@ -57,7 +57,7 @@ export class OAuthSecurityService {
     this.allowedRedirectHosts = new Set([
       'localhost',
       '127.0.0.1',
-      process.env.FRONTEND_DOMAIN || 'app.saas-xray.com'
+      process.env.FRONTEND_DOMAIN || 'app.singura.com'
     ].filter(Boolean));
   }
 

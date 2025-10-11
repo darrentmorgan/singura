@@ -137,7 +137,7 @@ export default defineConfig({
   metadata: {
     testType: 'e2e',
     framework: 'playwright',
-    application: 'saas-xray',
+    application: 'singura',
     environment: process.env.NODE_ENV || 'test',
   },
 });

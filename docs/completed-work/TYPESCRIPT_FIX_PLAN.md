@@ -197,7 +197,7 @@ import { runMigrations } from './migrate';  // Use actual export
 
 **Fix**: Import from shared-types
 ```typescript
-import { SlackOAuthCredentials } from '@saas-xray/shared-types';
+import { SlackOAuthCredentials } from '@singura/shared-types';
 ```
 
 #### `services/discovery-service.ts` (1 error)

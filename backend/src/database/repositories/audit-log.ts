@@ -12,7 +12,7 @@ import {
   PaginatedResult,
   PaginationOptions
 } from '../../types/database';
-import { QueryParameters } from '@saas-xray/shared-types';
+import { QueryParameters } from '@singura/shared-types';
 
 export class AuditLogRepository extends BaseRepository<
   AuditLog,

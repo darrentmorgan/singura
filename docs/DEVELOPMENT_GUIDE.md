@@ -1,4 +1,4 @@
-# SaaS X-Ray Development Guide
+# Singura Development Guide
 
 ## 🚀 Getting Started
 
@@ -12,8 +12,8 @@
 ### Local Setup
 ```bash
 # Clone the repository
-git clone https://github.com/saas-xray/platform.git
-cd saas-xray
+git clone https://github.com/singura/platform.git
+cd singura
 
 # Install dependencies
 npm install
@@ -99,7 +99,7 @@ npm run memory:analyze
 ```
 
 ## 📝 Documentation
-- Keep `@saas-xray/shared-types` updated
+- Keep `@singura/shared-types` updated
 - Document new features in Swagger
 - Update README for significant changes
 

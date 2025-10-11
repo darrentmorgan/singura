@@ -1,4 +1,4 @@
-# SaaS X-Ray Technical Specification
+# Singura Technical Specification
 
 **Version**: 1.0  
 **Date**: January 2025  
@@ -647,7 +647,7 @@ services:
   postgres:
     image: postgres:16-alpine
     environment:
-      POSTGRES_DB: saas_xray
+      POSTGRES_DB: singura
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: ${DB_PASSWORD}
     volumes:
@@ -668,7 +668,7 @@ services:
       context: .
       dockerfile: Dockerfile.api
     environment:
-      DATABASE_URL: postgresql://postgres:${DB_PASSWORD}@postgres:5432/saas_xray
+      DATABASE_URL: postgresql://postgres:${DB_PASSWORD}@postgres:5432/singura
       REDIS_URL: redis://redis:6379
       JWT_SECRET: ${JWT_SECRET}
       SLACK_CLIENT_ID: ${SLACK_CLIENT_ID}
@@ -696,7 +696,7 @@ services:
       dockerfile: Dockerfile.api
     command: ["node", "src/worker.js"]
     environment:
-      DATABASE_URL: postgresql://postgres:${DB_PASSWORD}@postgres:5432/saas_xray
+      DATABASE_URL: postgresql://postgres:${DB_PASSWORD}@postgres:5432/singura
       REDIS_URL: redis://redis:6379
     depends_on:
       - postgres
@@ -708,7 +708,7 @@ volumes:
 
 networks:
   default:
-    name: saas_xray
+    name: singura
 ```
 
 ## Performance Requirements

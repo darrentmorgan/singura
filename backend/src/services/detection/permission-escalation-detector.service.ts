@@ -1,7 +1,7 @@
 import {
   GoogleWorkspaceEvent,
   GoogleActivityPattern
-} from '@saas-xray/shared-types';
+} from '@singura/shared-types';
 
 interface PermissionChange {
   timestamp: Date;

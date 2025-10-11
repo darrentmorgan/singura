@@ -3,7 +3,7 @@ import {
   GoogleWorkspaceEvent,
   GoogleActivityPattern,
   BatchOperationGroup
-} from '@saas-xray/shared-types';
+} from '@singura/shared-types';
 
 export class BatchOperationDetectorService implements BatchOperationDetector {
   detectBatchOperations(events: GoogleWorkspaceEvent[]): GoogleActivityPattern[] {

@@ -193,10 +193,10 @@ The backend was restarted with debug logging enabled. Monitor the backend consol
 ## Contact
 
 **Test File Location:**
-`/Users/darrenmorgan/AI_Projects/saas-xray/frontend/tests/e2e/oauth-scope-enrichment.spec.ts`
+`/Users/darrenmorgan/AI_Projects/singura/frontend/tests/e2e/oauth-scope-enrichment.spec.ts`
 
 **Screenshot Directory:**
-`/Users/darrenmorgan/AI_Projects/saas-xray/frontend/test-results/oauth-scope-enrichment/`
+`/Users/darrenmorgan/AI_Projects/singura/frontend/test-results/oauth-scope-enrichment/`
 
 **To re-run test:**
 ```bash

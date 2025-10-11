@@ -2,7 +2,7 @@
 
 ## Overview
 
-This document describes the automated CI/CD pipeline for Singura AI (formerly SaaS X-Ray). The pipeline runs on every Pull Request to ensure code quality, security, and functionality before merging.
+This document describes the automated CI/CD pipeline for Singura AI (formerly Singura). The pipeline runs on every Pull Request to ensure code quality, security, and functionality before merging.
 
 ## GitHub Actions Workflow
 
@@ -165,7 +165,7 @@ Coverage reports are uploaded to Codecov automatically:
 - Frontend coverage: Flag `frontend`
 - Backend coverage: Flag `backend`
 
-View coverage at: `https://codecov.io/gh/YOUR_ORG/saas-xray`
+View coverage at: `https://codecov.io/gh/YOUR_ORG/singura`
 
 ### E2E Test Reports
 

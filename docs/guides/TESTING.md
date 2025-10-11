@@ -1,6 +1,6 @@
-# SaaS X-Ray Backend Testing Strategy
+# Singura Backend Testing Strategy
 
-This document outlines the comprehensive testing approach for the SaaS X-Ray backend, covering all layers from database to API endpoints with security-first testing principles.
+This document outlines the comprehensive testing approach for the Singura backend, covering all layers from database to API endpoints with security-first testing principles.
 
 ## 🎯 Testing Philosophy
 
@@ -40,9 +40,9 @@ Our testing strategy follows the **Test Pyramid** model with emphasis on securit
 npm install
 
 # Setup test database (Docker)
-docker run -d --name saas-xray-test-db \
+docker run -d --name singura-test-db \
   -p 5433:5432 \
-  -e POSTGRES_DB=saas_xray_test \
+  -e POSTGRES_DB=singura_test \
   -e POSTGRES_USER=test_user \
   -e POSTGRES_PASSWORD=test_password \
   postgres:15-alpine

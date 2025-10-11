@@ -19,7 +19,7 @@ jobs:
         image: postgres:16
         env:
           POSTGRES_PASSWORD: password
-          POSTGRES_DB: saas_xray_test
+          POSTGRES_DB: singura_test
         options: >-
           --health-cmd pg_isready
           --health-interval 10s
@@ -72,7 +72,7 @@ jobs:
         NODE_ENV: test
         DB_HOST: localhost
         DB_PORT: 5433
-        DB_NAME: saas_xray_test
+        DB_NAME: singura_test
         DB_USER: postgres
         DB_PASSWORD: password
         REDIS_URL: redis://localhost:6380

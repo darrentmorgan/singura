@@ -1,10 +1,10 @@
 # Google Workspace OAuth Setup Guide
 
-This guide will help you set up Google Cloud Project and OAuth credentials for SaaS X-Ray's automation discovery features.
+This guide will help you set up Google Cloud Project and OAuth credentials for Singura's automation discovery features.
 
 ## 🎯 What We'll Discover
 
-SaaS X-Ray's Google integration discovers:
+Singura's Google integration discovers:
 - **Apps Script Projects** - Automation scripts in Sheets, Docs, Forms
 - **Service Accounts** - Bot accounts with API access
 - **OAuth Applications** - Third-party apps with workspace access
@@ -26,7 +26,7 @@ SaaS X-Ray's Google integration discovers:
 2. **Create New Project**
    - Click "Select a project" dropdown at the top
    - Click "New Project"
-   - Project name: `saas-xray-detection`
+   - Project name: `singura-detection`
    - Organization: Select your workspace organization
    - Click "Create"
 
@@ -43,7 +43,7 @@ SaaS X-Ray's Google integration discovers:
 1. **Configure OAuth Consent Screen**
    - Go to APIs & Services > OAuth consent screen
    - User Type: **Internal** (if you have Google Workspace) or **External**
-   - Application name: `SaaS X-Ray Security Platform`
+   - Application name: `Singura Security Platform`
    - User support email: Your email
    - Application home page: `http://localhost:3000`
    - Privacy policy: `http://localhost:3000/privacy`
@@ -67,7 +67,7 @@ SaaS X-Ray's Google integration discovers:
    - Go to APIs & Services > Credentials
    - Click "Create Credentials" > "OAuth client ID"
    - Application type: **Web application**
-   - Name: `SaaS X-Ray Web Client`
+   - Name: `Singura Web Client`
    - Authorized JavaScript origins:
      - `http://localhost:3000`
      - `http://localhost:3001`
@@ -90,7 +90,7 @@ SaaS X-Ray's Google integration discovers:
 2. **Service Account** (Optional for advanced features)
    - Go to APIs & Services > Credentials
    - Create Credentials > Service Account
-   - Name: `saas-xray-service-account`
+   - Name: `singura-service-account`
    - Grant roles: `Viewer`, `Service Account User`
    - Create and download JSON key file
 
@@ -105,7 +105,7 @@ GOOGLE_CLIENT_SECRET=GOCSPX-your-client-secret-here
 GOOGLE_REDIRECT_URI=http://localhost:3001/api/auth/callback/google
 
 # Optional: Service Account (for domain-wide delegation)
-GOOGLE_SERVICE_ACCOUNT_EMAIL=saas-xray-service-account@your-project.iam.gserviceaccount.com
+GOOGLE_SERVICE_ACCOUNT_EMAIL=singura-service-account@your-project.iam.gserviceaccount.com
 GOOGLE_SERVICE_ACCOUNT_KEY_PATH=/path/to/service-account-key.json
 ```
 

@@ -4,7 +4,7 @@ import {
   SlackOAuthCredentials, 
   SlackOAuthConfig,
   SlackOAuthRawResponse
-} from '@saas-xray/shared-types';
+} from '@singura/shared-types';
 import { 
   getEncryptionService, 
   createAuditLogEntry, 
