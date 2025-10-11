@@ -311,6 +311,9 @@ jobs:
           PORT: 3000
           NODE_ENV: test
           MASTER_ENCRYPTION_KEY: test-encryption-key-for-ci-minimum-64-characters-required-for-aes-256
+          REDIS_URL: redis://localhost:6379
+          PORT: 3000
+          NODE_ENV: test
 
       - name: Start Frontend Server
         working-directory: ./frontend
