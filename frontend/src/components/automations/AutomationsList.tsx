@@ -59,6 +59,7 @@ export const AutomationsList: React.FC<AutomationsListProps> = ({
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedAutomation, setSelectedAutomation] = useState<AutomationDiscovery | null>(null);
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
+  const [modalInitialTab, setModalInitialTab] = useState<'permissions' | 'risk' | 'feedback' | 'details'>('permissions');
   
   // Store state
   const automations = useAutomations();
@@ -129,6 +130,14 @@ export const AutomationsList: React.FC<AutomationsListProps> = ({
   const handleViewDetails = (automation: AutomationDiscovery) => {
     selectAutomation(automation);
     setSelectedAutomation(automation);
+    setModalInitialTab('permissions'); // Reset to default tab
+    setIsDetailsModalOpen(true);
+  };
+
+  const handleViewFeedback = (automation: AutomationDiscovery) => {
+    selectAutomation(automation);
+    setSelectedAutomation(automation);
+    setModalInitialTab('feedback'); // Open on feedback tab
     setIsDetailsModalOpen(true);
   };
 
@@ -398,6 +407,7 @@ export const AutomationsList: React.FC<AutomationsListProps> = ({
               key={automation.id}
               automation={automation}
               onViewDetails={handleViewDetails}
+              onViewFeedback={handleViewFeedback}
               onToggleStatus={handleToggleStatus}
               showPlatform={showPlatformFilter}
               compact={viewMode === 'list'}
@@ -455,6 +465,7 @@ export const AutomationsList: React.FC<AutomationsListProps> = ({
           isOpen={isDetailsModalOpen}
           onClose={handleCloseDetailsModal}
           onAssessRisk={handleAssessRisk}
+          initialTab={modalInitialTab}
         />
       )}
     </div>

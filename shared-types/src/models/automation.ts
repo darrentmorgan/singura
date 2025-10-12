@@ -3,6 +3,18 @@
  * Core types for discovered automations and bots across SaaS platforms
  */
 
+// Import detection types from ai-provider-patterns
+import type {
+  DetectionMethod as DetectionMethodType,
+  AIProviderDetectionResult as AIProviderDetectionResultType
+} from '../utils/ai-provider-patterns';
+
+// Re-export DetectionMethod for shared use
+export type { DetectionMethod } from '../utils/ai-provider-patterns';
+
+// Internal type alias for detection metadata (not exported to avoid conflicts)
+type AIProviderDetection = AIProviderDetectionResultType;
+
 /**
  * Types of automations we can discover
  */
@@ -29,12 +41,15 @@ export type AutomationStatus = 'active' | 'inactive' | 'error' | 'unknown';
 /**
  * AI service providers we detect
  */
-export type AIProvider = 
-  | 'openai' 
-  | 'anthropic' 
-  | 'google' 
-  | 'cohere' 
-  | 'huggingface' 
+export type AIProvider =
+  | 'openai'
+  | 'anthropic'
+  | 'google_ai'
+  | 'cohere'
+  | 'huggingface'
+  | 'replicate'
+  | 'mistral'
+  | 'together_ai'
   | 'custom'
   | 'unknown';
 
@@ -80,7 +95,13 @@ export interface Automation {
   
   /** Technical metadata */
   metadata: AutomationMetadata;
-  
+
+  /** Detection algorithm metadata */
+  detectionMetadata?: DetectionMetadata;
+
+  /** Risk score history tracking */
+  riskScoreHistory?: RiskScoreHistoryEntry[];
+
   /** Discovery and update timestamps */
   discoveredAt: Date;
   lastSeenAt: Date;
@@ -366,4 +387,171 @@ export interface AutomationAlert {
   /** Acknowledged by user */
   acknowledgedBy?: string;
   acknowledgedAt?: Date;
+}
+
+/**
+ * Detection pattern types
+ */
+export type DetectionPatternType =
+  | 'velocity'
+  | 'batch_operation'
+  | 'off_hours'
+  | 'timing_variance'
+  | 'permission_escalation'
+  | 'data_volume'
+  | 'ai_provider';
+
+/**
+ * Cross-platform correlation types
+ */
+export type CorrelationType =
+  | 'same_ai_provider'
+  | 'similar_timing'
+  | 'data_flow_chain'
+  | 'shared_credentials'
+  | 'similar_naming';
+
+/**
+ * Individual detection pattern result
+ */
+export interface DetectionPattern {
+  /** Type of detection pattern */
+  patternType: DetectionPatternType;
+
+  /** Confidence score (0-100) */
+  confidence: number;
+
+  /** Severity level */
+  severity: 'low' | 'medium' | 'high' | 'critical';
+
+  /** Evidence supporting this detection */
+  evidence: Record<string, unknown>;
+
+  /** When this pattern was detected */
+  detectedAt: Date;
+
+  /** Pattern-specific metadata */
+  metadata?: Record<string, unknown>;
+}
+
+/**
+ * Complete detection metadata stored in JSONB column
+ */
+export interface DetectionMetadata {
+  /** AI provider detection results */
+  aiProvider?: AIProviderDetectionResultType;
+
+  /** All detection pattern results */
+  detectionPatterns?: DetectionPattern[];
+
+  /** Cross-platform correlation data */
+  correlationData?: CrossPlatformCorrelationData;
+
+  /** Detector configuration */
+  detectorConfiguration?: DetectorConfiguration;
+
+  /** Last metadata update */
+  lastUpdated: Date;
+}
+
+/**
+ * Related automation for cross-platform correlation
+ */
+export interface RelatedAutomation {
+  /** Related automation ID */
+  automationId: string;
+
+  /** Platform of related automation */
+  platform: string;
+
+  /** Similarity score (0-100) */
+  similarityScore: number;
+
+  /** Type of correlation */
+  correlationType: CorrelationType;
+
+  /** Correlation evidence */
+  evidence?: string[];
+}
+
+/**
+ * Cross-platform correlation data (specific to automation model)
+ * Named differently to avoid conflict with utils/cross-platform-correlation
+ */
+export interface CrossPlatformCorrelationData {
+  /** Related automations across platforms */
+  relatedAutomations: RelatedAutomation[];
+
+  /** Is this part of a cross-platform automation chain */
+  crossPlatformChain: boolean;
+
+  /** Chain confidence score (0-100) */
+  chainConfidence?: number;
+
+  /** Chain description */
+  chainDescription?: string;
+
+  /** Last correlation analysis timestamp */
+  lastAnalyzedAt: Date;
+}
+
+/**
+ * Detector configuration and custom thresholds
+ */
+export interface DetectorConfiguration {
+  /** Enabled detectors */
+  enabledDetectors: DetectionPatternType[];
+
+  /** Custom thresholds for each detector */
+  customThresholds?: {
+    velocity?: {
+      eventsPerSecond?: number;
+      fileCreationThreshold?: number;
+      permissionChangeThreshold?: number;
+    };
+    batch?: {
+      minSimilarity?: number;
+      minBatchSize?: number;
+    };
+    offHours?: {
+      startHour?: number;
+      endHour?: number;
+      daysOfWeek?: number[];
+    };
+    timingVariance?: {
+      maxCoefficientOfVariation?: number;
+    };
+    dataVolume?: {
+      volumeIncreaseThreshold?: number;
+    };
+  };
+
+  /** Configuration last updated */
+  lastUpdatedAt?: Date;
+}
+
+/**
+ * Risk score history entry
+ */
+export interface RiskScoreHistoryEntry {
+  /** Timestamp of this risk assessment */
+  timestamp: Date;
+
+  /** Risk score (0-100) */
+  score: number;
+
+  /** Risk level classification */
+  level: RiskLevel;
+
+  /** Risk factors at this point in time */
+  factors: RiskFactor[];
+
+  /** What triggered this risk assessment */
+  trigger:
+    | 'initial_discovery'
+    | 'permission_change'
+    | 'activity_spike'
+    | 'manual_reassessment'
+    | 'detector_update'
+    | 'scheduled_scan';
 }

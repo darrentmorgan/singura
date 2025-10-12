@@ -3,6 +3,9 @@
 
 set -e
 
+# Ensure we have project root for absolute paths
+PROJECT_ROOT="${CLAUDE_PROJECT_DIR:-$(pwd)}"
+
 echo "🚀 Post-commit Hook Starting..."
 
 # Colors
@@ -41,7 +44,7 @@ else
 fi
 
 # Log commit for agent tracking
-COMMIT_LOG=".claude/.commit-history.log"
+COMMIT_LOG="$PROJECT_ROOT/.claude/.commit-history.log"
 echo "$(date '+%Y-%m-%d %H:%M:%S') | $CURRENT_BRANCH | $COMMIT_HASH | $COMMIT_MSG" >> "$COMMIT_LOG"
 
 echo -e "${GREEN}✅ Post-commit hook completed${NC}"

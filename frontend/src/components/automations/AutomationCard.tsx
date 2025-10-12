@@ -23,6 +23,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { AutomationDiscovery } from '@/types/api';
 import { cn } from '@/lib/utils';
+import { AutomationFeedback } from '@/components/feedback';
 
 // Automation type icons
 const automationTypeIcons = {
@@ -53,6 +54,7 @@ const statusColors = {
 interface AutomationCardProps {
   automation: AutomationDiscovery;
   onViewDetails?: (automation: AutomationDiscovery) => void;
+  onViewFeedback?: (automation: AutomationDiscovery) => void;
   onToggleStatus?: (automationId: string) => void;
   showPlatform?: boolean;
   compact?: boolean;
@@ -62,6 +64,7 @@ interface AutomationCardProps {
 export const AutomationCard: React.FC<AutomationCardProps> = ({
   automation,
   onViewDetails,
+  onViewFeedback,
   onToggleStatus,
   showPlatform = true,
   compact = false,
@@ -270,8 +273,17 @@ export const AutomationCard: React.FC<AutomationCardProps> = ({
         )}
       </div>
 
+      {/* Feedback Section */}
+      <div className="mt-6 pt-4 border-t">
+        <AutomationFeedback
+          automationId={automation.id}
+          compact={true}
+          onOpenFeedbackView={() => onViewFeedback?.(automation)}
+        />
+      </div>
+
       {/* Actions */}
-      <div className="flex items-center justify-between mt-6 pt-4 border-t">
+      <div className="flex items-center justify-between mt-4 pt-4 border-t">
         <Button
           variant="outline"
           size="sm"
@@ -287,7 +299,7 @@ export const AutomationCard: React.FC<AutomationCardProps> = ({
             size="sm"
             onClick={handleToggleStatus}
             className={cn(
-              automation.status === 'active' 
+              automation.status === 'active'
                 ? "text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/20"
                 : "text-green-600 hover:text-green-700 hover:bg-green-50 dark:hover:bg-green-950/20"
             )}

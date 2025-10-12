@@ -30,7 +30,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import { AutomationDiscovery } from '@/types/api';
 import { cn } from '@/lib/utils';
-import { automationsApi } from '@/services/api';
+import { automationsApi, feedbackApi } from '@/services/api';
+import { AutomationFeedback, FeedbackList } from '@/components/feedback';
+import { AutomationFeedback as AutomationFeedbackType } from '@singura/shared-types';
 
 // Extended type for detailed automation data with enriched permissions
 interface EnrichedScope {
@@ -107,16 +109,26 @@ interface AutomationDetailsModalProps {
   isOpen: boolean;
   onClose: () => void;
   onAssessRisk?: (automationId: string) => void;
+  initialTab?: 'permissions' | 'risk' | 'feedback' | 'details';
 }
 
 export const AutomationDetailsModal: React.FC<AutomationDetailsModalProps> = ({
   automation,
   isOpen,
   onClose,
-  onAssessRisk
+  onAssessRisk,
+  initialTab = 'permissions'
 }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [detailedData, setDetailedData] = useState<DetailedAutomationData | null>(null);
+  const [feedbackList, setFeedbackList] = useState<AutomationFeedbackType[]>([]);
+  const [isFeedbackLoading, setIsFeedbackLoading] = useState(false);
+  const [activeTab, setActiveTab] = useState<'permissions' | 'risk' | 'feedback' | 'details'>(initialTab);
+
+  // Sync activeTab with initialTab prop changes
+  useEffect(() => {
+    setActiveTab(initialTab);
+  }, [initialTab]);
 
   const TypeIcon = automationTypeIcons[automation.type] || Bot;
 
@@ -134,9 +146,24 @@ export const AutomationDetailsModal: React.FC<AutomationDetailsModalProps> = ({
     }
   };
 
+  const fetchFeedback = async () => {
+    setIsFeedbackLoading(true);
+    try {
+      const response = await feedbackApi.getFeedbackByAutomation(automation.id);
+      if (response.success && response.data && Array.isArray(response.data)) {
+        setFeedbackList(response.data);
+      }
+    } catch (error) {
+      console.error('Failed to fetch feedback:', error);
+    } finally {
+      setIsFeedbackLoading(false);
+    }
+  };
+
   useEffect(() => {
     if (isOpen && automation.id) {
       fetchDetailedData();
+      fetchFeedback();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen, automation.id]);
@@ -244,7 +271,11 @@ export const AutomationDetailsModal: React.FC<AutomationDetailsModalProps> = ({
         </div>
 
         {/* Tabs */}
-        <Tabs defaultValue="permissions" className="w-full">
+        <Tabs
+          value={activeTab}
+          onValueChange={(value) => setActiveTab(value as 'permissions' | 'risk' | 'feedback' | 'details')}
+          className="w-full"
+        >
           <div className="border-b px-6">
             <TabsList className="h-auto bg-transparent p-0">
               <TabsTrigger value="permissions" className="px-4 py-3">
@@ -252,6 +283,9 @@ export const AutomationDetailsModal: React.FC<AutomationDetailsModalProps> = ({
               </TabsTrigger>
               <TabsTrigger value="risk" className="px-4 py-3">
                 Risk Analysis
+              </TabsTrigger>
+              <TabsTrigger value="feedback" className="px-4 py-3">
+                Feedback {feedbackList.length > 0 ? `(${feedbackList.length})` : ''}
               </TabsTrigger>
               <TabsTrigger value="details" className="px-4 py-3">
                 Details
@@ -442,6 +476,45 @@ export const AutomationDetailsModal: React.FC<AutomationDetailsModalProps> = ({
                     </CardContent>
                   </Card>
                 )}
+              </TabsContent>
+
+              {/* Feedback Tab */}
+              <TabsContent value="feedback" className="mt-0 space-y-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Detection Feedback</CardTitle>
+                    <CardDescription>
+                      Help improve our detection accuracy by providing feedback
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <AutomationFeedback
+                      automationId={automation.id}
+                      compact={false}
+                      initiallyExpanded={activeTab === 'feedback'}
+                      onFeedbackSubmitted={(feedback) => {
+                        // Refresh feedback list after submission
+                        fetchFeedback();
+                      }}
+                    />
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle>All Feedback ({feedbackList.length})</CardTitle>
+                    <CardDescription>
+                      Feedback from all users in your organization
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <FeedbackList
+                      feedback={feedbackList}
+                      isLoading={isFeedbackLoading}
+                      emptyMessage="No feedback has been submitted for this automation yet"
+                    />
+                  </CardContent>
+                </Card>
               </TabsContent>
 
               {/* Details Tab */}

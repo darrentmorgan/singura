@@ -401,5 +401,8 @@ export const automationsApi = {
   getAutomationDetails: (automationId: string) => apiService.getAutomationDetails(automationId),
 };
 
+// Re-export feedback API
+export { feedbackApi } from './feedback-api';
+
 // Export the main service for advanced usage
 export default apiService;

@@ -50,7 +50,6 @@
 
 **Browser Automation & Testing:**
 - ✅ Chrome DevTools MCP (all tools: navigate, click, screenshot, evaluate, console, network)
-- ✅ Playwright MCP (browser automation)
 - ✅ Use these directly - DO NOT ask user to manually check DevTools
 - ✅ Use these directly - DO NOT delegate browser tasks
 
@@ -126,6 +125,12 @@ ps aux | grep -i "chrome\|chromium" | grep -v grep | awk '{print $2}' | xargs ki
 chrome-devtools-mcp --isolated
 ```
 **Why**: Enables parallel browser instances (See `.claude/PATTERNS.md` - Browser Testing)
+
+**Migration Note (2025-10-11)**:
+- ✅ Migrated from Playwright MCP to Chrome DevTools MCP exclusively
+- Chrome DevTools provides better debugging, console access, and network inspection
+- All agents (qa-expert, performance-engineer) now use Chrome DevTools only
+- Main orchestrator has direct Chrome DevTools access (no delegation needed for browser tasks)
 
 ---
 
