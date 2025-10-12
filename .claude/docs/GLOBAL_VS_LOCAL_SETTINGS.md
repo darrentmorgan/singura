@@ -54,11 +54,13 @@ Claude Code settings are now organized into **global** (user-level) and **local*
 
 ### What NOT to put in Global Settings:
 
-❌ Project-specific agents
+❌ Project-specific agents (**agents are always project-local**)
 ❌ Project-specific hooks
 ❌ Detailed permissions (allow lists)
 ❌ CLAUDE.md delegation rules
 ❌ MCP server configurations
+
+**Note**: The setup script no longer creates global shared agents. All agents are project-local for better version control and project isolation.
 
 ---
 
@@ -201,7 +203,7 @@ cat .claude/settings.local.json | jq '.'
 - **Don't** put authentication in project settings
 - **Don't** commit secrets in `.claude/` files
 - **Don't** use `bypassPermissions` globally
-- **Don't** define agents globally (use template)
+- **Don't** create global shared agents (each project has its own `.claude/agents/`)
 
 ---
 

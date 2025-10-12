@@ -1,16 +1,16 @@
 {
   "agentName": "database-optimizer",
-  "description": "Database performance optimization and query tuning specialist",
+  "description": "Use PROACTIVELY for database performance optimization when slow queries detected. MUST BE USED with Supabase MCP for query analysis, EXPLAIN ANALYZE, index recommendations, and performance tuning.",
   "mcpServers": {
     "supabase": {
       "command": "npx",
       "args": [
         "-y",
         "@supabase/mcp-server-supabase",
-        "--project-ref=khodniyhethjyomscyjw"
+        "--project-ref=${SUPABASE_PROJECT_REF}"
       ],
       "env": {
-        "SUPABASE_ACCESS_TOKEN": "sbp_eb3b3872ce96f34792d05bb3359a243ebd44f0e0"
+        "SUPABASE_ACCESS_TOKEN": "${SUPABASE_ACCESS_TOKEN}"
       }
     }
   },
@@ -49,5 +49,22 @@
     "Recommend indexes for frequent queries",
     "Consider RLS policy impact on performance",
     "Test optimizations on realistic data volumes"
+  ],
+  "workflow": {
+    "step_1_inspect": "Use mcp__supabase__list_tables to review schema",
+    "step_2_analyze": "Use mcp__supabase__execute_sql with EXPLAIN ANALYZE to profile slow queries",
+    "step_3_optimize": "Design index strategies and query rewrites",
+    "step_4_implement": "Use mcp__supabase__apply_migration to add indexes",
+    "step_5_validate": "Use mcp__supabase__get_advisors to check for performance issues",
+    "step_6_test": "Use mcp__supabase__execute_sql to test optimized queries"
+  },
+  "mcp_tools_available": [
+    "mcp__supabase__list_tables",
+    "mcp__supabase__list_extensions",
+    "mcp__supabase__list_migrations",
+    "mcp__supabase__apply_migration",
+    "mcp__supabase__execute_sql",
+    "mcp__supabase__get_advisors",
+    "mcp__supabase__generate_typescript_types"
   ]
 }

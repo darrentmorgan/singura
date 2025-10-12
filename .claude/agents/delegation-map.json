@@ -9,7 +9,7 @@
       "pattern": "**/*.tsx",
       "exclude": ["**/*.test.tsx", "**/*.spec.tsx"],
       "primary_agent": "frontend-developer",
-      "secondary_agents": ["code-reviewer-pro", "testing-suite:test-engineer"],
+      "secondary_agents": ["code-reviewer-pro", "test-engineer"],
       "triggers": ["Edit", "Write"],
       "context": {
         "framework": "React 18",
@@ -57,12 +57,13 @@
     {
       "name": "Test Files",
       "pattern": "**/*.{test,spec}.{ts,tsx}",
-      "primary_agent": "testing-suite:test-engineer",
+      "primary_agent": "test-engineer",
       "secondary_agents": ["code-reviewer-pro"],
       "triggers": ["Edit", "Write"],
       "context": {
         "test_framework": "Vitest",
-        "e2e_framework": "Playwright"
+        "e2e_framework": "Playwright",
+        "plugin": "testing-suite@claude-code-templates"
       }
     },
     {
@@ -117,17 +118,18 @@
       "use_for": ["all code changes", "final approval"],
       "mcp_servers": []
     },
-    "testing-suite:test-engineer": {
-      "description": "Test generation and validation (plugin:testing-suite)",
-      "strengths": ["test coverage", "test quality", "CI/CD"],
-      "use_for": ["new features", "bug fixes", "test files"],
+    "test-engineer": {
+      "description": "Test code generation and strategy (plugin:testing-suite)",
+      "plugin": "testing-suite@claude-code-templates",
+      "strengths": ["unit tests", "integration tests", "test strategy", "CI/CD"],
+      "use_for": ["test code generation", "test coverage", "test files"],
       "mcp_servers": []
     },
     "qa-expert": {
       "description": "E2E testing and QA validation",
       "strengths": ["user flows", "visual testing", "browser automation"],
       "use_for": ["pre-deployment", "critical features", "UI changes"],
-      "mcp_servers": ["chrome-devtools", "playwright"]
+      "mcp_servers": ["chrome-devtools"]
     },
     "typescript-pro": {
       "description": "TypeScript expertise",
@@ -188,30 +190,95 @@
       "strengths": ["ETL", "data transformation", "pipelines"],
       "use_for": ["data migration", "batch processing", "data quality"],
       "mcp_servers": ["supabase"]
+    },
+    "git-flow-manager": {
+      "description": "Git Flow workflow automation (plugin:git-workflow)",
+      "plugin": "git-workflow@claude-code-templates",
+      "strengths": ["feature branches", "releases", "hotfixes", "git automation"],
+      "use_for": ["git flow operations", "branch management", "release workflow"],
+      "mcp_servers": []
+    },
+    "data-scientist": {
+      "description": "Data analysis and modeling (plugin:supabase-toolkit)",
+      "plugin": "supabase-toolkit@claude-code-templates",
+      "strengths": ["data analysis", "statistical modeling", "Supabase queries"],
+      "use_for": ["data exploration", "analytics", "query optimization"],
+      "mcp_servers": ["supabase"]
+    },
+    "fullstack-developer": {
+      "description": "Full-stack Next.js specialist (plugin:nextjs-vercel-pro)",
+      "plugin": "nextjs-vercel-pro@claude-code-templates",
+      "strengths": ["Next.js", "React", "Vercel deployment", "full-stack"],
+      "use_for": ["Next.js apps", "Vercel deployments", "SSR/SSG"],
+      "mcp_servers": []
+    },
+    "security-auditor": {
+      "description": "Security auditing and vulnerability assessment (plugin:security-pro)",
+      "plugin": "security-pro@claude-code-templates",
+      "strengths": ["security audits", "penetration testing", "OWASP compliance"],
+      "use_for": ["security reviews", "vulnerability scans", "compliance checks"],
+      "mcp_servers": []
+    },
+    "performance-engineer": {
+      "description": "Performance optimization specialist (plugin:performance-optimizer)",
+      "plugin": "performance-optimizer@claude-code-templates",
+      "strengths": ["performance profiling", "bundle optimization", "load testing"],
+      "use_for": ["performance audits", "bottleneck analysis", "optimization"],
+      "mcp_servers": []
     }
   },
   "execution_strategy": {
     "sequential": {
       "description": "Execute agents one at a time (default)",
       "max_concurrent": 1,
-      "use_when": "tasks have dependencies"
+      "use_when": "tasks have dependencies",
+      "examples": [
+        "Migration → Code → Tests (schema must exist before code)",
+        "Refactor → Review → Deploy (changes must be complete before review)",
+        "Breaking API change → Update clients → Tests (contract change propagates)"
+      ]
     },
     "parallel": {
       "description": "Execute independent agents simultaneously",
       "max_concurrent": 3,
-      "use_when": "tasks are independent"
+      "use_when": "tasks are independent",
+      "examples": [
+        "Code generation + Code review + Type checking (all operate on same input)",
+        "Frontend UI + Backend API + Tests (independent work streams)",
+        "Documentation + Test suite + Performance audit (non-blocking validations)"
+      ],
+      "common_patterns": [
+        {
+          "name": "Code + Validation",
+          "agents": ["frontend-developer", "code-reviewer-pro", "typescript-pro"],
+          "description": "Generate code and validate in parallel",
+          "task_call_example": "Single message with 3 Task calls"
+        },
+        {
+          "name": "Full Stack Feature",
+          "agents": ["backend-architect", "frontend-developer", "test-engineer"],
+          "description": "Build backend API, frontend UI, and tests concurrently",
+          "task_call_example": "Single message with 3 Task calls"
+        },
+        {
+          "name": "Quality Assurance",
+          "agents": ["code-reviewer-pro", "test-engineer", "qa-expert"],
+          "description": "Comprehensive quality checks in parallel",
+          "task_call_example": "Single message with 3 Task calls"
+        }
+      ]
     }
   },
   "quality_gates": {
     "pre_commit": {
       "required_agents": ["code-reviewer-pro"],
-      "optional_agents": ["typescript-pro", "testing-suite:test-engineer"],
+      "optional_agents": ["typescript-pro", "test-engineer"],
       "blocking": true,
       "min_score": 80
     },
     "pre_deployment": {
       "required_agents": ["qa-expert", "code-reviewer-pro"],
-      "optional_agents": ["testing-suite:test-engineer"],
+      "optional_agents": ["test-engineer"],
       "blocking": true,
       "min_score": 85
     }
@@ -242,9 +309,9 @@
       },
       {
         "name": "Browser Automation & E2E Testing",
-        "mcp_server": "chrome-devtools, playwright",
+        "mcp_server": "chrome-devtools",
         "primary_agent": "qa-expert",
-        "secondary_agents": ["testing-suite:test-engineer"],
+        "secondary_agents": ["test-engineer"],
         "keywords": [
           "E2E test",
           "browser test",
@@ -263,22 +330,23 @@
         "special_instructions": "Always use --isolated flag for chrome-devtools"
       },
       {
-        "name": "Test Automation & Debugging",
-        "mcp_server": "playwright, chrome-devtools",
-        "primary_agent": "testing-suite:test-engineer",
+        "name": "Test Code Generation",
+        "mcp_server": "none",
+        "primary_agent": "test-engineer",
+        "plugin": "testing-suite@claude-code-templates",
         "secondary_agents": ["qa-expert"],
         "keywords": [
-          "test automation",
-          "playwright",
-          "visual regression",
-          "test debugging",
-          "fix test",
-          "test coverage"
+          "test code",
+          "unit test",
+          "integration test",
+          "test coverage",
+          "test strategy",
+          "generate tests"
         ],
         "example_queries": [
-          "Debug failing Playwright test",
-          "Create test for checkout flow",
-          "Fix visual regression test"
+          "Generate unit tests for user service",
+          "Create integration tests for API endpoints",
+          "Improve test coverage for components"
         ]
       },
       {

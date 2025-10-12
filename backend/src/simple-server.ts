@@ -12,6 +12,7 @@ import cors from 'cors';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
 import automationRoutes from './routes/automations';
+import feedbackRoutes from './routes/feedback';
 import devRoutes from './routes/dev-routes';
 import { getDataProvider, isDataToggleEnabled } from './services/data-provider';
 import { platformConnectionRepository } from './database/repositories/platform-connection';
@@ -44,6 +45,7 @@ app.use(express.urlencoded({ extended: true }));
 
 // API routes
 app.use('/api/automations', optionalClerkAuth, automationRoutes);
+app.use('/api/feedback', optionalClerkAuth, feedbackRoutes);
 
 // Development-only routes (blocked in production)
 app.use('/api/dev', devRoutes);

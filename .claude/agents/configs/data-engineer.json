@@ -1,16 +1,16 @@
 {
   "agentName": "data-engineer",
-  "description": "Data pipeline and ETL operations specialist",
+  "description": "Use PROACTIVELY for ETL/ELT pipelines, data transformations, and batch processing. MUST BE USED with Supabase MCP for data migration operations, pipeline design, and data quality validation.",
   "mcpServers": {
     "supabase": {
       "command": "npx",
       "args": [
         "-y",
         "@supabase/mcp-server-supabase",
-        "--project-ref=khodniyhethjyomscyjw"
+        "--project-ref=${SUPABASE_PROJECT_REF}"
       ],
       "env": {
-        "SUPABASE_ACCESS_TOKEN": "sbp_eb3b3872ce96f34792d05bb3359a243ebd44f0e0"
+        "SUPABASE_ACCESS_TOKEN": "${SUPABASE_ACCESS_TOKEN}"
       }
     }
   },
@@ -49,5 +49,22 @@
     "Use Supabase RPC functions for complex transforms",
     "Include data validation and error handling",
     "Return pipeline code, not processed data"
+  ],
+  "workflow": {
+    "step_1_inspect": "Use mcp__supabase__list_tables to review data schema",
+    "step_2_design": "Design ETL pipeline with transformations and validations",
+    "step_3_migrate": "Use mcp__supabase__apply_migration for schema changes",
+    "step_4_rpc": "Use mcp__supabase__execute_sql to create RPC functions for transforms",
+    "step_5_validate": "Use mcp__supabase__get_advisors to check for data quality issues",
+    "step_6_test": "Use mcp__supabase__execute_sql to test pipeline with sample data"
+  },
+  "mcp_tools_available": [
+    "mcp__supabase__list_tables",
+    "mcp__supabase__list_extensions",
+    "mcp__supabase__list_migrations",
+    "mcp__supabase__apply_migration",
+    "mcp__supabase__execute_sql",
+    "mcp__supabase__get_advisors",
+    "mcp__supabase__generate_typescript_types"
   ]
 }

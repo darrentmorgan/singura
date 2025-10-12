@@ -1,6 +1,6 @@
 {
   "agentName": "data-extractor",
-  "description": "Lightweight data parsing and format conversion specialist (CSV, JSON, XML)",
+  "description": "Use for CSV/JSON/XML parsing and format conversion when data transformation is needed. MUST return concise summaries with validation errors, row counts, and data statistics (not full datasets).",
   "model": "claude-3-5-haiku-20241022",
   "mcpServers": {},
   "capabilities": [

@@ -193,6 +193,210 @@ export class DiscoveredAutomationRepository extends BaseRepository<
 
     return result.rows;
   }
+
+  /**
+   * Update detection metadata for an automation
+   * Uses helper function from migration 006
+   *
+   * @param automationId - Automation ID
+   * @param detectionMetadata - Detection metadata object
+   */
+  async updateDetectionMetadata(
+    automationId: string,
+    detectionMetadata: any
+  ): Promise<void> {
+    const query = `
+      UPDATE ${this.tableName}
+      SET detection_metadata = $2,
+          updated_at = NOW()
+      WHERE id = $1
+    `;
+
+    await db.query(query, [automationId, JSON.stringify(detectionMetadata)]);
+  }
+
+  /**
+   * Append risk score to history
+   * Uses helper function from migration 006
+   *
+   * @param automationId - Automation ID
+   * @param riskScore - Risk score (0-100)
+   * @param riskLevel - Risk level classification
+   * @param riskFactors - Risk factors array
+   * @param trigger - What triggered this assessment
+   */
+  async appendRiskScoreHistory(
+    automationId: string,
+    riskScore: number,
+    riskLevel: string,
+    riskFactors: any[],
+    trigger: string
+  ): Promise<void> {
+    const query = `
+      SELECT append_risk_score_history($1, $2, $3, $4, $5)
+    `;
+
+    await db.query(query, [
+      automationId,
+      riskScore,
+      riskLevel,
+      JSON.stringify(riskFactors),
+      trigger
+    ]);
+  }
+
+  /**
+   * Find automations by AI provider
+   *
+   * @param organizationId - Organization ID
+   * @param aiProvider - AI provider name
+   * @param minConfidence - Minimum confidence threshold (optional)
+   * @returns Automations with matching AI provider
+   */
+  async findByAIProvider(
+    organizationId: string,
+    aiProvider: string,
+    minConfidence?: number
+  ): Promise<DiscoveredAutomation[]> {
+    let query = `
+      SELECT *
+      FROM ${this.tableName}
+      WHERE organization_id = $1
+        AND detection_metadata->>'aiProvider' IS NOT NULL
+        AND detection_metadata->'aiProvider'->>'provider' = $2
+    `;
+
+    const values: any[] = [organizationId, aiProvider];
+
+    if (minConfidence !== undefined) {
+      query += ` AND (detection_metadata->'aiProvider'->>'confidence')::numeric >= $3`;
+      values.push(minConfidence);
+    }
+
+    query += ` ORDER BY created_at DESC`;
+
+    const result = await db.query<DiscoveredAutomation>(query, values);
+    return result.rows;
+  }
+
+  /**
+   * Find automations with high-confidence AI detection
+   *
+   * @param organizationId - Organization ID
+   * @param minConfidence - Minimum confidence threshold (default: 80)
+   * @returns Automations with high-confidence AI detection
+   */
+  async findHighConfidenceAIDetections(
+    organizationId: string,
+    minConfidence: number = 80
+  ): Promise<DiscoveredAutomation[]> {
+    const query = `
+      SELECT *
+      FROM ${this.tableName}
+      WHERE organization_id = $1
+        AND detection_metadata->>'aiProvider' IS NOT NULL
+        AND (detection_metadata->'aiProvider'->>'confidence')::numeric >= $2
+      ORDER BY (detection_metadata->'aiProvider'->>'confidence')::numeric DESC,
+               created_at DESC
+    `;
+
+    const result = await db.query<DiscoveredAutomation>(query, [organizationId, minConfidence]);
+    return result.rows;
+  }
+
+  /**
+   * Get detection statistics for an organization
+   *
+   * @param organizationId - Organization ID
+   * @returns Detection statistics summary
+   */
+  async getDetectionStatistics(organizationId: string): Promise<{
+    totalWithDetection: number;
+    byProvider: Record<string, number>;
+    averageConfidence: number;
+    highConfidenceCount: number;
+  }> {
+    // Count automations by AI provider
+    const providerQuery = `
+      SELECT
+        detection_metadata->'aiProvider'->>'provider' as provider,
+        COUNT(*) as count,
+        AVG((detection_metadata->'aiProvider'->>'confidence')::numeric) as avg_confidence
+      FROM ${this.tableName}
+      WHERE organization_id = $1
+        AND detection_metadata->>'aiProvider' IS NOT NULL
+      GROUP BY detection_metadata->'aiProvider'->>'provider'
+    `;
+
+    const providerResult = await db.query<{
+      provider: string;
+      count: string;
+      avg_confidence: string;
+    }>(providerQuery, [organizationId]);
+
+    // Count high confidence detections (>= 80)
+    const highConfidenceQuery = `
+      SELECT COUNT(*) as count
+      FROM ${this.tableName}
+      WHERE organization_id = $1
+        AND detection_metadata->>'aiProvider' IS NOT NULL
+        AND (detection_metadata->'aiProvider'->>'confidence')::numeric >= 80
+    `;
+
+    const highConfidenceResult = await db.query<{ count: string }>(highConfidenceQuery, [organizationId]);
+
+    const byProvider: Record<string, number> = {};
+    let totalCount = 0;
+    let totalConfidence = 0;
+
+    for (const row of providerResult.rows) {
+      const count = parseInt(row.count, 10);
+      byProvider[row.provider] = count;
+      totalCount += count;
+      totalConfidence += parseFloat(row.avg_confidence) * count;
+    }
+
+    return {
+      totalWithDetection: totalCount,
+      byProvider,
+      averageConfidence: totalCount > 0 ? Math.round(totalConfidence / totalCount) : 0,
+      highConfidenceCount: parseInt(highConfidenceResult.rows[0]?.count || '0', 10)
+    };
+  }
+
+  /**
+   * Find automations with specific detection patterns
+   *
+   * @param organizationId - Organization ID
+   * @param patternType - Pattern type to filter by
+   * @param minConfidence - Minimum confidence threshold (optional)
+   * @returns Automations with matching detection patterns
+   */
+  async findByDetectionPattern(
+    organizationId: string,
+    patternType: string,
+    minConfidence?: number
+  ): Promise<DiscoveredAutomation[]> {
+    let query = `
+      SELECT da.*
+      FROM ${this.tableName} da,
+           jsonb_array_elements(da.detection_metadata->'detectionPatterns') AS pattern
+      WHERE da.organization_id = $1
+        AND pattern->>'patternType' = $2
+    `;
+
+    const values: any[] = [organizationId, patternType];
+
+    if (minConfidence !== undefined) {
+      query += ` AND (pattern->>'confidence')::numeric >= $3`;
+      values.push(minConfidence);
+    }
+
+    query += ` ORDER BY da.created_at DESC`;
+
+    const result = await db.query<DiscoveredAutomation>(query, values);
+    return result.rows;
+  }
 }
 
 // Export singleton instance

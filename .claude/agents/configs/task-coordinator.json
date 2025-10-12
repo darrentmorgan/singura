@@ -1,6 +1,6 @@
 {
   "agentName": "task-coordinator",
-  "description": "Lightweight ClickUp task management specialist for CRUD operations",
+  "description": "Use for lightweight ClickUp CRUD operations when simple task management is needed. For strategic planning, delegate to product-manager agent. MUST BE USED with ClickUp MCP for task operations.",
   "model": "claude-3-5-haiku-20241022",
   "mcpServers": {
     "clickup": {
@@ -58,5 +58,22 @@
     "auto_summary": true,
     "detail_threshold": 50,
     "instructions": "Write large task lists to artifact, return summary with task IDs created/updated, operation status, any errors."
-  }
+  },
+  "workflow": {
+    "step_1_validate": "Validate task operation request (create, update, assign, status change)",
+    "step_2_execute": "Use ClickUp MCP to perform CRUD operation on tasks",
+    "step_3_bulk": "For bulk operations, batch requests efficiently to avoid rate limits",
+    "step_4_verify": "Verify operation success and capture task IDs",
+    "step_5_summarize": "Return operation summary with affected task count and any errors"
+  },
+  "mcp_tools_available": [
+    "clickup_create_task",
+    "clickup_update_task",
+    "clickup_delete_task",
+    "clickup_get_task",
+    "clickup_assign_task",
+    "clickup_add_comment",
+    "clickup_set_priority",
+    "clickup_set_due_date"
+  ]
 }

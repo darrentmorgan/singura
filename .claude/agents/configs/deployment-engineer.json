@@ -1,6 +1,6 @@
 {
   "agentName": "deployment-engineer",
-  "description": "Deployment and DevOps specialist for CI/CD, infrastructure, and releases",
+  "description": "Use PROACTIVELY for CI/CD pipeline configuration and deployment planning when release is needed. MUST BE USED before production deployments with rollback plans, health checks, and monitoring setup.",
   "model": "claude-sonnet-4-5-20250929",
   "mcpServers": {},
   "capabilities": [

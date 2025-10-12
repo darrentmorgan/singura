@@ -17,8 +17,29 @@ export * from './utils/admin-logging';
 export * from './utils/oauth-credential-storage';
 export * from './utils/memory-storage';
 
-// Domain model types
+// Domain model types (includes AIProvider - 8 providers, most comprehensive)
 export * from './models/automation';
+export * from './models/feedback';
+
+// Phase 1: AI Provider Detection (explicit exports to avoid conflicts)
+export type {
+  AIProviderPattern,
+  AIProviderDetectionResult,
+  DetectionMethod
+} from './utils/ai-provider-patterns';
+export { AI_PROVIDER_PATTERNS, detectAIProvider, extractModelName } from './utils/ai-provider-patterns';
+
+// Detection metadata types (exported for backend detection services)
+export type {
+  DetectionMetadata,
+  DetectionPattern,
+  DetectionPatternType,
+  CorrelationType,
+  RelatedAutomation,
+  CrossPlatformCorrelationData,
+  DetectorConfiguration,
+  RiskScoreHistoryEntry
+} from './models/automation';
 export * from './models/connection';
 export * from './models/events';
 export * from './models/user';

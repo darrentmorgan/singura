@@ -1,14 +1,15 @@
 {
   "agentName": "documentation-expert",
-  "description": "Specialized agent for library documentation and API references",
+  "description": "Use PROACTIVELY when library documentation or API references are needed. MUST BE USED with Context7 MCP for documentation lookups, code examples, and framework best practices.",
   "mcpServers": {
     "Context7": {
-      "command": "node",
+      "command": "npx",
       "args": [
-        "/Users/darrenmorgan/mcp-servers/context7/dist/index.js"
+        "-y",
+        "@context7/mcp-server"
       ],
       "env": {
-        "CONTEXT7_API_KEY": "ctx7sk-b9008b41-aaa6-4353-9cd6-9835bae3ba0a"
+        "CONTEXT7_API_KEY": "${CONTEXT7_API_KEY}"
       }
     }
   },
@@ -31,5 +32,15 @@
     "how to use",
     "package docs",
     "framework guide"
+  ],
+  "workflow": {
+    "step_1_resolve": "Use resolve-library-id to convert package names to Context7-compatible IDs",
+    "step_2_fetch": "Use get-library-docs to retrieve up-to-date documentation for the library",
+    "step_3_extract": "Extract relevant code examples and API signatures",
+    "step_4_summarize": "Return concise summary with usage notes and best practices"
+  },
+  "mcp_tools_available": [
+    "resolve-library-id",
+    "get-library-docs"
   ]
 }

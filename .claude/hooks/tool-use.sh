@@ -3,6 +3,9 @@
 
 set -e
 
+# Ensure we have project root for absolute paths
+PROJECT_ROOT="${CLAUDE_PROJECT_DIR:-$(pwd)}"
+
 echo "🛠️  Tool-use Hook Starting..."
 
 # Colors
@@ -46,7 +49,7 @@ if [[ "$MODIFIED_FILE" == *".ts"* ]] || [[ "$MODIFIED_FILE" == *".tsx"* ]] || [[
 fi
 
 # Quick type check if TypeScript file
-PKG_MANAGER="pnpm"
+PKG_MANAGER="npm"
 if [[ "$MODIFIED_FILE" == *".ts"* ]] || [[ "$MODIFIED_FILE" == *".tsx"* ]]; then
     echo "🔤 Quick type check..."
     $PKG_MANAGER exec tsc --noEmit --skipLibCheck "$MODIFIED_FILE" 2>/dev/null && \
@@ -55,17 +58,53 @@ if [[ "$MODIFIED_FILE" == *".ts"* ]] || [[ "$MODIFIED_FILE" == *".tsx"* ]]; then
 fi
 
 # Log the tool use for agent coordination
-TOOL_USE_LOG=".claude/.tool-use.log"
+TOOL_USE_LOG="$PROJECT_ROOT/.claude/.tool-use.log"
 echo "$(date '+%Y-%m-%d %H:%M:%S') | $FILE_TYPE | $MODIFIED_FILE | $SUGGESTED_AGENT" >> "$TOOL_USE_LOG"
 
-# In full autonomy mode, this would invoke the sub-agent:
-echo -e "${YELLOW}Note: Sub-agent invocation would happen here in full autonomy mode${NC}"
-echo -e "${YELLOW}Agent $SUGGESTED_AGENT would review $MODIFIED_FILE${NC}"
+# Auto-delegation system for autonomous agent chaining
+AUTONOMY_LEVEL="${AUTONOMY_LEVEL:-high}"
+AUTO_DELEGATE_SCRIPT="$PROJECT_ROOT/.claude/scripts/auto-delegate.sh"
 
-# TODO: Invoke appropriate sub-agent via Claude Code Task tool
-# Example:
-# if [ "$AUTONOMY_LEVEL" = "high" ]; then
-#     invoke_subagent "$SUGGESTED_AGENT" "$MODIFIED_FILE"
-# fi
+if [ "$AUTONOMY_LEVEL" = "high" ] && [ -f "$AUTO_DELEGATE_SCRIPT" ]; then
+    # Check if we can auto-delegate (chain depth limit)
+    if "$AUTO_DELEGATE_SCRIPT" can-delegate 2>/dev/null; then
+        # Queue the delegation task
+        "$AUTO_DELEGATE_SCRIPT" queue "$SUGGESTED_AGENT" "$MODIFIED_FILE" "Review and validate code quality" 2>&1 >&2
+
+        # Get next pending task and generate instruction for Claude
+        NEXT_TASK=$("$AUTO_DELEGATE_SCRIPT" next 2>/dev/null)
+
+        if [ "$NEXT_TASK" != "null" ] && [ -n "$NEXT_TASK" ]; then
+            # Mark as in progress
+            TASK_ID=$(echo "$NEXT_TASK" | jq -r '.id' 2>/dev/null)
+            "$AUTO_DELEGATE_SCRIPT" start "$TASK_ID" 2>/dev/null
+
+            # Increment chain depth
+            "$AUTO_DELEGATE_SCRIPT" increment-depth "$SUGGESTED_AGENT" 2>&1 >&2
+
+            # Output delegation instruction for Claude to read
+            echo "" >&2
+            "$AUTO_DELEGATE_SCRIPT" generate-instruction "$NEXT_TASK" >&2
+            echo "" >&2
+            echo -e "${GREEN}Note: Task queued - Claude should auto-delegate immediately${NC}" >&2
+        fi
+    else
+        echo -e "${YELLOW}Auto-delegation blocked (check autonomy level or chain depth limit)${NC}" >&2
+        echo -e "${YELLOW}Agent $SUGGESTED_AGENT would review $MODIFIED_FILE in autonomous mode${NC}" >&2
+    fi
+elif [ "$AUTONOMY_LEVEL" = "high" ]; then
+    # Fallback to old behavior if script not found
+    echo "" >&2
+    echo "========================================" >&2
+    echo "🤖 AUTO-REVIEW SUGGESTED" >&2
+    echo "========================================" >&2
+    echo "Task: Use Task tool to invoke '$SUGGESTED_AGENT' agent" >&2
+    echo "File: $MODIFIED_FILE" >&2
+    echo "⚠️  AUTONOMOUS MODE: Execute immediately" >&2
+    echo "========================================" >&2
+else
+    echo -e "${YELLOW}Note: Autonomy mode is '$AUTONOMY_LEVEL' - manual review recommended${NC}" >&2
+    echo -e "${YELLOW}Agent $SUGGESTED_AGENT would review $MODIFIED_FILE in high autonomy mode${NC}" >&2
+fi
 
 echo -e "${GREEN}✅ Tool-use hook completed${NC}"

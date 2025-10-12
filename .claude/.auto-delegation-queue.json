@@ -1,0 +1,33 @@
+{
+  "pending": [],
+  "in_progress": [
+    {
+      "id": "9523A15F-A7E6-4179-9B68-A7D89732FA1B",
+      "agent": "code-reviewer-pro",
+      "file_path": "unknown",
+      "reason": "Review and validate code quality",
+      "queued_at": "2025-10-11T08:59:56Z",
+      "priority": "normal",
+      "started_at": "2025-10-11T08:59:56Z"
+    },
+    {
+      "id": "54866304-7B11-4371-93DC-0497049FF05B",
+      "agent": "code-reviewer-pro",
+      "file_path": "unknown",
+      "reason": "Review and validate code quality",
+      "queued_at": "2025-10-11T09:00:04Z",
+      "priority": "normal",
+      "started_at": "2025-10-11T09:00:05Z"
+    },
+    {
+      "id": "4059B502-A0BC-4B5A-9071-CB5233E5AFD2",
+      "agent": "code-reviewer-pro",
+      "file_path": "unknown",
+      "reason": "Review and validate code quality",
+      "queued_at": "2025-10-11T09:05:40Z",
+      "priority": "normal",
+      "started_at": "2025-10-11T09:05:40Z"
+    }
+  ],
+  "completed": []
+}

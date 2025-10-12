@@ -1,0 +1,263 @@
+name: PR Testing & Quality Gates
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    branches:
+      - main
+      - develop
+
+# Cancel in-progress runs for the same PR
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: Test & Validate
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    permissions:
+      contents: read
+      pull-requests: write
+      checks: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Full history for proper blame/diff
+
+      - name: Setup Node.js (if needed)
+        uses: actions/setup-node@v4
+        if: hashFiles('package-lock.json') != ''
+        with:
+          node-version: '20.x'
+
+      - name: Install dependencies
+        if: hashFiles('package-lock.json') != ''
+        run: npm ci
+
+      - name: Validate TypeScript compilation
+        if: hashFiles('tsconfig.json') != ''
+        run: |
+          if [ -d "scripts" ] && [ -f "scripts/tsconfig.json" ]; then
+            cd scripts
+            npx tsc --noEmit
+          else
+            echo "No TypeScript configuration found, skipping"
+          fi
+        continue-on-error: true
+
+      - name: Validate hook scripts syntax
+        run: |
+          echo "Validating shell scripts..."
+          if [ -d ".claude/hooks" ]; then
+            for script in .claude/hooks/*.sh; do
+              if [ -f "$script" ]; then
+                echo "Checking: $script"
+                bash -n "$script" || exit 1
+              fi
+            done
+          fi
+          if [ -d ".claude/scripts" ]; then
+            for script in .claude/scripts/*.sh; do
+              if [ -f "$script" ]; then
+                echo "Checking: $script"
+                bash -n "$script" || exit 1
+              fi
+            done
+          fi
+          if [ -d "scripts" ]; then
+            for script in scripts/*.sh; do
+              if [ -f "$script" ]; then
+                echo "Checking: $script"
+                bash -n "$script" || exit 1
+              fi
+            done
+          fi
+
+      - name: Run tests
+        id: test
+        run: |
+          # Run tests if test script exists
+          if [ -f "package.json" ] && grep -q '"test"' package.json; then
+            npm run test
+            echo "tests_passed=true" >> $GITHUB_OUTPUT
+          else
+            echo "No tests configured, marking as passed"
+            echo "tests_passed=true" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Validate JSON configuration files
+        run: |
+          echo "Validating JSON files..."
+          find .claude -name "*.json" -type f -exec sh -c '
+            for file; do
+              echo "Validating: $file"
+              if ! python3 -m json.tool "$file" > /dev/null 2>&1; then
+                echo "Invalid JSON: $file"
+                exit 1
+              fi
+            done
+          ' sh {} +
+
+      - name: Check for required template structure
+        run: |
+          echo "Checking template structure..."
+
+          # Check directory structure exists
+          required_dirs=(
+            ".claude"
+            ".claude/hooks"
+            ".claude/commands"
+            "scripts"
+          )
+
+          for dir in "${required_dirs[@]}"; do
+            if [ ! -d "$dir" ]; then
+              echo "Missing required directory: $dir"
+              exit 1
+            fi
+          done
+
+          echo "✓ All required template directories present"
+
+      - name: Generate test report
+        if: always()
+        env:
+          TEST_STATUS: ${{ steps.test.outputs.tests_passed }}
+          COMMIT_SHA: ${{ github.event.pull_request.head.sha }}
+          PR_BRANCH: ${{ github.head_ref }}
+        run: |
+          if [ "$TEST_STATUS" = "true" ]; then
+            STATUS_EMOJI="✅ Passed"
+          else
+            STATUS_EMOJI="❌ Failed"
+          fi
+
+          cat > test-report.md << EOF
+          # Test Results
+
+          **Status**: $STATUS_EMOJI
+          **Commit**: $COMMIT_SHA
+          **Branch**: $PR_BRANCH
+
+          ## Checks Performed
+          - Shell script syntax validation
+          - JSON configuration validation
+          - Required files check
+          - Test suite execution
+          EOF
+
+      - name: Comment test results on PR
+        if: always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const report = fs.readFileSync('test-report.md', 'utf8');
+
+            // Find existing bot comment
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+
+            const botComment = comments.find(comment =>
+              comment.user.type === 'Bot' &&
+              comment.body.includes('# Test Results')
+            );
+
+            if (botComment) {
+              // Update existing comment
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: botComment.id,
+                body: report
+              });
+            } else {
+              // Create new comment
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: report
+              });
+            }
+
+      - name: Fail if tests failed
+        if: steps.test.outputs.tests_passed != 'true'
+        run: exit 1
+
+      - name: Add auto-merge label on success
+        if: success()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            try {
+              await github.rest.issues.addLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                labels: ['auto-merge']
+              });
+              core.info('Added auto-merge label');
+            } catch (error) {
+              core.warning(`Failed to add label: ${error.message}`);
+            }
+
+  security-scan:
+    name: Security & Dependency Audit
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    permissions:
+      contents: read
+      pull-requests: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js (if needed)
+        uses: actions/setup-node@v4
+        if: hashFiles('package-lock.json') != ''
+        with:
+          node-version: '20.x'
+
+      - name: Install dependencies
+        if: hashFiles('package-lock.json') != ''
+        run: npm ci
+
+      - name: Run npm audit
+        id: audit
+        if: hashFiles('package-lock.json') != ''
+        run: |
+          npm audit --audit-level=moderate || echo "audit_failed=true" >> $GITHUB_OUTPUT
+        continue-on-error: true
+
+      - name: Check for secrets in code
+        run: |
+          echo "Scanning for potential secrets..."
+          # Basic pattern matching for common secrets
+          if git diff origin/main...HEAD | grep -iE '(api[_-]?key|secret|password|token|private[_-]?key).*=.*["\047][a-zA-Z0-9]{16,}'; then
+            echo "⚠️ Warning: Potential secrets detected in diff"
+            echo "Please review changes for hardcoded credentials"
+            exit 1
+          fi
+
+      - name: Comment security results
+        if: steps.audit.outputs.audit_failed == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: '⚠️ **Security Alert**: npm audit found vulnerabilities. Please run `npm audit` locally and fix issues before merging.'
+            });

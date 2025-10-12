@@ -1,6 +1,6 @@
 {
   "agentName": "golang-pro",
-  "description": "Go specialist for backend services, concurrency, and performance",
+  "description": "Use PROACTIVELY for Go backend services, goroutines, and channels immediately after Go code changes. MUST BE USED for Go concurrency patterns, error handling, and interface design.",
   "model": "claude-sonnet-4-5-20250929",
   "mcpServers": {},
   "capabilities": [

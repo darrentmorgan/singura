@@ -1,25 +1,12 @@
 name: Auto-Merge PR
 
 on:
-  # Trigger when PR status checks are updated
-  pull_request_target:
-    types: [opened, synchronize, reopened, ready_for_review]
+  pull_request_review:
+    types: [submitted]
   check_suite:
     types: [completed]
-  check_run:
-    types: [completed]
-  # Allow manual trigger
-  workflow_dispatch:
-    inputs:
-      pr_number:
-        description: 'PR number to auto-merge'
-        required: true
-        type: number
-
-# Ensure only one auto-merge runs at a time per PR
-concurrency:
-  group: auto-merge-${{ github.event.pull_request.number || github.event.inputs.pr_number }}
-  cancel-in-progress: false
+  pull_request:
+    types: [labeled]
 
 permissions:
   contents: write
@@ -28,148 +15,314 @@ permissions:
 
 jobs:
   auto-merge:
-    name: Auto-Merge PR
+    name: Auto-Merge Approved PRs
     runs-on: ubuntu-latest
-    # Skip draft PRs
     if: |
-      github.event.pull_request.draft == false ||
-      github.event_name == 'workflow_dispatch'
+      github.event_name == 'pull_request_review' ||
+      github.event_name == 'check_suite' ||
+      (github.event_name == 'pull_request' && github.event.label.name == 'auto-merge')
 
     steps:
-      - name: Get PR number
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Get PR details
         id: pr
+        uses: actions/github-script@v7
+        with:
+          script: |
+            let pr;
+
+            // Get PR number based on event type
+            if (context.eventName === 'pull_request_review') {
+              pr = context.payload.pull_request;
+            } else if (context.eventName === 'check_suite') {
+              const prs = context.payload.check_suite.pull_requests;
+              if (!prs || prs.length === 0) {
+                core.setOutput('skip', 'true');
+                return;
+              }
+              const prNumber = prs[0].number;
+              const { data } = await github.rest.pulls.get({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                pull_number: prNumber
+              });
+              pr = data;
+            } else if (context.eventName === 'pull_request') {
+              pr = context.payload.pull_request;
+            }
+
+            if (!pr) {
+              core.setOutput('skip', 'true');
+              return;
+            }
+
+            core.setOutput('number', pr.number);
+            core.setOutput('base', pr.base.ref);
+            core.setOutput('author', pr.user.login);
+            core.setOutput('draft', pr.draft);
+            core.setOutput('mergeable', pr.mergeable);
+
+      - name: Skip if no PR found
+        if: steps.pr.outputs.skip == 'true'
         run: |
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            echo "number=${{ github.event.inputs.pr_number }}" >> $GITHUB_OUTPUT
+          echo "No PR associated with this event, skipping"
+          exit 0
+
+      - name: Check if PR is draft
+        if: steps.pr.outputs.draft == 'true'
+        run: |
+          echo "PR is in draft state, skipping auto-merge"
+          exit 0
+
+      - name: Check if merging to protected branch
+        id: branch_check
+        env:
+          BASE_BRANCH: ${{ steps.pr.outputs.base }}
+        run: |
+          # Using environment variable to avoid injection
+          if [ "$BASE_BRANCH" = "main" ] || [ "$BASE_BRANCH" = "master" ]; then
+            echo "protected=true" >> "$GITHUB_OUTPUT"
           else
-            echo "number=${{ github.event.pull_request.number }}" >> $GITHUB_OUTPUT
+            echo "protected=false" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Check PR status
-        id: check_status
+      - name: Check author permissions (for main branch)
+        if: steps.branch_check.outputs.protected == 'true'
+        id: author_check
+        uses: actions/github-script@v7
         env:
-          GH_TOKEN: ${{ github.token }}
-          PR_NUMBER: ${{ steps.pr.outputs.number }}
+          PR_AUTHOR: ${{ steps.pr.outputs.author }}
+        with:
+          script: |
+            const author = process.env.PR_AUTHOR;
+
+            // Check if author is dependabot
+            if (author === 'dependabot[bot]') {
+              core.setOutput('trusted', 'true');
+              return;
+            }
+
+            // Check if author has write permission
+            try {
+              const { data: permission } = await github.rest.repos.getCollaboratorPermissionLevel({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                username: author
+              });
+
+              const trustedRoles = ['admin', 'maintain', 'write'];
+              const isTrusted = trustedRoles.includes(permission.permission);
+
+              core.setOutput('trusted', isTrusted ? 'true' : 'false');
+            } catch (error) {
+              core.setOutput('trusted', 'false');
+            }
+
+      - name: Block untrusted authors on main branch
+        if: |
+          steps.branch_check.outputs.protected == 'true' &&
+          steps.author_check.outputs.trusted != 'true'
         run: |
-          # Get PR details
-          PR_JSON=$(gh pr view $PR_NUMBER --repo ${{ github.repository }} --json number,state,mergeable,mergeStateStatus,statusCheckRollup,labels,reviewDecision)
+          echo "Author does not have permission to auto-merge to protected branch"
+          exit 1
 
-          echo "PR Status:"
-          echo "$PR_JSON" | jq '.'
-
-          # Extract key fields
-          STATE=$(echo "$PR_JSON" | jq -r '.state')
-          MERGEABLE=$(echo "$PR_JSON" | jq -r '.mergeable')
-          MERGE_STATE=$(echo "$PR_JSON" | jq -r '.mergeStateStatus')
-          REVIEW_DECISION=$(echo "$PR_JSON" | jq -r '.reviewDecision // "NONE"')
-
-          # Check if PR has 'auto-merge' label
-          HAS_AUTO_MERGE_LABEL=$(echo "$PR_JSON" | jq -r '.labels[] | select(.name == "auto-merge") | .name' | wc -l)
-
-          # Check if all status checks passed
-          ALL_CHECKS_PASSED=true
-
-          # Get status checks
-          STATUS_CHECKS=$(echo "$PR_JSON" | jq -r '.statusCheckRollup[]? | select(.conclusion != null) | .conclusion')
-
-          echo "Status checks conclusions:"
-          echo "$STATUS_CHECKS"
-
-          # Check if any check failed
-          if echo "$STATUS_CHECKS" | grep -qE "FAILURE|CANCELLED|TIMED_OUT"; then
-            echo "❌ Some checks failed"
-            ALL_CHECKS_PASSED=false
-          elif [ -z "$STATUS_CHECKS" ]; then
-            echo "⚠️  No status checks found yet"
-            ALL_CHECKS_PASSED=false
-          fi
-
-          # Output results
-          echo "state=$STATE" >> $GITHUB_OUTPUT
-          echo "mergeable=$MERGEABLE" >> $GITHUB_OUTPUT
-          echo "merge_state=$MERGE_STATE" >> $GITHUB_OUTPUT
-          echo "review_decision=$REVIEW_DECISION" >> $GITHUB_OUTPUT
-          echo "all_checks_passed=$ALL_CHECKS_PASSED" >> $GITHUB_OUTPUT
-          echo "has_auto_merge_label=$HAS_AUTO_MERGE_LABEL" >> $GITHUB_OUTPUT
-
-      - name: Wait for pending checks
-        if: steps.check_status.outputs.merge_state == 'BLOCKED' || steps.check_status.outputs.merge_state == 'BEHIND'
+      - name: Check for auto-merge label or dependabot
+        id: label_check
+        uses: actions/github-script@v7
         env:
-          GH_TOKEN: ${{ github.token }}
           PR_NUMBER: ${{ steps.pr.outputs.number }}
+          PR_AUTHOR: ${{ steps.pr.outputs.author }}
+        with:
+          script: |
+            const prNumber = parseInt(process.env.PR_NUMBER);
+            const author = process.env.PR_AUTHOR;
+
+            // Auto-merge for dependabot
+            if (author === 'dependabot[bot]') {
+              core.setOutput('should_merge', 'true');
+              return;
+            }
+
+            // Check for auto-merge label
+            const { data: labels } = await github.rest.issues.listLabelsOnIssue({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: prNumber
+            });
+
+            const hasAutoMergeLabel = labels.some(label => label.name === 'auto-merge');
+            core.setOutput('should_merge', hasAutoMergeLabel ? 'true' : 'false');
+
+      - name: Skip if no auto-merge label
+        if: steps.label_check.outputs.should_merge != 'true'
         run: |
-          echo "PR is blocked or behind. Waiting for checks to complete..."
+          echo "PR does not have auto-merge label, skipping"
+          exit 0
 
-          # Wait up to 10 minutes for checks to complete
-          for i in {1..60}; do
-            sleep 10
+      - name: Check if all checks passed
+        id: checks
+        uses: actions/github-script@v7
+        env:
+          PR_NUMBER: ${{ steps.pr.outputs.number }}
+        with:
+          script: |
+            const prNumber = parseInt(process.env.PR_NUMBER);
 
-            PR_JSON=$(gh pr view $PR_NUMBER --repo ${{ github.repository }} --json mergeStateStatus,statusCheckRollup)
-            MERGE_STATE=$(echo "$PR_JSON" | jq -r '.mergeStateStatus')
+            // Get PR details
+            const { data: pr } = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: prNumber
+            });
 
-            echo "Attempt $i/60: Merge state is $MERGE_STATE"
+            // Get check runs for the head commit
+            const { data: checkRuns } = await github.rest.checks.listForRef({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              ref: pr.head.sha
+            });
 
-            if [ "$MERGE_STATE" = "CLEAN" ] || [ "$MERGE_STATE" = "UNSTABLE" ]; then
-              echo "✅ Checks completed"
-              break
-            fi
+            // Get commit statuses
+            const { data: statuses } = await github.rest.repos.getCombinedStatusForRef({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              ref: pr.head.sha
+            });
 
-            if [ $i -eq 60 ]; then
-              echo "⏰ Timeout waiting for checks"
-              exit 1
-            fi
-          done
+            // Check if all check runs passed
+            const failedChecks = checkRuns.check_runs.filter(
+              check => check.conclusion !== 'success' && check.conclusion !== 'skipped'
+            );
+
+            // Check if commit status is success
+            const statusSuccess = statuses.state === 'success' || statuses.statuses.length === 0;
+
+            const allChecksPassed = failedChecks.length === 0 && statusSuccess;
+            core.setOutput('passed', allChecksPassed ? 'true' : 'false');
+
+            if (!allChecksPassed) {
+              core.info(`Failed checks: ${failedChecks.map(c => c.name).join(', ')}`);
+              core.info(`Status state: ${statuses.state}`);
+            }
+
+      - name: Skip if checks failed
+        if: steps.checks.outputs.passed != 'true'
+        run: |
+          echo "Not all checks passed yet, skipping auto-merge"
+          exit 0
+
+      - name: Check for approvals
+        id: approval
+        uses: actions/github-script@v7
+        env:
+          PR_NUMBER: ${{ steps.pr.outputs.number }}
+          PR_AUTHOR: ${{ steps.pr.outputs.author }}
+        with:
+          script: |
+            const prNumber = parseInt(process.env.PR_NUMBER);
+            const author = process.env.PR_AUTHOR;
+
+            // Dependabot PRs don't need approval if checks pass
+            if (author === 'dependabot[bot]') {
+              core.setOutput('approved', 'true');
+              return;
+            }
+
+            // Check if author has write permission (trusted)
+            try {
+              const { data: permission } = await github.rest.repos.getCollaboratorPermissionLevel({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                username: author
+              });
+
+              const trustedRoles = ['admin', 'maintain', 'write'];
+              const isTrusted = trustedRoles.includes(permission.permission);
+
+              // Trusted authors with passing tests don't need approval
+              if (isTrusted) {
+                core.setOutput('approved', 'true');
+                core.info(`Author ${author} is trusted (${permission.permission}), approval not required`);
+                return;
+              }
+            } catch (error) {
+              core.warning(`Failed to check permissions: ${error.message}`);
+            }
+
+            // For external contributors, require approval
+            // Get reviews
+            const { data: reviews } = await github.rest.pulls.listReviews({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: prNumber
+            });
+
+            // Get latest review from each reviewer
+            const reviewsByUser = {};
+            reviews.forEach(review => {
+              if (!reviewsByUser[review.user.login] ||
+                  new Date(review.submitted_at) > new Date(reviewsByUser[review.user.login].submitted_at)) {
+                reviewsByUser[review.user.login] = review;
+              }
+            });
+
+            // Count approvals
+            const approvals = Object.values(reviewsByUser).filter(
+              review => review.state === 'APPROVED'
+            ).length;
+
+            core.setOutput('approved', approvals >= 1 ? 'true' : 'false');
+            core.setOutput('approval_count', approvals);
+
+      - name: Skip if not approved
+        if: steps.approval.outputs.approved != 'true'
+        run: |
+          echo "PR does not have required approvals, skipping auto-merge"
+          exit 0
+
+      - name: Check for merge conflicts
+        if: steps.pr.outputs.mergeable == 'false'
+        run: |
+          echo "PR has merge conflicts, cannot auto-merge"
+          exit 1
 
       - name: Enable auto-merge
-        if: |
-          steps.check_status.outputs.all_checks_passed == 'true' &&
-          steps.check_status.outputs.state == 'OPEN' &&
-          steps.check_status.outputs.mergeable == 'MERGEABLE'
+        uses: actions/github-script@v7
         env:
-          GH_TOKEN: ${{ github.token }}
           PR_NUMBER: ${{ steps.pr.outputs.number }}
-        run: |
-          echo "🚀 Enabling auto-merge for PR #$PR_NUMBER"
+        with:
+          script: |
+            const prNumber = parseInt(process.env.PR_NUMBER);
 
-          # Enable auto-merge with squash merge strategy
-          gh pr merge $PR_NUMBER \
-            --repo ${{ github.repository }} \
-            --auto \
-            --squash \
-            --delete-branch
+            try {
+              // Enable auto-merge with squash merge
+              await github.rest.pulls.merge({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                pull_number: prNumber,
+                merge_method: 'squash',
+                commit_title: `Auto-merge PR #${prNumber}`,
+              });
 
-      - name: Notify success
+              core.info(`Successfully merged PR #${prNumber}`);
+            } catch (error) {
+              core.setFailed(`Failed to merge PR: ${error.message}`);
+            }
+
+      - name: Comment on successful merge
         if: success()
+        uses: actions/github-script@v7
         env:
-          GH_TOKEN: ${{ github.token }}
           PR_NUMBER: ${{ steps.pr.outputs.number }}
-        run: |
-          gh pr comment $PR_NUMBER \
-            --repo ${{ github.repository }} \
-            --body "✅ Auto-merge enabled. PR will be merged automatically when all checks pass."
+        with:
+          script: |
+            const prNumber = parseInt(process.env.PR_NUMBER);
 
-      - name: Notify failure
-        if: failure()
-        env:
-          GH_TOKEN: ${{ github.token }}
-          PR_NUMBER: ${{ steps.pr.outputs.number }}
-        run: |
-          REASON=""
-
-          if [ "${{ steps.check_status.outputs.all_checks_passed }}" != "true" ]; then
-            REASON="Some checks failed or are still pending."
-          elif [ "${{ steps.check_status.outputs.state }}" != "OPEN" ]; then
-            REASON="PR is not open (state: ${{ steps.check_status.outputs.state }})."
-          elif [ "${{ steps.check_status.outputs.mergeable }}" != "MERGEABLE" ]; then
-            REASON="PR has merge conflicts or is not mergeable."
-          fi
-
-          gh pr comment $PR_NUMBER \
-            --repo ${{ github.repository }} \
-            --body "❌ Auto-merge failed: $REASON
-
-Please ensure:
-- All status checks pass (E2E tests, builds, security scans)
-- No merge conflicts
-- PR is not a draft
-- Branch is up to date with base branch"
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: prNumber,
+              body: '✅ Auto-merged successfully! All checks passed and PR was approved.'
+            });

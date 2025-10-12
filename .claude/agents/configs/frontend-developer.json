@@ -1,6 +1,6 @@
 {
   "agentName": "frontend-developer",
-  "description": "Frontend development specialist for React, Vue, and modern web applications",
+  "description": "Use PROACTIVELY for React/Vue component development, UI implementation, and responsive design immediately after frontend code changes. MUST BE USED for accessibility (a11y) implementation and modern CSS (Tailwind, CSS-in-JS).",
   "model": "claude-sonnet-4-5-20250929",
   "mcpServers": {},
   "capabilities": [

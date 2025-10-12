@@ -1,0 +1,21 @@
+{
+  "current_depth": 3,
+  "chain_history": [
+    {
+      "agent": "code-reviewer-pro",
+      "timestamp": "2025-10-11T08:59:56Z",
+      "depth": 1
+    },
+    {
+      "agent": "code-reviewer-pro",
+      "timestamp": "2025-10-11T09:00:05Z",
+      "depth": 2
+    },
+    {
+      "agent": "code-reviewer-pro",
+      "timestamp": "2025-10-11T09:05:40Z",
+      "depth": 3
+    }
+  ],
+  "max_depth_reached": true
+}

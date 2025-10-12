@@ -1,6 +1,6 @@
 {
   "agentName": "python-pro",
-  "description": "Python specialist for backend development, data processing, and best practices",
+  "description": "Use PROACTIVELY for Python backend development (FastAPI, Django, Flask) immediately after Python code changes. MUST BE USED for Python type hints, mypy validation, and async/await patterns.",
   "model": "claude-sonnet-4-5-20250929",
   "mcpServers": {},
   "capabilities": [

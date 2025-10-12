@@ -1,6 +1,6 @@
 {
   "agentName": "typescript-pro",
-  "description": "TypeScript specialist for type safety, advanced types, and configuration",
+  "description": "Use PROACTIVELY to fix TypeScript type errors, improve type safety, and optimize type inference. MUST BE USED immediately when TypeScript compilation errors are detected or after adding new TypeScript code.",
   "model": "claude-sonnet-4-5-20250929",
   "mcpServers": {},
   "capabilities": [
