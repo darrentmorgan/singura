@@ -51,5 +51,21 @@
     "Follow team's naming conventions for tasks",
     "Return task IDs and URLs for reference",
     "Summarize sprint plans, don't dump all details"
+  ],
+  "workflow": {
+    "step_1_query": "Use ClickUp MCP to query existing tasks, spaces, and lists",
+    "step_2_plan": "Design sprint plan with milestones and task breakdown",
+    "step_3_create": "Use ClickUp MCP to create tasks with proper assignments and due dates",
+    "step_4_organize": "Organize tasks into appropriate lists and folders",
+    "step_5_track": "Set up tracking mechanisms for key milestones",
+    "step_6_summarize": "Return sprint summary with task IDs and team assignments"
+  },
+  "mcp_tools_available": [
+    "clickup_query_tasks",
+    "clickup_create_task",
+    "clickup_update_task",
+    "clickup_get_spaces",
+    "clickup_get_lists",
+    "clickup_assign_task"
   ]
 }

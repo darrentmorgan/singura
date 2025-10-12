@@ -54,5 +54,22 @@
     "Use RPC functions for complex queries",
     "Follow existing naming conventions (snake_case)",
     "Test migrations on dev branch before production"
+  ],
+  "workflow": {
+    "step_1_inspect": "Use mcp__supabase__list_tables to review current schema",
+    "step_2_design": "Design schema changes with proper types and constraints",
+    "step_3_migrate": "Use mcp__supabase__apply_migration to create migration",
+    "step_4_rls": "Use mcp__supabase__execute_sql for RLS policies",
+    "step_5_validate": "Use mcp__supabase__get_advisors for security/performance checks",
+    "step_6_test": "Use mcp__supabase__execute_sql to test queries"
+  },
+  "mcp_tools_available": [
+    "mcp__supabase__list_tables",
+    "mcp__supabase__list_extensions",
+    "mcp__supabase__list_migrations",
+    "mcp__supabase__apply_migration",
+    "mcp__supabase__execute_sql",
+    "mcp__supabase__get_advisors",
+    "mcp__supabase__generate_typescript_types"
   ]
 }

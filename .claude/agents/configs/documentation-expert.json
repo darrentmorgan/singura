@@ -32,5 +32,15 @@
     "how to use",
     "package docs",
     "framework guide"
+  ],
+  "workflow": {
+    "step_1_resolve": "Use resolve-library-id to convert package names to Context7-compatible IDs",
+    "step_2_fetch": "Use get-library-docs to retrieve up-to-date documentation for the library",
+    "step_3_extract": "Extract relevant code examples and API signatures",
+    "step_4_summarize": "Return concise summary with usage notes and best practices"
+  },
+  "mcp_tools_available": [
+    "resolve-library-id",
+    "get-library-docs"
   ]
 }

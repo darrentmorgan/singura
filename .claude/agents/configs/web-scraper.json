@@ -58,5 +58,20 @@
     "auto_summary": true,
     "detail_threshold": 100,
     "instructions": "Store large scraped datasets in artifacts. Return concise summaries with data statistics and quality metrics."
-  }
+  },
+  "workflow": {
+    "step_1_single_page": "Use FIRECRAWL_SCRAPE_EXTRACT_DATA_LLM to scrape single URLs for quick data extraction",
+    "step_2_multi_page": "Use FIRECRAWL_CRAWL_URLS to start crawl jobs for multi-page website scraping",
+    "step_3_extract": "Use FIRECRAWL_EXTRACT to extract structured data from scraped pages",
+    "step_4_status": "Use FIRECRAWL_CRAWL_JOB_STATUS to monitor crawl progress for large jobs",
+    "step_5_format": "Format extracted data as JSON, CSV, or Markdown tables",
+    "step_6_validate": "Validate data quality and include source URLs and timestamps"
+  },
+  "mcp_tools_available": [
+    "FIRECRAWL_SCRAPE_EXTRACT_DATA_LLM",
+    "FIRECRAWL_CRAWL_URLS",
+    "FIRECRAWL_EXTRACT",
+    "FIRECRAWL_CRAWL_JOB_STATUS",
+    "FIRECRAWL_CANCEL_CRAWL_JOB"
+  ]
 }

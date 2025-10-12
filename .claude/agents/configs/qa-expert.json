@@ -48,5 +48,28 @@
     "Capture screenshots only for failures or when explicitly requested",
     "Return summary of issues, not full logs",
     "Include file:line references for test failures"
+  ],
+  "workflow": {
+    "step_1_navigate": "Use mcp__chrome-devtools__navigate_page to load the application",
+    "step_2_interact": "Use mcp__chrome-devtools__click, mcp__chrome-devtools__fill_form for user interactions",
+    "step_3_validate": "Use mcp__chrome-devtools__take_snapshot to verify UI state",
+    "step_4_performance": "Use mcp__chrome-devtools__performance_start_trace and mcp__chrome-devtools__performance_stop_trace for profiling",
+    "step_5_network": "Use mcp__chrome-devtools__list_network_requests to analyze API calls",
+    "step_6_screenshot": "Use mcp__chrome-devtools__take_screenshot for visual documentation",
+    "step_7_console": "Use mcp__chrome-devtools__list_console_messages to check for errors"
+  },
+  "mcp_tools_available": [
+    "mcp__chrome-devtools__click",
+    "mcp__chrome-devtools__fill_form",
+    "mcp__chrome-devtools__take_snapshot",
+    "mcp__chrome-devtools__take_screenshot",
+    "mcp__chrome-devtools__navigate_page",
+    "mcp__chrome-devtools__list_network_requests",
+    "mcp__chrome-devtools__list_console_messages",
+    "mcp__chrome-devtools__performance_start_trace",
+    "mcp__chrome-devtools__performance_stop_trace",
+    "mcp__chrome-devtools__wait_for",
+    "mcp__chrome-devtools__hover",
+    "mcp__chrome-devtools__drag"
   ]
 }

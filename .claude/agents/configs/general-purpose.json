@@ -59,5 +59,20 @@
     "Use firecrawl for web scraping",
     "Use Context7 when documentation-expert unavailable",
     "Return concise summaries, not raw scraped data"
+  ],
+  "workflow": {
+    "step_1_determine": "Determine if task requires web scraping or documentation lookup",
+    "step_2_firecrawl": "For web scraping: Use FIRECRAWL_SCRAPE_EXTRACT_DATA_LLM or FIRECRAWL_CRAWL_URLS",
+    "step_3_context7": "For documentation: Use resolve-library-id and get-library-docs",
+    "step_4_extract": "Extract and structure relevant data based on task requirements",
+    "step_5_summarize": "Return concise summary with key findings and source references"
+  },
+  "mcp_tools_available": [
+    "FIRECRAWL_SCRAPE_EXTRACT_DATA_LLM",
+    "FIRECRAWL_CRAWL_URLS",
+    "FIRECRAWL_EXTRACT",
+    "FIRECRAWL_CRAWL_JOB_STATUS",
+    "resolve-library-id",
+    "get-library-docs"
   ]
 }

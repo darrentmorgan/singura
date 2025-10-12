@@ -103,5 +103,27 @@
     "auto_summary": true,
     "detail_threshold": 200,
     "instructions": "Document performance analysis in scratchpad: metrics, bottlenecks, optimizations. Return summary with: key metrics, top 3 optimizations, expected gains."
-  }
+  },
+  "workflow": {
+    "step_1_navigate": "Use mcp__chrome-devtools__navigate_page to load the application",
+    "step_2_profile": "Use mcp__chrome-devtools__performance_start_trace and mcp__chrome-devtools__performance_stop_trace for profiling",
+    "step_3_analyze": "Use mcp__chrome-devtools__performance_analyze_insight to identify bottlenecks",
+    "step_4_network": "Use mcp__chrome-devtools__list_network_requests to analyze API performance",
+    "step_5_console": "Use mcp__chrome-devtools__list_console_messages to check for performance warnings",
+    "step_6_screenshot": "Use mcp__chrome-devtools__take_screenshot for visual documentation",
+    "step_7_report": "Compile optimization recommendations with expected performance gains"
+  },
+  "mcp_tools_available": [
+    "mcp__chrome-devtools__navigate_page",
+    "mcp__chrome-devtools__performance_start_trace",
+    "mcp__chrome-devtools__performance_stop_trace",
+    "mcp__chrome-devtools__performance_analyze_insight",
+    "mcp__chrome-devtools__list_network_requests",
+    "mcp__chrome-devtools__list_console_messages",
+    "mcp__chrome-devtools__take_screenshot",
+    "mcp__chrome-devtools__take_snapshot",
+    "mcp__chrome-devtools__emulate_cpu",
+    "mcp__chrome-devtools__emulate_network",
+    "mcp__chrome-devtools__resize_page"
+  ]
 }
