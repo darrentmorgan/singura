@@ -205,14 +205,22 @@ export class AutomationFeedbackRepository extends BaseRepository<
   }
 
   /**
-   * Archive old feedback
+   * Archive old feedback with organization scope
+   * SECURITY: Only archives feedback within organization boundaries
    */
-  async archiveOld(daysOld: number = 90): Promise<{ success: boolean; count: number }> {
-    const query = `SELECT archive_old_feedback($1)`;
-    const result = await this.db.query<{ archive_old_feedback: number }>(query, [daysOld]);
+  async archiveOld(organizationId: string, daysOld: number = 90): Promise<{ success: boolean; count: number }> {
+    const query = `
+      UPDATE ${this.tableName}
+      SET status = 'archived', updated_at = NOW()
+      WHERE organization_id = $1
+        AND status = 'resolved'
+        AND resolved_at < NOW() - ($2 || ' days')::INTERVAL
+      RETURNING id
+    `;
+    const result = await this.db.query(query, [organizationId, daysOld]);
     return {
       success: true,
-      count: result.rows[0]?.archive_old_feedback || 0
+      count: result.rows.length
     };
   }
 
@@ -318,16 +326,19 @@ export class AutomationFeedbackRepository extends BaseRepository<
   }
 
   /**
-   * Get feedback by automation
+   * Get feedback by automation with organization filtering
+   * SECURITY: Joins with discovered_automations to enforce organization boundaries
    */
-  async getByAutomation(automationId: string): Promise<AutomationFeedback[]> {
+  async getByAutomation(automationId: string, organizationId: string): Promise<AutomationFeedback[]> {
     const query = `
-      SELECT * FROM ${this.tableName}
-      WHERE automation_id = $1
-      ORDER BY created_at DESC
+      SELECT af.* FROM ${this.tableName} af
+      INNER JOIN discovered_automations da ON af.automation_id = da.id
+      WHERE af.automation_id = $1
+        AND da.organization_id = $2
+      ORDER BY af.created_at DESC
     `;
 
-    const result = await this.db.query<AutomationFeedbackRow>(query, [automationId]);
+    const result = await this.db.query<AutomationFeedbackRow>(query, [automationId, organizationId]);
     return result.rows.map(row => this.mapRowToEntity(row));
   }
 

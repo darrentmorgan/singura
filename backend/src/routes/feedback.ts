@@ -2,9 +2,12 @@
  * Automation Feedback API Routes
  * Handles user feedback capture and ML training data export
  * Phase 2: Feedback System
+ *
+ * SECURITY: All routes require authentication (requireClerkAuth middleware)
+ * SECURITY: Organization ownership validation enforced on all feedback operations
  */
 
-import { Router, Response } from 'express';
+import { Router, Response, NextFunction } from 'express';
 import { ClerkAuthRequest } from '../middleware/clerk-auth';
 import { automationFeedbackService } from '../services/automation-feedback.service';
 import {
@@ -17,6 +20,76 @@ import {
 } from '@singura/shared-types';
 
 const router = Router();
+
+/**
+ * Authorization middleware - Validates feedback ownership
+ * Ensures feedback belongs to the authenticated user's organization
+ *
+ * @throws 401 if user is not authenticated
+ * @throws 403 if feedback belongs to different organization
+ * @throws 404 if feedback doesn't exist (prevents information leakage)
+ */
+async function requireFeedbackOwnership(
+  req: ClerkAuthRequest,
+  res: Response,
+  next: NextFunction
+): Promise<void> {
+  try {
+    const feedbackId = req.params.id;
+    const organizationId = req.auth?.organizationId;
+
+    if (!feedbackId) {
+      res.status(400).json({
+        success: false,
+        error: 'Bad request',
+        message: 'Feedback ID is required'
+      });
+      return;
+    }
+
+    if (!organizationId) {
+      res.status(401).json({
+        success: false,
+        error: 'Unauthorized',
+        message: 'Authentication required'
+      });
+      return;
+    }
+
+    // Fetch feedback to verify ownership
+    const result = await automationFeedbackService.getFeedback(feedbackId, organizationId);
+
+    if (!result.success || !result.data) {
+      // Return 404 to prevent information leakage about feedback existence
+      res.status(404).json({
+        success: false,
+        error: 'Feedback not found',
+        message: 'The requested feedback does not exist or you do not have access to it'
+      });
+      return;
+    }
+
+    // Verify organization ownership
+    if (result.data.organizationId !== organizationId) {
+      res.status(403).json({
+        success: false,
+        error: 'Access denied',
+        message: 'You do not have permission to access this feedback'
+      });
+      return;
+    }
+
+    // Ownership verified, proceed to route handler
+    next();
+  } catch (error) {
+    console.error('Error in requireFeedbackOwnership middleware:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Internal server error',
+      message: 'Failed to verify feedback ownership'
+    });
+  }
+}
 
 /**
  * @route   POST /api/feedback
@@ -107,17 +180,23 @@ router.post('/', async (req: ClerkAuthRequest, res: Response) => {
 /**
  * @route   GET /api/feedback/:id
  * @desc    Get feedback by ID
- * @access  Private
+ * @access  Private (requires authentication + organization ownership)
  */
-router.get('/:id', async (req: ClerkAuthRequest, res: Response) => {
+router.get('/:id', requireFeedbackOwnership, async (req: ClerkAuthRequest, res: Response) => {
   try {
     const { id } = req.params;
+    const organizationId = req.auth?.organizationId;
 
     if (!id) {
       return res.status(400).json({ error: 'Feedback ID is required' });
     }
 
-    const result = await automationFeedbackService.getFeedback(id);
+    if (!organizationId) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    // Ownership already validated by middleware
+    const result = await automationFeedbackService.getFeedback(id, organizationId);
 
     if (!result.success || !result.data) {
       return res.status(404).json({ error: 'Feedback not found' });
@@ -207,17 +286,23 @@ router.get('/', async (req: ClerkAuthRequest, res: Response) => {
 /**
  * @route   GET /api/feedback/automation/:automationId
  * @desc    Get all feedback for a specific automation
- * @access  Private
+ * @access  Private (requires authentication + organization ownership)
  */
 router.get('/automation/:automationId', async (req: ClerkAuthRequest, res: Response) => {
   try {
     const { automationId } = req.params;
+    const organizationId = req.auth?.organizationId;
 
     if (!automationId) {
       return res.status(400).json({ error: 'Automation ID is required' });
     }
 
-    const feedback = await automationFeedbackService.getFeedbackByAutomation(automationId);
+    if (!organizationId) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    // SECURITY: Filter feedback by organization
+    const feedback = await automationFeedbackService.getFeedbackByAutomation(automationId, organizationId);
 
     return res.json({
       success: true,
@@ -267,14 +352,19 @@ router.get('/recent/:organizationId', async (req: ClerkAuthRequest, res: Respons
 /**
  * @route   PUT /api/feedback/:id
  * @desc    Update feedback
- * @access  Private
+ * @access  Private (requires authentication + organization ownership)
  */
-router.put('/:id', async (req: ClerkAuthRequest, res: Response) => {
+router.put('/:id', requireFeedbackOwnership, async (req: ClerkAuthRequest, res: Response) => {
   try {
     const { id } = req.params;
+    const organizationId = req.auth?.organizationId;
 
     if (!id) {
       return res.status(400).json({ error: 'Feedback ID is required' });
+    }
+
+    if (!organizationId) {
+      return res.status(401).json({ error: 'Unauthorized' });
     }
 
     const input: UpdateFeedbackInput = req.body;
@@ -289,6 +379,7 @@ router.put('/:id', async (req: ClerkAuthRequest, res: Response) => {
       }
     }
 
+    // Ownership already validated by middleware
     const result = await automationFeedbackService.updateFeedback(id, input);
 
     if (!result.success) {
@@ -311,9 +402,9 @@ router.put('/:id', async (req: ClerkAuthRequest, res: Response) => {
 /**
  * @route   PUT /api/feedback/:id/acknowledge
  * @desc    Acknowledge feedback
- * @access  Private
+ * @access  Private (requires authentication + organization ownership)
  */
-router.put('/:id/acknowledge', async (req: ClerkAuthRequest, res: Response) => {
+router.put('/:id/acknowledge', requireFeedbackOwnership, async (req: ClerkAuthRequest, res: Response) => {
   try {
     const { id } = req.params;
 
@@ -321,6 +412,7 @@ router.put('/:id/acknowledge', async (req: ClerkAuthRequest, res: Response) => {
       return res.status(400).json({ error: 'Feedback ID is required' });
     }
 
+    // Ownership already validated by middleware
     const result = await automationFeedbackService.acknowledgeFeedback(id);
 
     if (!result.success) {
@@ -343,9 +435,9 @@ router.put('/:id/acknowledge', async (req: ClerkAuthRequest, res: Response) => {
 /**
  * @route   PUT /api/feedback/:id/resolve
  * @desc    Resolve feedback
- * @access  Private
+ * @access  Private (requires authentication + organization ownership)
  */
-router.put('/:id/resolve', async (req: ClerkAuthRequest, res: Response) => {
+router.put('/:id/resolve', requireFeedbackOwnership, async (req: ClerkAuthRequest, res: Response) => {
   try {
     const { id } = req.params;
 
@@ -359,6 +451,7 @@ router.put('/:id/resolve', async (req: ClerkAuthRequest, res: Response) => {
       return res.status(400).json({ error: 'Resolution data is required' });
     }
 
+    // Ownership already validated by middleware
     const result = await automationFeedbackService.resolveFeedback(id, resolution);
 
     if (!result.success) {
@@ -381,13 +474,20 @@ router.put('/:id/resolve', async (req: ClerkAuthRequest, res: Response) => {
 /**
  * @route   POST /api/feedback/archive-old
  * @desc    Archive old resolved feedback
- * @access  Private (Admin only)
+ * @access  Private (Admin only - requires authentication + organization scope)
  */
 router.post('/archive-old', async (req: ClerkAuthRequest, res: Response) => {
   try {
+    const organizationId = req.auth?.organizationId;
+
+    if (!organizationId) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+
     const daysOld = req.body.daysOld || 90;
 
-    const result = await automationFeedbackService.archiveOldFeedback(daysOld);
+    // SECURITY: Archive only within organization scope
+    const result = await automationFeedbackService.archiveOldFeedback(organizationId, daysOld);
 
     return res.json({
       success: true,
@@ -464,13 +564,19 @@ router.get('/trends/:organizationId', async (req: ClerkAuthRequest, res: Respons
 /**
  * @route   GET /api/feedback/ml-training-batch
  * @desc    Export ML training batch
- * @access  Private (Admin/ML pipeline only)
+ * @access  Private (Admin/ML pipeline only - requires authentication)
  */
 router.get('/ml-training-batch', async (req: ClerkAuthRequest, res: Response) => {
   try {
-    const organizationId = req.query.organizationId as string | undefined;
+    const organizationId = req.auth?.organizationId;
+
+    if (!organizationId) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+
     const limit = req.query.limit ? parseInt(req.query.limit as string, 10) : 100;
 
+    // SECURITY: Only fetch training data for user's organization
     const batch = await automationFeedbackService.getMLTrainingBatch(organizationId, limit);
 
     return res.json({
