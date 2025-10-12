@@ -87,6 +87,59 @@ interface DetailedAutomationData extends Omit<AutomationDiscovery, 'permissions'
   };
 }
 
+// Extended type for detailed automation data with enriched permissions
+interface EnrichedScope {
+  displayName?: string;
+  serviceName?: string;
+  accessLevel?: string;
+  riskLevel?: string;
+  riskScore?: number;
+  description?: string;
+  dataTypes?: string[];
+  gdprImpact?: string;
+  alternatives?: string;
+}
+
+interface RiskBreakdownItem {
+  scope?: string;
+  contribution?: number;
+  riskScore?: number;
+}
+
+interface DetailedAutomationData extends Omit<AutomationDiscovery, 'permissions'> {
+  permissions?: string[] | {
+    total?: number;
+    enriched?: EnrichedScope[];
+    riskAnalysis?: {
+      riskLevel?: string;
+      overallRisk?: number;
+      highestRisk?: {
+        scope: string;
+        score: number;
+      };
+      breakdown?: RiskBreakdownItem[];
+    };
+  };
+  metadata?: AutomationDiscovery['metadata'] & {
+    isAIPlatform?: boolean;
+    platformName?: string;
+    riskFactors?: string[];
+    authorizedBy?: string;
+    clientId?: string;
+    firstAuthorization?: string;
+    detectionMethod?: string;
+  };
+  description?: string;
+  authorizedBy?: string;
+  lastActivity?: string;
+  authorizationAge?: string;
+  connection?: {
+    platform: string;
+    displayName: string;
+    status: string;
+  };
+}
+
 // Automation type icons
 const automationTypeIcons = {
   bot: Bot,

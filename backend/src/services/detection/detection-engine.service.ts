@@ -241,15 +241,15 @@ export class DetectionEngineService {
 
   // Aggregate risk scoring method
   calculateOverallRisk(
-    activityPatterns: GoogleActivityPattern[], 
+    activityPatterns: GoogleActivityPattern[],
     riskIndicators: RiskIndicator[]
   ): number {
     // Calculate average risk across different detection mechanisms
     const patternRiskScores = activityPatterns.map(pattern => pattern.confidence);
     const indicatorRiskScores = riskIndicators.map(indicator => indicator.severity);
 
-    const averagePatternRisk = patternRiskScores.length 
-      ? patternRiskScores.reduce((sum, score) => sum + score, 0) / patternRiskScores.length 
+    const averagePatternRisk = patternRiskScores.length
+      ? patternRiskScores.reduce((sum, score) => sum + score, 0) / patternRiskScores.length
       : 0;
 
     const averageIndicatorRisk = indicatorRiskScores.length
@@ -258,7 +258,7 @@ export class DetectionEngineService {
 
     // Weighted combination of pattern and indicator risks
     return Math.min(
-      (averagePatternRisk * 0.6 + averageIndicatorRisk * 0.4), 
+      (averagePatternRisk * 0.6 + averageIndicatorRisk * 0.4),
       100
     );
   }
