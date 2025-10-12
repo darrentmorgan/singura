@@ -1,7 +1,7 @@
 ---
 name: test-engineer
 description: Test code generation and strategy specialist. OPTIMIZED version with fast tools (Grep, Glob, LS).
-tools: Read, Write, Edit, Bash, Grep, Glob, LS
+tools: Read, Write, Edit, Bash, Grep, Glob, LS, mcp__chrome-devtools, mcp__playwright-server
 model: sonnet
 ---
 

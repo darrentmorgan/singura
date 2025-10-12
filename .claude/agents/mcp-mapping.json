@@ -68,23 +68,6 @@
         "performance trace"
       ]
     },
-    "playwright": {
-      "description": "Playwright browser automation for testing",
-      "agents": ["qa-expert"],
-      "primary": "qa-expert",
-      "use_cases": [
-        "Test automation",
-        "Cross-browser testing",
-        "Browser debugging",
-        "Visual regression testing"
-      ],
-      "routing_triggers": [
-        "playwright",
-        "test automation",
-        "browser test",
-        "visual regression"
-      ]
-    },
     "firecrawl-mcp": {
       "description": "Web scraping and content extraction",
       "agents": ["web-scraper", "general-purpose"],
@@ -167,7 +150,7 @@
       "response_format": "Concise summary with code examples"
     },
     "qa-expert": {
-      "mcp_servers": ["chrome-devtools", "playwright"],
+      "mcp_servers": ["chrome-devtools"],
       "config_file": ".claude/agents/configs/qa-expert.json",
       "context_budget": "High (screenshots/traces)",
       "response_format": "Test results + screenshot analysis"
@@ -236,7 +219,7 @@
     },
     {
       "user_request": "Run E2E tests for login flow",
-      "routing": "qa-expert (chrome-devtools, playwright)",
+      "routing": "qa-expert (chrome-devtools)",
       "reason": "Matches 'E2E test' trigger",
       "expected_response": "Test results + screenshots + issues found"
     },
