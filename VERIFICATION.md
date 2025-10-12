@@ -139,3 +139,5 @@ cd backend && pnpm test
 ```bash
 pnpm run hooks:install
 ```
+
+<!-- Test comment: CI/CD verification system active -->
