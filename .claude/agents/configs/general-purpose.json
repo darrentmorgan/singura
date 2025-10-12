@@ -9,16 +9,17 @@
         "firecrawl-mcp"
       ],
       "env": {
-        "FIRECRAWL_API_KEY": "fc-bf3ed61e05874ba2a46837a95ee2d72e"
+        "FIRECRAWL_API_KEY": "${FIRECRAWL_API_KEY}"
       }
     },
     "Context7": {
-      "command": "node",
+      "command": "npx",
       "args": [
-        "/Users/darrenmorgan/mcp-servers/context7/dist/index.js"
+        "-y",
+        "@context7/mcp-server"
       ],
       "env": {
-        "CONTEXT7_API_KEY": "ctx7sk-b9008b41-aaa6-4353-9cd6-9835bae3ba0a"
+        "CONTEXT7_API_KEY": "${CONTEXT7_API_KEY}"
       }
     }
   },

@@ -7,10 +7,10 @@
       "args": [
         "-y",
         "@supabase/mcp-server-supabase",
-        "--project-ref=khodniyhethjyomscyjw"
+        "--project-ref=${SUPABASE_PROJECT_REF}"
       ],
       "env": {
-        "SUPABASE_ACCESS_TOKEN": "sbp_eb3b3872ce96f34792d05bb3359a243ebd44f0e0"
+        "SUPABASE_ACCESS_TOKEN": "${SUPABASE_ACCESS_TOKEN}"
       }
     }
   },
