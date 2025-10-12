@@ -741,7 +741,126 @@ This guide provides a comprehensive framework for optimizing agent configuration
 
 ---
 
-**Document Version:** 1.0
+---
+
+## Tool Optimization (Grep, Glob, LS vs Bash)
+
+### The Performance Problem
+
+Agents using `Bash("grep")`, `Bash("find")`, or `Bash("ls")` are **10-100x slower** than using the optimized tools:
+
+| Slow (Bash) | Fast (Tool) | Speed Up |
+|-------------|-------------|----------|
+| `Bash("find . -name '*.ts'")` | `Glob("**/*.ts")` | **10x faster** |
+| `Bash("grep -r 'pattern' src/")` | `Grep("pattern", path="src/")` | **20-100x faster** |
+| `Bash("ls -la src/")` | `LS("src/")` | **Faster, cleaner** |
+
+### Fast Tools Available
+
+All agents have access to these optimized tools via global permissions:
+
+1. **Grep** - Powered by ripgrep (10-100x faster than GNU grep)
+   - Smart ignore (skips node_modules, .git automatically)
+   - Regex support, file type filtering, context lines
+
+2. **Glob** - Fast file pattern matching (10x faster than find)
+   - Sorted by modification time
+   - Works with any codebase size
+
+3. **LS** - Direct directory listing (faster than bash ls)
+   - No shell overhead, clean output
+
+### Agent Types and Tool Usage
+
+**Markdown Agents** (`.claude/agents/*.md`):
+- Have explicit `tools:` field in frontmatter
+- Example: `tools: Read, Write, Edit, Bash, Grep, Glob, LS`
+- 7 markdown agents, all now optimized with fast tools
+
+**JSON Agents** (`.claude/agents/configs/*.json`):
+- Inherit tools from global `settings.local.json`
+- All 20 JSON agents have access to Grep, Glob, LS
+- Should use fast tools by default (guided by documentation)
+
+### Best Practices for Agents
+
+**DO ✅**:
+```bash
+# Fast file discovery
+Glob("**/*.test.ts")
+Glob("src/components/**/*.tsx")
+
+# Fast content search
+Grep("describe\\(", glob="**/*.test.ts", output_mode="files_with_matches")
+Grep("TODO", glob="**/*.ts", output_mode="content", n=true)
+
+# Fast directory listing
+LS("src/components/")
+```
+
+**DON'T ❌**:
+```bash
+# Slow bash commands
+Bash("find . -name '*.test.ts'")
+Bash("grep -r 'describe' tests/")
+Bash("ls -la src/")
+```
+
+### Updated Markdown Agents
+
+All 7 markdown agents now have fast tools:
+
+1. ✅ **test-engineer.md** - Has `Grep, Glob, LS` + best practices section
+2. ✅ **data-engineer.md** - Has `Grep, Glob, LS` + best practices section
+3. ✅ **api-documenter.md** - Has `Grep, Glob`
+4. ✅ **code-reviewer.md** - Has `Grep, Glob`
+5. ✅ **security-scanner.md** - Has `Grep, Glob, LS` (updated)
+6. ✅ **deep-research-analyst.md** - Has `Grep, Glob` + all research tools (updated)
+7. ✅ **quality-judge.md** - Has `Grep, Glob, LS` + frontmatter added (updated)
+
+### Verification
+
+Check agent tool access:
+```bash
+# Markdown agents
+grep "^tools:" .claude/agents/*.md
+
+# Global permissions (inherited by JSON agents)
+jq '.permissions.allow' .claude/settings.local.json | grep -E "Grep|Glob"
+```
+
+Expected output:
+```bash
+# Markdown agents should show:
+test-engineer.md:tools: Read, Write, Edit, Bash, Grep, Glob, LS
+data-engineer.md:tools: Read, Write, Edit, Bash, Grep, Glob, LS
+# ...etc
+
+# Global permissions should show:
+"Grep",
+"Glob",
+```
+
+### Performance Comparison
+
+**Test: Find all TypeScript test files**
+- Slow: `Bash("find . -name '*.test.ts'")` → ~500ms for 1000 files
+- Fast: `Glob("**/*.test.ts")` → ~50ms for 1000 files
+- **Result: 10x faster**
+
+**Test: Search for test patterns**
+- Slow: `Bash("grep -r 'describe(' tests/")` → ~2000ms for 100 files
+- Fast: `Grep("describe\\(", path="tests/")` → ~100ms for 100 files
+- **Result: 20x faster**
+
+### Related Documentation
+
+- **Full Tool Guide**: [AGENT_TOOL_OPTIMIZATION.md](/.claude/docs/AGENT_TOOL_OPTIMIZATION.md)
+- **Tool API Reference**: Main Claude prompt (Grep/Glob sections)
+
+---
+
+**Document Version:** 1.1
 **Last Updated:** 2025-10-12
-**Status:** Complete
+**Status:** Complete - Added Tool Optimization section
 **Next Review:** After Phase 3 implementation
