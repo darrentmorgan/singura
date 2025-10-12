@@ -19,6 +19,7 @@ build/
 # Logs
 logs
 *.log
+.ci-verification-logs/
 
 # Runtime data
 pids

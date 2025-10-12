@@ -36,7 +36,12 @@
     "docker:prod:restart": "pnpm run docker:prod:down && pnpm run docker:prod:up",
     "deploy": "scripts/deploy.sh",
     "deploy:staging": "scripts/deploy.sh latest .env.staging",
-    "deploy:production": "scripts/deploy.sh latest .env.production"
+    "deploy:production": "scripts/deploy.sh latest .env.production",
+    "verify": "scripts/verify-ci.sh",
+    "verify:quick": "scripts/quick-check.sh",
+    "verify:skip-e2e": "scripts/verify-ci.sh --skip-e2e",
+    "verify:fix": "scripts/verify-ci.sh --fix",
+    "hooks:install": "scripts/install-hooks.sh"
   },
   "workspaces": [
     "shared-types",
