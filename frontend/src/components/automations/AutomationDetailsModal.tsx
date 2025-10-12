@@ -163,6 +163,7 @@ interface AutomationDetailsModalProps {
   onClose: () => void;
   onAssessRisk?: (automationId: string) => void;
   initialTab?: 'permissions' | 'risk' | 'feedback' | 'details';
+  feedbackFormExpanded?: boolean;
 }
 
 export const AutomationDetailsModal: React.FC<AutomationDetailsModalProps> = ({
@@ -170,7 +171,8 @@ export const AutomationDetailsModal: React.FC<AutomationDetailsModalProps> = ({
   isOpen,
   onClose,
   onAssessRisk,
-  initialTab = 'permissions'
+  initialTab = 'permissions',
+  feedbackFormExpanded = false
 }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [detailedData, setDetailedData] = useState<DetailedAutomationData | null>(null);
@@ -544,7 +546,7 @@ export const AutomationDetailsModal: React.FC<AutomationDetailsModalProps> = ({
                     <AutomationFeedback
                       automationId={automation.id}
                       compact={false}
-                      initiallyExpanded={activeTab === 'feedback'}
+                      initiallyExpanded={feedbackFormExpanded}
                       onFeedbackSubmitted={(feedback) => {
                         // Refresh feedback list after submission
                         fetchFeedback();
