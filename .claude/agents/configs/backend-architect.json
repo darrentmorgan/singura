@@ -1,6 +1,6 @@
 {
   "agentName": "backend-architect",
-  "description": "Backend architecture and Supabase database specialist",
+  "description": "Use PROACTIVELY for Supabase database schema design, migrations, and RLS policies. MUST BE USED with Supabase MCP for database operations, RPC functions, and data model optimization.",
   "mcpServers": {
     "supabase": {
       "command": "npx",

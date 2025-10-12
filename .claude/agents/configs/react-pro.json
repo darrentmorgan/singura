@@ -1,6 +1,6 @@
 {
   "agentName": "react-pro",
-  "description": "React specialist for hooks, performance optimization, and advanced patterns",
+  "description": "Use PROACTIVELY for React hooks, performance optimization, and advanced patterns immediately after React component changes. MUST BE USED for React-specific issues, Context API, and Next.js app router patterns.",
   "model": "claude-sonnet-4-5-20250929",
   "mcpServers": {},
   "capabilities": [

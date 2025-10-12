@@ -1,6 +1,6 @@
 {
   "agentName": "product-manager",
-  "description": "Product management and ClickUp task coordination specialist",
+  "description": "Use PROACTIVELY for sprint planning, roadmap coordination, and strategic task management. MUST BE USED with ClickUp MCP for project tracking, milestone planning, and team workflow optimization.",
   "mcpServers": {
     "clickup": {
       "command": "npx",

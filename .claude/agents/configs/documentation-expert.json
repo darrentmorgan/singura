@@ -1,6 +1,6 @@
 {
   "agentName": "documentation-expert",
-  "description": "Specialized agent for library documentation and API references",
+  "description": "Use PROACTIVELY when library documentation or API references are needed. MUST BE USED with Context7 MCP for documentation lookups, code examples, and framework best practices.",
   "mcpServers": {
     "Context7": {
       "command": "node",

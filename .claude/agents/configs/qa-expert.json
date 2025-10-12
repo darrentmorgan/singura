@@ -1,19 +1,12 @@
 {
   "agentName": "qa-expert",
-  "description": "E2E testing and browser automation specialist",
+  "description": "Use PROACTIVELY for E2E testing and browser automation after feature implementation. MUST BE USED with Chrome DevTools MCP for visual QA, performance profiling, and automated testing.",
   "mcpServers": {
     "chrome-devtools": {
       "command": "npx",
       "args": [
         "chrome-devtools-mcp@latest",
         "--isolated"
-      ]
-    },
-    "playwright": {
-      "command": "npx",
-      "args": [
-        "-y",
-        "@playwright/mcp@latest"
       ]
     }
   },

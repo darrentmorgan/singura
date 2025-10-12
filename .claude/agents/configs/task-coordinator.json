@@ -1,6 +1,6 @@
 {
   "agentName": "task-coordinator",
-  "description": "Lightweight ClickUp task management specialist for CRUD operations",
+  "description": "Use for lightweight ClickUp CRUD operations when simple task management is needed. For strategic planning, delegate to product-manager agent. MUST BE USED with ClickUp MCP for task operations.",
   "model": "claude-3-5-haiku-20241022",
   "mcpServers": {
     "clickup": {

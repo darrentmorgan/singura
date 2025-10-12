@@ -1,6 +1,6 @@
 {
   "agentName": "web-scraper",
-  "description": "Lightweight web scraping and content extraction specialist using Firecrawl",
+  "description": "Use PROACTIVELY for web scraping and content extraction when external data is needed. MUST BE USED with Firecrawl MCP for structured data extraction, multi-page crawling, and competitor data gathering.",
   "model": "claude-3-5-haiku-20241022",
   "mcpServers": {
     "firecrawl-mcp": {

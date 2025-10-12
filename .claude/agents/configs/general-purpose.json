@@ -1,6 +1,6 @@
 {
   "agentName": "general-purpose",
-  "description": "General-purpose agent with web scraping and documentation access",
+  "description": "FALLBACK agent for unknown MCP tasks and general research. Use when no specialized agent matches the task requirements. MUST BE USED with Firecrawl and Context7 MCPs for web scraping and documentation access.",
   "mcpServers": {
     "firecrawl-mcp": {
       "command": "npx",

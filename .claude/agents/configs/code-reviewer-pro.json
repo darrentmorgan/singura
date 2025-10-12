@@ -1,6 +1,6 @@
 {
   "agentName": "code-reviewer-pro",
-  "description": "Code review specialist for quality, security, and best practices",
+  "description": "Use PROACTIVELY immediately after code changes (Edit/Write operations) to review quality, detect security vulnerabilities, and enforce best practices. MUST BE USED before commits for code quality validation.",
   "model": "claude-sonnet-4-5-20250929",
   "mcpServers": {},
   "capabilities": [

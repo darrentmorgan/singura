@@ -1,6 +1,6 @@
 {
   "agentName": "data-engineer",
-  "description": "Data pipeline and ETL operations specialist",
+  "description": "Use PROACTIVELY for ETL/ELT pipelines, data transformations, and batch processing. MUST BE USED with Supabase MCP for data migration operations, pipeline design, and data quality validation.",
   "mcpServers": {
     "supabase": {
       "command": "npx",

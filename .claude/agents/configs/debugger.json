@@ -1,6 +1,6 @@
 {
   "agentName": "debugger",
-  "description": "Debugging specialist for troubleshooting and root cause analysis",
+  "description": "MUST BE USED immediately when test failures, runtime errors, ReferenceErrors, or bugs are detected. Use PROACTIVELY for root cause analysis, systematic debugging, and async/timeout issue resolution.",
   "model": "claude-sonnet-4-5-20250929",
   "mcpServers": {},
   "capabilities": [

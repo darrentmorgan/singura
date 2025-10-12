@@ -1,6 +1,6 @@
 {
   "agentName": "security-auditor",
-  "description": "Security specialist for vulnerability detection and secure coding practices",
+  "description": "Use PROACTIVELY after authentication/authorization code changes. MUST BE USED for security vulnerability detection, OWASP Top 10 compliance, secrets scanning, and secure coding validation.",
   "model": "claude-sonnet-4-5-20250929",
   "mcpServers": {},
   "capabilities": [

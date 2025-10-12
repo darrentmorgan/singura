@@ -1,6 +1,6 @@
 {
   "agentName": "database-optimizer",
-  "description": "Database performance optimization and query tuning specialist",
+  "description": "Use PROACTIVELY for database performance optimization when slow queries detected. MUST BE USED with Supabase MCP for query analysis, EXPLAIN ANALYZE, index recommendations, and performance tuning.",
   "mcpServers": {
     "supabase": {
       "command": "npx",
