@@ -178,6 +178,40 @@ router.post('/', async (req: ClerkAuthRequest, res: Response) => {
 });
 
 /**
+ * @route   GET /api/feedback/ml-training-batch
+ * @desc    Export ML training batch
+ * @access  Private (Admin/ML pipeline only - requires authentication)
+ *
+ * NOTE: This route MUST be defined BEFORE the /:id route to prevent
+ * 'ml-training-batch' from being interpreted as an ID parameter
+ */
+router.get('/ml-training-batch', async (req: ClerkAuthRequest, res: Response) => {
+  try {
+    const organizationId = req.auth?.organizationId;
+
+    if (!organizationId) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    const limit = req.query.limit ? parseInt(req.query.limit as string, 10) : 100;
+
+    // SECURITY: Only fetch training data for user's organization
+    const batch = await automationFeedbackService.getMLTrainingBatch(organizationId, limit);
+
+    return res.json({
+      success: true,
+      data: batch
+    });
+
+  } catch (error) {
+    console.error('Error fetching ML training batch:', error);
+    return res.status(500).json({
+      error: error instanceof Error ? error.message : 'Internal server error'
+    });
+  }
+});
+
+/**
  * @route   GET /api/feedback/:id
  * @desc    Get feedback by ID
  * @access  Private (requires authentication + organization ownership)
@@ -555,37 +589,6 @@ router.get('/trends/:organizationId', async (req: ClerkAuthRequest, res: Respons
 
   } catch (error) {
     console.error('Error fetching trends:', error);
-    return res.status(500).json({
-      error: error instanceof Error ? error.message : 'Internal server error'
-    });
-  }
-});
-
-/**
- * @route   GET /api/feedback/ml-training-batch
- * @desc    Export ML training batch
- * @access  Private (Admin/ML pipeline only - requires authentication)
- */
-router.get('/ml-training-batch', async (req: ClerkAuthRequest, res: Response) => {
-  try {
-    const organizationId = req.auth?.organizationId;
-
-    if (!organizationId) {
-      return res.status(401).json({ error: 'Unauthorized' });
-    }
-
-    const limit = req.query.limit ? parseInt(req.query.limit as string, 10) : 100;
-
-    // SECURITY: Only fetch training data for user's organization
-    const batch = await automationFeedbackService.getMLTrainingBatch(organizationId, limit);
-
-    return res.json({
-      success: true,
-      data: batch
-    });
-
-  } catch (error) {
-    console.error('Error fetching ML training batch:', error);
     return res.status(500).json({
       error: error instanceof Error ? error.message : 'Internal server error'
     });
