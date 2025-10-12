@@ -99,15 +99,25 @@ export class AutomationFeedbackService {
   }
 
   /**
-   * Get feedback by ID
+   * Get feedback by ID with organization validation
+   * SECURITY: Validates that feedback belongs to specified organization
    */
-  async getFeedback(feedbackId: string): Promise<{
+  async getFeedback(feedbackId: string, organizationId: string): Promise<{
     success: boolean;
     data: AutomationFeedback | null;
   }> {
     const feedback = await automationFeedbackRepository.findById(feedbackId);
+
+    // Validate organization ownership
+    if (!feedback || feedback.organizationId !== organizationId) {
+      return {
+        success: false,
+        data: null
+      };
+    }
+
     return {
-      success: !!feedback,
+      success: true,
       data: feedback
     };
   }
@@ -124,10 +134,11 @@ export class AutomationFeedbackService {
   }
 
   /**
-   * Get feedback by automation
+   * Get feedback by automation with organization filtering
+   * SECURITY: Only returns feedback for automations belonging to the organization
    */
-  async getFeedbackByAutomation(automationId: string): Promise<AutomationFeedback[]> {
-    return automationFeedbackRepository.getByAutomation(automationId);
+  async getFeedbackByAutomation(automationId: string, organizationId: string): Promise<AutomationFeedback[]> {
+    return automationFeedbackRepository.getByAutomation(automationId, organizationId);
   }
 
   /**
@@ -158,13 +169,14 @@ export class AutomationFeedbackService {
   }
 
   /**
-   * Archive old feedback
+   * Archive old feedback with organization scope
+   * SECURITY: Only archives feedback within organization boundaries
    */
-  async archiveOldFeedback(daysOld: number = 90): Promise<{
+  async archiveOldFeedback(organizationId: string, daysOld: number = 90): Promise<{
     success: boolean;
     count: number;
   }> {
-    return automationFeedbackRepository.archiveOld(daysOld);
+    return automationFeedbackRepository.archiveOld(organizationId, daysOld);
   }
 
   /**

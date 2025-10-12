@@ -14,7 +14,9 @@
       "context": {
         "framework": "React 18",
         "styling": "Tailwind CSS",
-        "ui_library": "shadcn/ui"
+        "ui_library": "shadcn/ui",
+        "animation_library": "Magic UI",
+        "mcp_server": "@magicuidesign/mcp"
       }
     },
     {
@@ -138,10 +140,10 @@
       "mcp_servers": []
     },
     "frontend-developer": {
-      "description": "React and UI development",
-      "strengths": ["components", "hooks", "state management"],
-      "use_for": ["UI components", "React patterns", "Zustand stores"],
-      "mcp_servers": []
+      "description": "React and UI development with Magic UI library",
+      "strengths": ["components", "hooks", "state management", "UI animations", "visual effects"],
+      "use_for": ["UI components", "React patterns", "Zustand stores", "Magic UI components", "animations", "visual effects"],
+      "mcp_servers": ["@magicuidesign/mcp"]
     },
     "backend-architect": {
       "description": "Backend architecture and API design",
@@ -441,6 +443,38 @@
           "Plan sprint backlog",
           "Track feature implementation progress"
         ]
+      },
+      {
+        "name": "UI/UX Component Library & Visual Effects",
+        "mcp_server": "@magicuidesign/mcp",
+        "primary_agent": "frontend-developer",
+        "secondary_agents": ["react-pro"],
+        "keywords": [
+          "UI component",
+          "animation",
+          "visual effect",
+          "layout",
+          "background pattern",
+          "text effect",
+          "button style",
+          "marquee",
+          "blur fade",
+          "grid background",
+          "dock",
+          "terminal",
+          "widget",
+          "motion",
+          "Magic UI"
+        ],
+        "example_queries": [
+          "Add a marquee of logos",
+          "Create blur fade text animation",
+          "Add grid background pattern",
+          "Implement dock navigation",
+          "Add terminal widget component",
+          "Create interactive button effects"
+        ],
+        "special_instructions": "Use frontend-developer for general UI/UX work, react-pro for React-specific patterns"
       }
     ],
     "delegation_workflow": {

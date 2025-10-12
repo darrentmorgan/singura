@@ -45,7 +45,7 @@ app.use(express.urlencoded({ extended: true }));
 
 // API routes
 app.use('/api/automations', optionalClerkAuth, automationRoutes);
-app.use('/api/feedback', optionalClerkAuth, feedbackRoutes);
+app.use('/api/feedback', requireClerkAuth, feedbackRoutes); // SECURITY FIX: Require auth for all feedback routes
 
 // Development-only routes (blocked in production)
 app.use('/api/dev', devRoutes);

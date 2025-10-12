@@ -114,6 +114,39 @@
         "assign task"
       ],
       "routing_logic": "Use task-coordinator (Haiku) for CRUD operations, product-manager (Sonnet) for strategy"
+    },
+    "@magicuidesign/mcp": {
+      "description": "Magic UI component library and UI/UX enhancements",
+      "agents": ["frontend-developer", "react-pro"],
+      "primary": "frontend-developer",
+      "use_cases": [
+        "UI component generation",
+        "Animation and motion effects",
+        "Visual effects and interactions",
+        "Layout components (grid, dock)",
+        "Background patterns",
+        "Text animations and reveals",
+        "Button styles and interactions",
+        "Media components (video, terminal)",
+        "Interactive widgets"
+      ],
+      "routing_triggers": [
+        "UI component",
+        "animation",
+        "visual effect",
+        "layout",
+        "background pattern",
+        "text effect",
+        "button style",
+        "marquee",
+        "blur fade",
+        "grid background",
+        "dock",
+        "terminal",
+        "widget",
+        "motion",
+        "Magic UI"
+      ]
     }
   },
   "delegation_rules": {
@@ -208,6 +241,20 @@
       "context_budget": "Low (CRUD operations)",
       "response_format": "Task IDs + operation summary",
       "use_for": "ClickUp task CRUD, simple coordination (NOT strategy)"
+    },
+    "frontend-developer": {
+      "mcp_servers": ["@magicuidesign/mcp"],
+      "config_file": ".claude/agents/configs/frontend-developer.json",
+      "context_budget": "Moderate",
+      "response_format": "Component code + UI implementation summary",
+      "use_for": "UI/UX implementation, component development, animations, effects"
+    },
+    "react-pro": {
+      "mcp_servers": ["@magicuidesign/mcp"],
+      "config_file": ".claude/agents/configs/react-pro.json",
+      "context_budget": "Moderate",
+      "response_format": "React implementation + performance notes",
+      "use_for": "React-specific UI patterns, hooks, advanced components"
     }
   },
   "example_delegations": [

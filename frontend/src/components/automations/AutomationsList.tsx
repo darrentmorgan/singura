@@ -60,6 +60,7 @@ export const AutomationsList: React.FC<AutomationsListProps> = ({
   const [selectedAutomation, setSelectedAutomation] = useState<AutomationDiscovery | null>(null);
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
   const [modalInitialTab, setModalInitialTab] = useState<'permissions' | 'risk' | 'feedback' | 'details'>('permissions');
+  const [feedbackFormExpanded, setFeedbackFormExpanded] = useState(false);
   
   // Store state
   const automations = useAutomations();
@@ -134,10 +135,11 @@ export const AutomationsList: React.FC<AutomationsListProps> = ({
     setIsDetailsModalOpen(true);
   };
 
-  const handleViewFeedback = (automation: AutomationDiscovery) => {
+  const handleViewFeedback = (automation: AutomationDiscovery, expandForm?: boolean) => {
     selectAutomation(automation);
     setSelectedAutomation(automation);
     setModalInitialTab('feedback'); // Open on feedback tab
+    setFeedbackFormExpanded(expandForm ?? false); // Store whether form should be expanded
     setIsDetailsModalOpen(true);
   };
 
@@ -466,6 +468,7 @@ export const AutomationsList: React.FC<AutomationsListProps> = ({
           onClose={handleCloseDetailsModal}
           onAssessRisk={handleAssessRisk}
           initialTab={modalInitialTab}
+          feedbackFormExpanded={feedbackFormExpanded}
         />
       )}
     </div>

@@ -68,7 +68,42 @@ export abstract class BaseRepository<T, CreateInput extends Record<string, unkno
   protected tableName: string;
   protected primaryKey: string = 'id';
 
+  // Whitelist of allowed table names - Defense in depth against SQL injection
+  private static readonly ALLOWED_TABLES = [
+    'discovered_automations',
+    'automation_feedback',
+    'organizations',
+    'users',
+    'platform_connections',
+    'encrypted_credentials',
+    'oauth_scope_library',
+    'oauth_scopes',
+    'audit_logs',
+    'schema_migrations'
+  ];
+
   constructor(tableName: string, primaryKey: string = 'id') {
+    // SECURITY: Validate table name against whitelist
+    if (!BaseRepository.ALLOWED_TABLES.includes(tableName)) {
+      throw new Error(
+        `Invalid table name: ${tableName}. Table must be in the allowed list.`
+      );
+    }
+
+    // SECURITY: Validate table name format (alphanumeric + underscores only)
+    if (!/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(tableName)) {
+      throw new Error(
+        `Invalid table name format: ${tableName}. Only alphanumeric characters and underscores allowed.`
+      );
+    }
+
+    // SECURITY: Validate primary key format
+    if (!/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(primaryKey)) {
+      throw new Error(
+        `Invalid primary key format: ${primaryKey}. Only alphanumeric characters and underscores allowed.`
+      );
+    }
+
     this.tableName = tableName;
     this.primaryKey = primaryKey;
   }

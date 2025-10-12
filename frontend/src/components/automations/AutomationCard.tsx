@@ -54,7 +54,7 @@ const statusColors = {
 interface AutomationCardProps {
   automation: AutomationDiscovery;
   onViewDetails?: (automation: AutomationDiscovery) => void;
-  onViewFeedback?: (automation: AutomationDiscovery) => void;
+  onViewFeedback?: (automation: AutomationDiscovery, expandForm?: boolean) => void;
   onToggleStatus?: (automationId: string) => void;
   showPlatform?: boolean;
   compact?: boolean;
@@ -200,9 +200,9 @@ export const AutomationCard: React.FC<AutomationCardProps> = ({
         </div>
       </div>
 
-      {/* Metadata */}
+      {/* Metadata - Unified Layout */}
       <div className="space-y-3">
-        {/* Platform and Type */}
+        {/* Platform, Type, Status, and Risk Score Row */}
         <div className="flex items-center justify-between text-sm">
           <div className="flex items-center space-x-4">
             {showPlatform && (
@@ -211,7 +211,7 @@ export const AutomationCard: React.FC<AutomationCardProps> = ({
                 <span className="font-medium text-foreground capitalize">{automation.platform}</span>
               </div>
             )}
-            
+
             <div className="flex items-center space-x-1">
               <span className="text-muted-foreground">Type:</span>
               <span className="font-medium text-foreground capitalize">{automation.type}</span>
@@ -229,76 +229,100 @@ export const AutomationCard: React.FC<AutomationCardProps> = ({
           </div>
         </div>
 
-        {/* Risk Level */}
+        {/* Risk Level and Score Row */}
         <div className="flex items-center justify-between">
-          <span className={cn(
-            "inline-flex items-center px-3 py-1 rounded-full text-sm font-medium border",
-            riskColors[automation.riskLevel] || riskColors.unknown
-          )}>
-            {getRiskIcon()}
-            <span className="ml-2 capitalize">{automation.riskLevel || 'Unknown'} Risk</span>
-          </span>
+          <div className="flex items-center space-x-3">
+            <span className={cn(
+              "inline-flex items-center px-3 py-1.5 rounded-full text-sm font-medium border shadow-sm",
+              riskColors[automation.riskLevel] || riskColors.unknown
+            )}>
+              {getRiskIcon()}
+              <span className="ml-2 capitalize">{automation.riskLevel || 'Unknown'} Risk</span>
+            </span>
+
+            {/* Risk Score Badge */}
+            <div className="flex items-center space-x-1.5 px-2.5 py-1 bg-muted/50 rounded-md">
+              <span className="text-xs font-medium text-muted-foreground">Score:</span>
+              <span className={cn(
+                "text-sm font-bold tabular-nums",
+                automation.riskScore >= 70 ? "text-red-600 dark:text-red-400" :
+                automation.riskScore >= 40 ? "text-yellow-600 dark:text-yellow-400" :
+                "text-green-600 dark:text-green-400"
+              )}>
+                {automation.riskScore}
+                <span className="text-xs font-normal text-muted-foreground">/100</span>
+              </span>
+            </div>
+          </div>
 
           {automation.permissions && automation.permissions.length > 0 && (
             <div className="flex items-center space-x-1 text-sm text-muted-foreground">
-              <Shield className="h-3 w-3" />
-              <span>{automation.permissions.length} permission{automation.permissions.length !== 1 ? 's' : ''}</span>
+              <Shield className="h-3.5 w-3.5" />
+              <span className="font-medium">{automation.permissions.length}</span>
+              <span>permission{automation.permissions.length !== 1 ? 's' : ''}</span>
             </div>
           )}
         </div>
 
-        {/* Timestamps */}
-        <div className="flex items-center justify-between text-sm text-muted-foreground">
+        {/* Timestamps Row */}
+        <div className="flex items-center space-x-4 text-sm text-muted-foreground">
           {automation.createdAt && (
-            <div className="flex items-center space-x-1">
-              <Calendar className="h-3 w-3" />
+            <div className="flex items-center space-x-1.5">
+              <Calendar className="h-3.5 w-3.5" />
               <span>Created {formatDate(automation.createdAt)}</span>
             </div>
           )}
 
           {automation.lastTriggered && (
-            <div className="flex items-center space-x-1">
-              <Clock className="h-3 w-3" />
+            <div className="flex items-center space-x-1.5">
+              <Clock className="h-3.5 w-3.5" />
               <span>Last run {formatDate(automation.lastTriggered)}</span>
             </div>
           )}
         </div>
 
-        {/* Creator */}
+        {/* Creator/Last User Row */}
         {automation.createdBy && (
-          <div className="flex items-center space-x-1 text-sm text-muted-foreground">
-            <User className="h-3 w-3" />
-            <span>Created by {automation.createdBy}</span>
+          <div className="flex items-center space-x-1.5 text-sm">
+            <User className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" />
+            <span className="text-muted-foreground">Last used by:</span>
+            <span className="font-medium text-foreground truncate" title={automation.createdBy}>
+              {automation.createdBy}
+            </span>
           </div>
         )}
       </div>
 
-      {/* Feedback Section */}
-      <div className="mt-6 pt-4 border-t">
-        <AutomationFeedback
-          automationId={automation.id}
-          compact={true}
-          onOpenFeedbackView={() => onViewFeedback?.(automation)}
-        />
-      </div>
+      {/* Actions with Integrated Feedback */}
+      <div className="flex items-center justify-between mt-6">
+        <div className="flex items-center space-x-2">
+          {/* Feedback Buttons */}
+          <AutomationFeedback
+            automationId={automation.id}
+            compact={true}
+            onOpenFeedbackView={(expandForm) => onViewFeedback?.(automation, expandForm)}
+          />
 
-      {/* Actions */}
-      <div className="flex items-center justify-between mt-4 pt-4 border-t">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={handleViewDetails}
-        >
-          <Eye className="h-4 w-4 mr-2" />
-          View Details
-        </Button>
+          {/* View Details Button */}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleViewDetails}
+            className="transition-all hover:shadow-sm"
+          >
+            <Eye className="h-4 w-4 mr-2" />
+            View Details
+          </Button>
+        </div>
 
+        {/* Disable/Enable Button */}
         {onToggleStatus && (
           <Button
             variant="ghost"
             size="sm"
             onClick={handleToggleStatus}
             className={cn(
+              "transition-all font-medium",
               automation.status === 'active'
                 ? "text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/20"
                 : "text-green-600 hover:text-green-700 hover:bg-green-50 dark:hover:bg-green-950/20"

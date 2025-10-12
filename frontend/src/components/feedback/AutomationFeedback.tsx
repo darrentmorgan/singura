@@ -7,7 +7,7 @@
 import React, { useState, useEffect } from 'react';
 import { useUser, useOrganization } from '@clerk/clerk-react';
 import toast from 'react-hot-toast';
-import { MessageSquare, ChevronDown, ChevronUp } from 'lucide-react';
+import { MessageSquare, ChevronDown, ChevronUp, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { FeedbackButton } from './FeedbackButton';
 import { FeedbackForm } from './FeedbackForm';
@@ -88,8 +88,8 @@ export const AutomationFeedback: React.FC<AutomationFeedbackProps> = ({
 
   const handleThumbsUp = () => {
     if (compact && onOpenFeedbackView) {
-      // In compact mode, open the full modal on feedback tab
-      onOpenFeedbackView();
+      // In compact mode, open the full modal on feedback tab with form expanded
+      onOpenFeedbackView(true);
     } else if (currentFeedback?.sentiment === 'positive') {
       // Already thumbs up, do nothing or allow edit
       setIsExpanded(!isExpanded);
@@ -101,8 +101,8 @@ export const AutomationFeedback: React.FC<AutomationFeedbackProps> = ({
 
   const handleThumbsDown = () => {
     if (compact && onOpenFeedbackView) {
-      // In compact mode, open the full modal on feedback tab
-      onOpenFeedbackView();
+      // In compact mode, open the full modal on feedback tab with form expanded
+      onOpenFeedbackView(true);
     } else if (currentFeedback?.sentiment === 'negative') {
       // Already thumbs down, do nothing or allow edit
       setIsExpanded(!isExpanded);
@@ -168,7 +168,10 @@ export const AutomationFeedback: React.FC<AutomationFeedbackProps> = ({
 
   if (compact) {
     return (
-      <div className={cn('flex items-center gap-2', className)}>
+      <div
+        className={cn('flex items-center gap-2', className)}
+        onClick={(e) => e.stopPropagation()}
+      >
         <FeedbackButton
           currentSentiment={currentSentiment}
           onThumbsUp={handleThumbsUp}
@@ -179,7 +182,14 @@ export const AutomationFeedback: React.FC<AutomationFeedbackProps> = ({
 
         {feedbackCount > 0 && (
           <button
-            onClick={() => setIsExpanded(!isExpanded)}
+            onClick={(e) => {
+              e.stopPropagation();
+              if (onOpenFeedbackView) {
+                onOpenFeedbackView(false); // Pass false to keep form collapsed
+              } else {
+                setIsExpanded(!isExpanded);
+              }
+            }}
             className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
           >
             <MessageSquare className="h-3 w-3" />
@@ -189,11 +199,31 @@ export const AutomationFeedback: React.FC<AutomationFeedbackProps> = ({
 
         {/* Expanded form overlay/modal would go here */}
         {isExpanded && (
-          <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm">
-            <div className="fixed left-[50%] top-[50%] z-50 w-full max-w-lg translate-x-[-50%] translate-y-[-50%] border bg-background p-6 shadow-lg rounded-lg">
-              <h3 className="text-lg font-semibold mb-4">
-                Provide Feedback
-              </h3>
+          <div
+            className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm"
+            onClick={(e) => {
+              e.stopPropagation();
+              handleCancel();
+            }}
+          >
+            <div
+              className="fixed left-[50%] top-[50%] z-50 w-full max-w-lg translate-x-[-50%] translate-y-[-50%] border bg-background p-6 shadow-lg rounded-lg"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold">
+                  Provide Feedback
+                </h3>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleCancel();
+                  }}
+                  className="text-muted-foreground hover:text-foreground"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
               <FeedbackForm
                 sentiment={pendingSentiment || currentFeedback?.sentiment || 'neutral'}
                 initialFeedbackType={currentFeedback?.feedbackType}

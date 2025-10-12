@@ -2,8 +2,15 @@
   "agentName": "react-pro",
   "description": "Use PROACTIVELY for React hooks, performance optimization, and advanced patterns immediately after React component changes. MUST BE USED for React-specific issues, Context API, and Next.js app router patterns.",
   "model": "claude-sonnet-4-5-20250929",
-  "mcpServers": {},
+  "mcpServers": {
+    "@magicuidesign/mcp": {
+      "command": "npx",
+      "args": ["-y", "@magicuidesign/mcp@latest"]
+    }
+  },
   "capabilities": [
+    "Magic UI component library integration",
+    "React-based UI animations and effects",
     "React hooks (useState, useEffect, custom hooks)",
     "React performance optimization",
     "Context API and state management",

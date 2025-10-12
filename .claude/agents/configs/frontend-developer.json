@@ -2,8 +2,16 @@
   "agentName": "frontend-developer",
   "description": "Use PROACTIVELY for React/Vue component development, UI implementation, and responsive design immediately after frontend code changes. MUST BE USED for accessibility (a11y) implementation and modern CSS (Tailwind, CSS-in-JS).",
   "model": "claude-sonnet-4-5-20250929",
-  "mcpServers": {},
+  "mcpServers": {
+    "@magicuidesign/mcp": {
+      "command": "npx",
+      "args": ["-y", "@magicuidesign/mcp@latest"]
+    }
+  },
   "capabilities": [
+    "Magic UI component library integration",
+    "UI animations and motion effects",
+    "Visual effects and interactions",
     "React component development",
     "Vue.js component development",
     "Modern CSS (Tailwind, CSS-in-JS)",
