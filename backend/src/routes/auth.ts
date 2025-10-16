@@ -135,16 +135,20 @@ router.post('/login',
           },
           permissions
         });
-      } else {
+      } catch (clerkError) {
+        // Inner catch - Clerk authentication failed
+        console.error('Clerk authentication failed:', clerkError);
+
         // Log failed authentication
         await auditService.logAuthenticationEvent(
           'login_failure',
           'unknown',
           'unknown',
           req,
-          { 
+          {
             email,
-            reason: 'invalid_credentials'
+            reason: 'invalid_credentials',
+            error: clerkError instanceof Error ? clerkError.message : 'Unknown error'
           }
         );
 

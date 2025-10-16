@@ -82,22 +82,28 @@ export async function requireClerkAuth(
         console.warn('Failed to fetch user details:', userError);
       }
 
-    // Attach auth context to request
-    const authRequest = req as ClerkAuthRequest;
-    authRequest.auth = {
-      userId,
-      organizationId: organizationId || userId, // Fallback to userId if no org
-      sessionId
-    };
+      // Attach auth context to request
+      const authRequest = req as ClerkAuthRequest;
+      authRequest.auth = {
+        userId,
+        organizationId: organizationId || userId, // Fallback to userId if no org
+        sessionId
+      };
 
-    console.log('🔐 Clerk Auth Success:', {
-      userId,
-      organizationId: organizationId || userId,
-      path: req.path
-    });
+      console.log('🔐 Clerk Auth Success:', {
+        userId,
+        organizationId: organizationId || userId,
+        path: req.path
+      });
 
-    next();
+      next();
+    } catch (verifyError) {
+      // Inner catch - Clerk verification failed
+      console.error('Clerk token verification failed:', verifyError);
+      throw verifyError; // Re-throw to outer catch
+    }
   } catch (error) {
+    // Outer catch - Final error handling
     console.error('Clerk authentication error:', error);
     res.status(401).json({
       success: false,

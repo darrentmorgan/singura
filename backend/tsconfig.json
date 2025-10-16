@@ -39,6 +39,8 @@
   ],
   "ts-node": {
     "esm": false,
-    "experimentalSpecifierResolution": "node"
+    "experimentalSpecifierResolution": "node",
+    "transpileOnly": true,
+    "skipIgnore": true
   }
 }
