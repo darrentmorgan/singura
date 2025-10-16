@@ -195,7 +195,7 @@ export class DataVolumeDetectorService {
 
     return {
       patternId: `data_volume_${dailyVolume.userId}_${dailyVolume.date}_${Date.now()}`,
-      patternType: 'api_usage',
+      patternType: 'file_download',
       detectedAt: new Date(),
       confidence,
       metadata: {
@@ -270,27 +270,32 @@ export class DataVolumeDetectorService {
   ): number {
     let confidence = 0;
 
+    // Critical or warning volume provides base confidence
     if (dailyVolume.totalBytes >= thresholds.dailyVolumeCriticalBytes) {
-      confidence += 40;
+      confidence += 90; // Critical volume (> 500 MB) is extremely suspicious
     } else if (dailyVolume.totalBytes >= thresholds.dailyVolumeWarningBytes) {
-      confidence += 20;
+      confidence += 50; // Warning volume (> 100 MB) is moderately suspicious
     }
 
+    // Multiplier adds significant confidence if we have baseline
     if (baseline && baseline > 0) {
       const multiplier = dailyVolume.totalBytes / baseline;
       if (multiplier >= 10) {
-        confidence += 40;
+        confidence += 40; // 10x+ baseline is extreme
       } else if (multiplier >= 5) {
-        confidence += 30;
+        confidence += 35; // 5x+ baseline is very suspicious
       } else if (multiplier >= thresholds.abnormalMultiplier) {
-        confidence += 20;
+        confidence += 25; // 3x+ baseline is suspicious
       }
     }
 
+    // High file count adds confidence
     if (dailyVolume.fileCount >= thresholds.fileCountThreshold * 2) {
-      confidence += 20;
+      confidence += 20; // 200+ files is very suspicious
     } else if (dailyVolume.fileCount >= thresholds.fileCountThreshold) {
-      confidence += 10;
+      confidence += 15; // 100+ files is suspicious
+    } else if (dailyVolume.fileCount >= 50) {
+      confidence += 10; // 50+ files is moderately suspicious
     }
 
     return Math.min(confidence, 100);

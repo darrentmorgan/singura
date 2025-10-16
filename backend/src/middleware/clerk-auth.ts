@@ -52,22 +52,35 @@ export async function requireClerkAuth(
       return;
     }
 
-    // Extract user ID from session token (simplified - actual implementation uses Clerk SDK)
-    // For development, we'll extract from custom headers sent by frontend
-    // TODO: Implement proper Clerk token verification using Clerk SDK
+    // Implement proper Clerk token verification using Clerk SDK
+    const { verifyToken } = await import('@clerk/backend');
+    const { clerkClient } = await import('@clerk/clerk-sdk-node');
 
-    const userId = req.headers['x-clerk-user-id'] as string;
-    const organizationId = req.headers['x-clerk-organization-id'] as string;
-    const sessionId = req.headers['x-clerk-session-id'] as string;
-
-    if (!userId) {
-      res.status(401).json({
-        success: false,
-        error: 'Invalid session',
-        message: 'Unable to extract user information from session.'
+    try {
+      // Verify JWT token with Clerk SDK
+      const tokenPayload = await verifyToken(sessionToken, {
+        secretKey: process.env.CLERK_SECRET_KEY || '',
+        authorizedParties: [process.env.CLERK_PUBLISHABLE_KEY || '']
       });
-      return;
-    }
+
+      if (!tokenPayload || !tokenPayload.sub) {
+        throw new Error('Invalid token payload');
+      }
+
+      // Extract verified user information from token
+      const userId = tokenPayload.sub;
+      const organizationId = tokenPayload.org_id || userId;
+      const sessionId = tokenPayload.sid || crypto.randomUUID();
+
+      // Optionally fetch additional user details from Clerk
+      let userEmail = '';
+      try {
+        const user = await clerkClient.users.getUser(userId);
+        const primaryEmail = user.emailAddresses.find(e => e.id === user.primaryEmailAddressId);
+        userEmail = primaryEmail?.emailAddress || '';
+      } catch (userError) {
+        console.warn('Failed to fetch user details:', userError);
+      }
 
     // Attach auth context to request
     const authRequest = req as ClerkAuthRequest;

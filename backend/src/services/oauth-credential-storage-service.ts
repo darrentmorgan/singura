@@ -433,13 +433,13 @@ export class OAuthCredentialStorageService implements OAuthCredentialStorage, Li
   }
 
   /**
-   * Get current connection status for monitoring
+   * Get current connection status for monitoring with real API metrics
    */
   async getConnectionStatus(connectionId: string): Promise<OAuthConnectionStatus> {
     try {
       const info = this.connectionInfo.get(connectionId);
       const credentials = this.credentialStore.get(connectionId);
-      
+
       if (!info || !credentials) {
         return {
           connectionId,
@@ -457,17 +457,24 @@ export class OAuthCredentialStorageService implements OAuthCredentialStorage, Li
       }
 
       const isValid = await this.isCredentialsValid(connectionId);
-      
+
+      // Import API metrics service for tracking
+      const { apiMetricsService } = await import('./api-metrics-service');
+
+      // Get real API call metrics and quota status
+      const metrics = await apiMetricsService.getMetrics(connectionId, info.platform as 'google');
+      const quotaStatus = await apiMetricsService.getQuotaStatus(connectionId, info.platform as 'google');
+
       return {
         connectionId,
         platform: info.platform,
         status: isValid ? 'healthy' : 'expired',
-        lastSuccessfulCall: info.lastUsed,
-        apiCallCount: 0, // TODO: Track actual API calls
+        lastSuccessfulCall: metrics.lastCallTime || info.lastUsed,
+        apiCallCount: metrics.callCount,
         rateLimitStatus: {
-          remaining: 1000, // TODO: Get real quota status
-          resetTime: new Date(Date.now() + 24 * 60 * 60 * 1000),
-          dailyQuota: 10000
+          remaining: metrics.quotaRemaining,
+          resetTime: metrics.resetTime,
+          dailyQuota: metrics.quotaLimit
         }
       };
     } catch (error) {

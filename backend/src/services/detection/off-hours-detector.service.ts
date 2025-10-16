@@ -9,15 +9,15 @@ import { DateTime } from 'luxon';
 
 export class OffHoursDetectorService implements OffHoursDetector {
   detectOffHoursActivity(
-    events: GoogleWorkspaceEvent[], 
-    businessHours: ActivityTimeframe
+    events: GoogleWorkspaceEvent[],
+    businessHours: ActivityTimeframe['businessHours']
   ): GoogleActivityPattern[] {
     if (events.length < this.getOffHoursThresholds().minimumEventsForAnalysis) {
       return [];
     }
 
-    const offHoursEvents = events.filter(event => 
-      !this.isBusinessHours(event.timestamp, 'UTC', businessHours.businessHours)
+    const offHoursEvents = events.filter(event =>
+      !this.isBusinessHours(event.timestamp, 'UTC', businessHours)
     );
 
     const totalActivityPercentage = this.calculateOffHoursRisk(offHoursEvents, events);
@@ -30,12 +30,17 @@ export class OffHoursDetectorService implements OffHoursDetector {
   }
 
   isBusinessHours(
-    timestamp: Date, 
-    timezone: string, 
+    timestamp: Date,
+    timezone: string,
     businessConfig: ActivityTimeframe['businessHours']
   ): boolean {
+    // Guard against undefined/null businessConfig
+    if (!businessConfig || !businessConfig.daysOfWeek || businessConfig.startHour === undefined || businessConfig.endHour === undefined) {
+      return false; // Treat as off-hours if config is missing
+    }
+
     const dt = DateTime.fromJSDate(timestamp).setZone(timezone);
-    
+
     // Check if day of week is within business days
     const dayOfWeek = dt.weekday % 7; // Adjust to 0-6 range (Sun = 0, Sat = 6)
     const isBusinessDay = businessConfig.daysOfWeek.includes(dayOfWeek);

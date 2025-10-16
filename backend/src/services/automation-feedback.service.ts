@@ -6,6 +6,7 @@
 
 import { automationFeedbackRepository } from '../database/repositories/automation-feedback.repository';
 import { discoveredAutomationRepository } from '../database/repositories/discovered-automation';
+import { organizationMetadataService } from './organization-metadata.service';
 import {
   AutomationFeedback,
   CreateFeedbackInput,
@@ -52,7 +53,7 @@ export class AutomationFeedbackService {
       const detectionSnapshot = this.createDetectionSnapshot(automationData);
 
       // Build ML metadata
-      const mlMetadata = this.buildMLMetadata(
+      const mlMetadata = await this.buildMLMetadata(
         input,
         automationData,
         automationSnapshot,
@@ -265,14 +266,14 @@ export class AutomationFeedbackService {
   /**
    * Build ML training metadata
    */
-  private buildMLMetadata(
+  private async buildMLMetadata(
     input: CreateFeedbackInput,
     automation: any,
     snapshot: AutomationSnapshot,
     detectionSnapshot: DetectionSnapshot
-  ): MLTrainingMetadata {
+  ): Promise<MLTrainingMetadata> {
     // Extract features
-    const features = this.extractMLFeatures(automation, snapshot, detectionSnapshot);
+    const features = await this.extractMLFeatures(automation, snapshot, detectionSnapshot);
 
     // Create label from user feedback
     const label = this.createMLLabel(input, snapshot);
@@ -301,11 +302,14 @@ export class AutomationFeedbackService {
   /**
    * Extract ML features from automation
    */
-  private extractMLFeatures(
+  private async extractMLFeatures(
     automation: any,
     snapshot: AutomationSnapshot,
     detectionSnapshot: DetectionSnapshot
-  ): MLFeatures {
+  ): Promise<MLFeatures> {
+    // Get organization metadata for context
+    const orgMetadata = await organizationMetadataService.getMetadata(automation.organization_id);
+
     return {
       detection: {
         aiProviderConfidence: detectionSnapshot.aiProvider?.confidence || 0,
@@ -326,8 +330,8 @@ export class AutomationFeedbackService {
       },
       context: {
         platform: automation.platform_type || 'unknown',
-        organizationSize: 100, // TODO: Get from organization metadata
-        industryVertical: undefined // TODO: Get from organization metadata
+        organizationSize: orgMetadata?.organizationSize || 'unknown',
+        industryVertical: orgMetadata?.industryVertical || undefined
       }
     };
   }

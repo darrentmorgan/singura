@@ -150,25 +150,91 @@ export interface OrganizationUsage {
 export interface OrganizationFeatures {
   /** Maximum platforms that can be connected */
   maxPlatforms: number;
-  
+
   /** Real-time monitoring enabled */
   realTimeMonitoring: boolean;
-  
+
   /** Advanced risk analytics */
   advancedAnalytics: boolean;
-  
+
   /** Custom detection rules */
   customRules: boolean;
-  
+
   /** API access */
   apiAccess: boolean;
-  
+
   /** SSO integration */
   ssoIntegration: boolean;
-  
+
   /** Custom compliance reporting */
   customReports: boolean;
-  
+
   /** White-label branding */
   whiteLabel: boolean;
+}
+
+/**
+ * Organization metadata for analytics and customization
+ */
+export interface OrganizationMetadata {
+  /** Unique metadata record ID */
+  id?: string;
+
+  /** Organization ID (Clerk organization ID) */
+  organizationId: string;
+
+  /** Organization size category */
+  organizationSize?: 'small' | 'medium' | 'large' | 'enterprise' | 'unknown';
+
+  /** Industry vertical/sector */
+  industryVertical?: string;
+
+  /** Actual employee count if known */
+  employeeCount?: number;
+
+  /** Company legal name */
+  companyName?: string;
+
+  /** Company website URL */
+  companyWebsite?: string;
+
+  /** Organization timezone */
+  timezone?: string;
+
+  /** Country code (ISO 3166-1 alpha-2) */
+  country?: string;
+
+  /** State/Province code */
+  stateProvince?: string;
+
+  /** Additional flexible metadata */
+  metadata?: Record<string, unknown>;
+
+  /** Timestamps */
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+
+/**
+ * Connection statistics for a platform connection
+ */
+export interface ConnectionStats {
+  /** Number of automations discovered on this connection */
+  automationCount: number;
+
+  /** Last successful discovery scan timestamp */
+  lastScanAt: Date | null;
+
+  /** Overall risk level for this connection */
+  riskLevel: 'low' | 'medium' | 'high' | 'critical';
+
+  /** Optional additional statistics */
+  additionalStats?: {
+    activeAutomations?: number;
+    inactiveAutomations?: number;
+    errorAutomations?: number;
+    highRiskAutomations?: number;
+    lastActivityAt?: Date;
+    dataVolumeMB?: number;
+  };
 }

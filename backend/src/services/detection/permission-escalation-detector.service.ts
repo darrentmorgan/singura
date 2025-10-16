@@ -53,11 +53,7 @@ export class PermissionEscalationDetectorService {
       event.eventType === 'sharing'
     );
 
-    if (permissionEvents.length < thresholds.minimumEventsForAnalysis) {
-      return [];
-    }
-
-    // Group by user
+    // Group by user (minimum events check is done per-user in analyzeUserEscalation)
     const userGroups = this.groupEventsByUser(permissionEvents);
     const patterns: GoogleActivityPattern[] = [];
 
@@ -90,7 +86,12 @@ export class PermissionEscalationDetectorService {
 
     // Extract permission changes
     const changes = this.extractPermissionChanges(events);
-    if (changes.length < thresholds.minimumEventsForAnalysis) {
+
+    // Check for critical level jumps early (before minimum events check)
+    // A big level jump (e.g., read → owner) is critical even with only 2 events
+    const hasCriticalJump = this.hasCriticalLevelJump(changes, thresholds);
+
+    if (!hasCriticalJump && changes.length < thresholds.minimumEventsForAnalysis) {
       return null;
     }
 
@@ -156,7 +157,7 @@ export class PermissionEscalationDetectorService {
         resourceType: event.resourceType,
         eventId: event.eventId
       };
-    }).filter(change => change.level > 0); // Filter out unknown permissions
+    }).filter(change => change.permission !== 'unknown'); // Keep level 0 (read) permissions, just filter truly unknown
   }
 
   private extractPermissionFromEvent(event: GoogleWorkspaceEvent): string {
@@ -255,21 +256,52 @@ export class PermissionEscalationDetectorService {
     );
     confidence += escalationScore;
 
-    // Factor 2: Level jump magnitude (30% weight)
+    // Factor 2: Level jump magnitude (40% weight - increased for critical jumps)
     const jumpScore = Math.min(
-      (pattern.maxLevelJump / thresholds.maxLevelJump) * 30,
-      30
+      (pattern.maxLevelJump / thresholds.maxLevelJump) * 40,
+      40
     );
     confidence += jumpScore;
 
-    // Factor 3: Escalation velocity (30% weight)
+    // Bonus for extreme jumps (> 3 levels)
+    if (pattern.maxLevelJump > 3) {
+      confidence += 10; // Extra confidence for extreme privilege escalation
+    }
+
+    // Factor 3: Escalation velocity (20% weight - reduced)
     const velocityScore = Math.min(
-      (pattern.escalationVelocity / thresholds.suspiciousVelocity) * 30,
-      30
+      (pattern.escalationVelocity / thresholds.suspiciousVelocity) * 20,
+      20
     );
     confidence += velocityScore;
 
     return Math.min(confidence, 100);
+  }
+
+  private hasCriticalLevelJump(
+    changes: PermissionChange[],
+    thresholds: ReturnType<typeof this.getEscalationThresholds>
+  ): boolean {
+    if (changes.length < 2) return false;
+
+    // Don't mutate the original array
+    const sortedChanges = [...changes].sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime());
+    let previousLevel = sortedChanges[0]!.level;
+
+    for (let i = 1; i < sortedChanges.length; i++) {
+      const current = sortedChanges[i]!;
+      const jump = current.level - previousLevel;
+
+      // Critical jump is GREATER than threshold (e.g., > 2 means 3+ levels)
+      // This bypasses the minimum 3-event requirement
+      if (jump > thresholds.maxLevelJump) {
+        return true; // Extreme jump detected (e.g., read → admin/owner)
+      }
+
+      previousLevel = Math.max(previousLevel, current.level);
+    }
+
+    return false;
   }
 
   private determineRiskLevel(pattern: EscalationPattern): 'low' | 'medium' | 'high' | 'critical' {
@@ -299,7 +331,7 @@ export class PermissionEscalationDetectorService {
       maxEscalationsPerMonth: 2,        // 2+ escalations in 30 days = suspicious
       maxLevelJump: 2,                   // Jumping 2+ levels = critical
       suspiciousVelocity: 0.1,          // 0.1 escalations/day = ~3/month
-      minimumEventsForAnalysis: 3        // Need at least 3 permission events
+      minimumEventsForAnalysis: 3        // Need at least 3 permission events (unless critical jump)
     };
   }
 }

@@ -8,7 +8,8 @@ import {
   LoginRequest,
   LoginResponse,
   RefreshTokenRequest,
-  RefreshTokenResponse
+  RefreshTokenResponse,
+  ExportRequest
 } from '@singura/shared-types';
 import {
   PlatformConnection,
@@ -359,6 +360,35 @@ class ApiService {
     return this.request<ApiResponse<Record<string, unknown>>>('GET', `/automations/${automationId}/details`);
   }
 
+  // Export API methods
+  async exportAutomationsCSV(request: ExportRequest): Promise<Blob> {
+    try {
+      const response = await this.client.post('/automations/export/csv', request, {
+        responseType: 'blob',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      return response.data;
+    } catch (error) {
+      throw error instanceof AxiosError ? this.handleError(error) : error;
+    }
+  }
+
+  async exportAutomationsPDF(request: ExportRequest): Promise<Blob> {
+    try {
+      const response = await this.client.post('/automations/export/pdf', request, {
+        responseType: 'blob',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      return response.data;
+    } catch (error) {
+      throw error instanceof AxiosError ? this.handleError(error) : error;
+    }
+  }
+
   // Health check
   async healthCheck(): Promise<ApiResponse<{ status: string, timestamp: string }>> {
     return this.request<ApiResponse<{ status: string, timestamp: string }>>('GET', '/health');
@@ -399,10 +429,22 @@ export const automationsApi = {
   getAutomationStats: () => apiService.getAutomationStats(),
   getAutomation: (automationId: string) => apiService.getAutomation(automationId),
   getAutomationDetails: (automationId: string) => apiService.getAutomationDetails(automationId),
+  exportCSV: (request: ExportRequest) => apiService.exportAutomationsCSV(request),
+  exportPDF: (request: ExportRequest) => apiService.exportAutomationsPDF(request),
 };
 
 // Re-export feedback API
 export { feedbackApi } from './feedback-api';
+
+// Export convenience API object
+export const api = {
+  ...authApi,
+  ...connectionsApi,
+  ...oauthApi,
+  ...automationsApi,
+  exportAutomationsCSV: apiService.exportAutomationsCSV.bind(apiService),
+  exportAutomationsPDF: apiService.exportAutomationsPDF.bind(apiService),
+};
 
 // Export the main service for advanced usage
 export default apiService;

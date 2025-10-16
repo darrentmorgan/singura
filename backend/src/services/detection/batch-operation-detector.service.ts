@@ -74,19 +74,51 @@ export class BatchOperationDetectorService implements BatchOperationDetector {
     const name1 = event1.actionDetails.resourceName;
     const name2 = event2.actionDetails.resourceName;
 
-    // Check for sequential/numbered naming
-    const numberExtractRegex = /^(.*?)(\d+)$/;
+    // Check for sequential/numbered naming (handles extensions like .pdf, .docx)
+    // Matches: base + digits + extension
+    // Example: "report_001.pdf" -> ["report_", "001", ".pdf"]
+    const numberExtractRegex = /^(.+?)(\d+)(.*)$/;
     const match1 = name1.match(numberExtractRegex);
     const match2 = name2.match(numberExtractRegex);
 
     if (match1 && match2) {
       return (
         match1[1] === match2[1] &&  // Same base name
-        Math.abs(Number(match1[2]) - Number(match2[2])) === 1  // Consecutive numbers
+        match1[3] === match2[3] &&  // Same extension
+        Math.abs(Number(match1[2]) - Number(match2[2])) <= 1  // Consecutive or same numbers
       );
     }
 
     return false;
+  }
+
+  private checkSequentialNamingPattern(events: GoogleWorkspaceEvent[]): boolean {
+    if (events.length < 2) return false;
+
+    const numberExtractRegex = /^(.+?)(\d+)(.*)$/;
+
+    // Extract parts from all events
+    const matches = events.map(e => e.actionDetails.resourceName.match(numberExtractRegex));
+
+    // Check if all events have the numbered naming pattern
+    if (!matches.every(m => m !== null)) return false;
+
+    const baseName = matches[0]![1];
+    const extension = matches[0]![3];
+
+    // Check if all events have same base name and extension
+    const sameBase = matches.every(m => m![1] === baseName && m![3] === extension);
+    if (!sameBase) return false;
+
+    // Check if numbers form a sequence (each is consecutive)
+    const numbers = matches.map(m => Number(m![2]));
+    for (let i = 1; i < numbers.length; i++) {
+      if (numbers[i]! - numbers[i-1]! !== 1) {
+        return false; // Not consecutive
+      }
+    }
+
+    return true;
   }
 
   private checkPermissionSimilarity(event1: GoogleWorkspaceEvent, event2: GoogleWorkspaceEvent): boolean {
@@ -110,18 +142,18 @@ export class BatchOperationDetectorService implements BatchOperationDetector {
     if (events.length === 0) {
       throw new Error('Cannot create batch group from empty events array');
     }
-    
+
     const firstEvent = events[0]!;
     const lastEvent = events[events.length - 1]!;
 
     const similarityChecks = {
       actionType: events.every(e => e.eventType === firstEvent.eventType),
       resourceType: events.every(e => e.resourceType === firstEvent.resourceType),
-      namingPattern: this.checkNamingPattern(firstEvent, lastEvent),
-      permissions: events.every(e => 
+      namingPattern: this.checkSequentialNamingPattern(events),
+      permissions: events.every(e =>
         this.checkPermissionSimilarity(firstEvent, e)
       ),
-      timing: events.every((e, i) => 
+      timing: events.every((e, i) =>
         i === 0 || this.checkTimingInterval(events[i-1]!, e)
       )
     };

@@ -458,3 +458,17 @@ export interface AdvancedSearchRequest extends BaseRequest, PaginationRequest {
     includeArchived?: boolean;
   };
 }
+
+/**
+ * Export Requests
+ */
+
+export interface ExportRequest extends BaseRequest {
+  automationIds: string[];
+  organizationId: string;
+}
+
+export interface ExportOptions {
+  format: 'csv' | 'pdf';
+  includeMetadata?: boolean;
+}

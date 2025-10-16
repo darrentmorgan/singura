@@ -579,8 +579,8 @@ function analyzeEventAgainstPattern(
     return null;
   }
 
-  // Calculate confidence score (weighted average)
-  const confidence = Math.round((totalScore / Math.max(totalWeight, 1)) * 100) / 100;
+  // Calculate confidence score as percentage (0-100 scale)
+  const confidence = Math.round((totalScore / Math.max(totalWeight, 1)) * 100);
 
   return {
     provider: pattern.provider,

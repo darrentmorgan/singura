@@ -499,6 +499,57 @@ router.get('/connections/stats',
   }
 );
 
+/**
+ * GET /connections/:connectionId/stats
+ * Get statistics for a specific connection
+ */
+router.get('/connections/:connectionId/stats',
+  securityMiddleware.validateFields([
+    param('connectionId').isUUID().withMessage('Invalid connection ID')
+  ]),
+  async (req: Request, res: Response): Promise<void> => {
+    try {
+      const user = req.user!;
+      const { connectionId } = req.params;
+
+      // Verify connection belongs to organization
+      const connection = await platformConnectionRepository.findById(connectionId!);
+
+      if (!connection) {
+        res.status(404).json({
+          error: 'Connection not found',
+          code: 'CONNECTION_NOT_FOUND'
+        });
+        return;
+      }
+
+      if (connection.organization_id !== user.organizationId) {
+        res.status(403).json({
+          error: 'Access denied',
+          code: 'ACCESS_DENIED'
+        });
+        return;
+      }
+
+      // Get connection statistics
+      const { organizationMetadataService } = await import('../services/organization-metadata.service');
+      const stats = await organizationMetadataService.getConnectionStats(connectionId!, user.organizationId);
+
+      res.json({
+        success: true,
+        stats
+      });
+    } catch (error) {
+      console.error('Error retrieving connection stats:', error);
+      res.status(500).json({
+        error: 'Failed to retrieve connection statistics',
+        code: 'CONNECTION_STATS_ERROR',
+        message: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  }
+);
+
 
 /**
  * Calculate risk score for discovered automations

@@ -20,6 +20,7 @@ export * from './utils/memory-storage';
 // Domain model types (includes AIProvider - 8 providers, most comprehensive)
 export * from './models/automation';
 export * from './models/feedback';
+export * from './models/organization';
 
 // Phase 1: AI Provider Detection (explicit exports to avoid conflicts)
 export type {

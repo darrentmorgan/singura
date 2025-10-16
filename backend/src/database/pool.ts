@@ -5,6 +5,7 @@
 
 import { Pool, PoolClient, PoolConfig } from 'pg';
 import { DatabaseConnection, DatabaseQueryResult, TransactionCallback } from '../types/database';
+import { logger, logDatabaseEvent, logPerformance } from '../utils/logger';
 
 // Define QueryParameters locally since shared-types isn't available yet
 type QueryParameters = (string | number | boolean | Date | null | undefined)[];
@@ -49,15 +50,33 @@ class DatabasePool {
 
     // Handle pool errors
     pool.on('error', (err: Error, client: PoolClient) => {
-      console.error('Unexpected error on idle client', err);
-      // TODO: Add proper logging with winston
+      logger.error('Unexpected error on idle client', {
+        error: err.message,
+        stack: err.stack,
+        client: client ? 'present' : 'missing'
+      });
+      logDatabaseEvent('pool_error', {
+        error: err.message,
+        severity: 'high'
+      });
     });
 
     // Handle pool connections
     pool.on('connect', (client: PoolClient) => {
-      console.log('New client connected to database');
+      logDatabaseEvent('pool_connect', {
+        totalClients: pool.totalCount,
+        idleClients: pool.idleCount
+      });
       // Set default timezone for all connections
       client.query('SET timezone = "UTC"');
+    });
+
+    // Handle pool disconnections
+    pool.on('remove', () => {
+      logDatabaseEvent('pool_disconnect', {
+        totalClients: pool.totalCount,
+        idleClients: pool.idleCount
+      });
     });
 
     return pool;
@@ -75,16 +94,28 @@ class DatabasePool {
       // Test the connection
       const client = await this.pool.connect();
       const result = await client.query('SELECT NOW() as current_time, version()');
-      console.log('Database connected successfully:', {
+      const dbInfo = {
         current_time: result.rows[0].current_time,
-        version: result.rows[0].version.split(' ').slice(0, 2).join(' ')
-      });
+        version: result.rows[0].version.split(' ').slice(0, 2).join(' '),
+        poolStats: this.getStats()
+      };
+
+      logger.info('Database connected successfully', dbInfo);
+      logDatabaseEvent('pool_initialized', dbInfo);
       client.release();
 
       this.isInitialized = true;
     } catch (error) {
-      console.error('Failed to initialize database pool:', error);
-      throw new Error(`Database initialization failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      logger.error('Failed to initialize database pool', {
+        error: errorMessage,
+        stack: error instanceof Error ? error.stack : undefined
+      });
+      logDatabaseEvent('pool_initialization_failed', {
+        error: errorMessage,
+        severity: 'critical'
+      });
+      throw new Error(`Database initialization failed: ${errorMessage}`);
     }
   }
 
@@ -103,19 +134,30 @@ class DatabasePool {
           
           // Log slow queries (> 1 second)
           if (duration > 1000) {
-            console.warn('Slow query detected:', {
+            logger.warn('Slow query detected', {
               query: text.substring(0, 100) + (text.length > 100 ? '...' : ''),
-              duration: `${duration}ms`,
+              duration,
+              rowCount: result.rowCount
+            });
+            logPerformance('database_query_slow', duration, {
+              query: text.substring(0, 50),
               rowCount: result.rowCount
             });
           }
-          
+
           return result;
         } catch (error) {
-          console.error('Query error:', {
+          const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+          logger.error('Query error', {
             query: text.substring(0, 100) + (text.length > 100 ? '...' : ''),
             params: params ? '[REDACTED]' : undefined,
-            error: error instanceof Error ? error.message : 'Unknown error'
+            error: errorMessage,
+            stack: error instanceof Error ? error.stack : undefined
+          });
+          logDatabaseEvent('query_error', {
+            query: text.substring(0, 50),
+            error: errorMessage,
+            severity: 'high'
           });
           throw error;
         }
@@ -204,9 +246,14 @@ class DatabasePool {
   async close(): Promise<void> {
     try {
       await this.pool.end();
-      console.log('Database pool closed successfully');
+      logger.info('Database pool closed successfully');
+      logDatabaseEvent('pool_closed', this.getStats());
     } catch (error) {
-      console.error('Error closing database pool:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      logger.error('Error closing database pool', {
+        error: errorMessage,
+        stack: error instanceof Error ? error.stack : undefined
+      });
       throw error;
     }
   }
@@ -242,13 +289,13 @@ export async function ensureInitialized(): Promise<void> {
 
 // Graceful shutdown handler
 process.on('SIGINT', async () => {
-  console.log('Received SIGINT, closing database pool...');
+  logger.info('Received SIGINT, closing database pool...');
   await db.close();
   process.exit(0);
 });
 
 process.on('SIGTERM', async () => {
-  console.log('Received SIGTERM, closing database pool...');
+  logger.info('Received SIGTERM, closing database pool...');
   await db.close();
   process.exit(0);
 });

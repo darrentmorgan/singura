@@ -81,12 +81,21 @@ export const useAuthStore = create<AuthStore>()(
 
       logout: async () => {
         set({ isLoading: true });
-        
+
         try {
-          // For now, just clear the tokens locally
-          // TODO: Call backend logout endpoint when implemented
+          // Call backend logout endpoint to invalidate server-side session
+          const { accessToken } = get();
+
+          if (accessToken) {
+            await authApi.logout({
+              sessionId: get().user?.id // Use user ID as session identifier
+            });
+
+            console.log('Successfully logged out from server');
+          }
         } catch (error) {
-          console.error('Logout API call failed:', error);
+          // Log error but continue with local logout
+          console.error('Server logout failed, continuing with local cleanup:', error);
         } finally {
           // Clear auth state regardless of API call result
           set({
@@ -98,6 +107,13 @@ export const useAuthStore = create<AuthStore>()(
             isLoading: false,
             error: null,
           });
+
+          // Clear any stored session data
+          localStorage.removeItem('singura-auth');
+          sessionStorage.clear();
+
+          // Emit logout event for other components to react
+          window.dispatchEvent(new CustomEvent('singura:logout'));
         }
       },
 

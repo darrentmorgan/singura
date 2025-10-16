@@ -77,16 +77,45 @@ export class SlackCorrelationConnector {
    */
   async isConnected(): Promise<boolean> {
     try {
-      // TODO: Implement proper OAuth credential retrieval
-      // For now, check if client is initialized
-      // Note: SlackOAuthService doesn't have getStoredCredentials method
-      // Need to use oauth-credential-storage-service singleton instead
-      if (!this.slackClient) {
+      // Import the singleton OAuth credential storage service
+      const { oauthCredentialStorage } = await import('../oauth-credential-storage-service');
+
+      // Get all stored connections to find Slack connection
+      const connections = oauthCredentialStorage.getStoredConnections();
+      const slackConnection = connections.find(conn => conn.platform === 'slack');
+
+      if (!slackConnection) {
+        console.log('No Slack connection found in OAuth storage');
         return false;
       }
 
-      // Test connection with a simple API call
+      // Retrieve OAuth credentials securely using singleton pattern
+      const credentials = await oauthCredentialStorage.getCredentials(slackConnection.connectionId);
+
+      if (!credentials) {
+        console.warn('Slack OAuth credentials not found for connection:', slackConnection.connectionId);
+        return false;
+      }
+
+      // Initialize Slack client with retrieved credentials
+      if (!this.slackClient) {
+        const { WebClient } = await import('@slack/web-api');
+        this.slackClient = new WebClient(credentials.accessToken);
+        console.log('✅ Slack client initialized with OAuth credentials');
+      }
+
+      // Test connection with auth.test API call
       const authTest = await this.slackClient.auth.test();
+
+      // Track API call for quota monitoring
+      const { apiMetricsService } = await import('../api-metrics-service');
+      await apiMetricsService.trackAPICall(
+        slackConnection.connectionId,
+        'slack',
+        'auth.test',
+        1
+      );
+
       return authTest.ok === true;
     } catch (error) {
       console.error('Slack connection test failed:', error);

@@ -1,7 +1,9 @@
 /**
  * Error Logging Utility
- * Centralized error logging that can be easily upgraded to Sentry
+ * Production-grade error logging with Sentry integration
  */
+
+import * as Sentry from '@sentry/react';
 
 interface ErrorContext {
   [key: string]: any;
@@ -16,7 +18,7 @@ interface ErrorLogOptions {
 
 /**
  * Log an error with context
- * TODO: Integrate with Sentry when ready
+ * Integrated with Sentry for production error tracking
  */
 export function logError(message: string, options: ErrorLogOptions): void {
   const { error, errorId, context, level = 'error' } = options;
@@ -47,16 +49,51 @@ export function logError(message: string, options: ErrorLogOptions): void {
     console.info(`[${errorId || 'INFO'}]`, message, errorDetails);
   }
 
-  // In production, send to error tracking service
-  if (import.meta.env.PROD) {
-    // TODO: Send to Sentry
-    // Sentry.captureException(error, {
-    //   tags: { errorId },
-    //   contexts: { custom: context },
-    //   level,
-    // });
+  // Send to Sentry in production
+  if (import.meta.env.PROD && import.meta.env.VITE_SENTRY_DSN) {
+    // Add breadcrumb for context
+    Sentry.addBreadcrumb({
+      message,
+      level: level === 'warning' ? 'warning' : level === 'error' ? 'error' : 'info',
+      category: 'app.log',
+      data: context,
+      timestamp: Date.now() / 1000,
+    });
 
-    // For now, we could send to a custom endpoint
+    // Capture the exception or message
+    if (error instanceof Error) {
+      Sentry.captureException(error, {
+        tags: {
+          errorId: errorId || 'unknown',
+          component: context?.component || 'unknown',
+        },
+        contexts: {
+          custom: context || {},
+          app: {
+            url: window.location.href,
+            userAgent: navigator.userAgent,
+          },
+        },
+        level: level === 'warning' ? 'warning' : level === 'error' ? 'error' : 'info',
+        extra: errorDetails,
+      });
+    } else {
+      // For non-Error objects, capture as message
+      Sentry.captureMessage(message, {
+        tags: {
+          errorId: errorId || 'unknown',
+        },
+        contexts: {
+          custom: context || {},
+        },
+        level: level === 'warning' ? 'warning' : level === 'error' ? 'error' : 'info',
+        extra: errorDetails,
+      });
+    }
+  }
+
+  // Also send to backend API for additional logging
+  if (import.meta.env.PROD) {
     try {
       fetch('/api/errors', {
         method: 'POST',
@@ -68,6 +105,36 @@ export function logError(message: string, options: ErrorLogOptions): void {
     } catch {
       // Silently fail - don't let error logging break the app
     }
+  }
+}
+
+/**
+ * Initialize Sentry (should be called from main.tsx)
+ */
+export function initializeSentry(): void {
+  if (import.meta.env.VITE_SENTRY_DSN) {
+    Sentry.init({
+      dsn: import.meta.env.VITE_SENTRY_DSN,
+      environment: import.meta.env.MODE,
+      integrations: [
+        Sentry.browserTracingIntegration(),
+        Sentry.replayIntegration({
+          maskAllText: false,
+          maskAllInputs: false,
+          blockAllMedia: false,
+        }),
+      ],
+      tracesSampleRate: import.meta.env.PROD ? 0.1 : 1.0,
+      replaysSessionSampleRate: 0.1,
+      replaysOnErrorSampleRate: 1.0,
+      beforeSend(event, hint) {
+        // Filter out certain errors if needed
+        if (event.exception?.values?.[0]?.type === 'NetworkError') {
+          return null; // Don't send network errors to Sentry
+        }
+        return event;
+      },
+    });
   }
 }
 

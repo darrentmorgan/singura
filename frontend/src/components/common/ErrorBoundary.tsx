@@ -1,12 +1,14 @@
 /**
  * Error Boundary Component
- * Catches JavaScript errors anywhere in the child component tree and displays fallback UI
+ * Production-grade error boundary with Sentry integration and session replay
  */
 
 import React from 'react';
-import { AlertTriangle, RefreshCw, Home } from 'lucide-react';
+import { AlertTriangle, RefreshCw, Home, Bug } from 'lucide-react';
+import * as Sentry from '@sentry/react';
 
 import { Button } from '@/components/ui/button';
+import { logError, ERROR_IDS } from '@/lib/errorLogger';
 
 interface ErrorBoundaryState {
   hasError: boolean;
@@ -41,19 +43,90 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundarySta
     // Log error details
     console.error('Error Boundary caught an error:', error);
     console.error('Error Info:', errorInfo);
-    
+
     this.setState({
       error,
       errorInfo,
     });
 
-    // Report error to monitoring service (e.g., Sentry, LogRocket)
-    // this.reportError(error, errorInfo);
+    // Report error to monitoring service
+    this.reportError(error, errorInfo);
   }
 
-  private reportError = (_error: Error, _errorInfo: React.ErrorInfo) => {
-    // TODO: Integrate with error monitoring service
-    // Example: Sentry.captureException(error, { extra: errorInfo });
+  private reportError = (error: Error, errorInfo: React.ErrorInfo) => {
+    // Log to our error logger (which includes Sentry)
+    logError('Unhandled error caught by Error Boundary', {
+      error,
+      errorId: 'ERROR_BOUNDARY_CATCH',
+      context: {
+        component: 'ErrorBoundary',
+        componentStack: errorInfo.componentStack,
+        errorBoundary: true,
+      },
+      level: 'error',
+    });
+
+    // Also capture directly to Sentry with additional context
+    if (import.meta.env.VITE_SENTRY_DSN) {
+      Sentry.withScope((scope) => {
+        scope.setTag('error_boundary', true);
+        scope.setContext('errorInfo', {
+          componentStack: errorInfo.componentStack,
+        });
+        scope.setLevel('error');
+
+        // Add user context if available
+        const client = Sentry.getCurrentScope().getClient();
+        const user = Sentry.getCurrentScope().getUser();
+        if (user) {
+          scope.setUser(user);
+        }
+
+        Sentry.captureException(error, {
+          contexts: {
+            react: {
+              componentStack: errorInfo.componentStack,
+            },
+          },
+        });
+      });
+    }
+
+    // Send to backend error tracking endpoint
+    if (import.meta.env.PROD) {
+      fetch('/api/errors/boundary', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          error: {
+            name: error.name,
+            message: error.message,
+            stack: error.stack,
+          },
+          errorInfo: {
+            componentStack: errorInfo.componentStack,
+          },
+          timestamp: new Date().toISOString(),
+          url: window.location.href,
+          userAgent: navigator.userAgent,
+        }),
+      }).catch(() => {
+        // Silently fail
+      });
+    }
+  };
+
+  private handleReportError = () => {
+    if (this.state.error) {
+      // Trigger session replay if available
+      if (import.meta.env.VITE_SENTRY_DSN) {
+        // Force capture the current replay session by sending a message
+        Sentry.captureMessage('User reported error from Error Boundary', 'info');
+      }
+
+      // Show confirmation
+      alert('Error report sent. Thank you for your feedback!');
+    }
   };
 
   private handleReset = () => {
@@ -123,16 +196,23 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundarySta
                 <RefreshCw className="h-4 w-4 mr-2" />
                 Try Again
               </Button>
-              
+
               <Button onClick={this.handleReload} variant="outline">
                 <RefreshCw className="h-4 w-4 mr-2" />
                 Reload Page
               </Button>
-              
+
               <Button onClick={this.handleGoHome} variant="outline">
                 <Home className="h-4 w-4 mr-2" />
                 Go to Dashboard
               </Button>
+
+              {import.meta.env.VITE_SENTRY_DSN && (
+                <Button onClick={this.handleReportError} variant="secondary">
+                  <Bug className="h-4 w-4 mr-2" />
+                  Report Error
+                </Button>
+              )}
             </div>
 
             {/* Help Text */}

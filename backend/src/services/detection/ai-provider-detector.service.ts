@@ -33,11 +33,23 @@ type AIProviderDetection = AIProviderDetectionResult;
 export class AIProviderDetectorService {
   /**
    * Detect AI providers from Google Workspace events
+   * Returns automation signatures (legacy format) for backward compatibility
+   *
+   * @param events - Array of Google Workspace audit log events
+   * @returns Array of automation signatures
+   */
+  detectAIProviders(events: GoogleWorkspaceEvent[]): AutomationSignature[] {
+    const detections = this.detectAIProvidersInternal(events);
+    return this.generateAutomationSignatures(detections, events);
+  }
+
+  /**
+   * Internal detection method that returns new AIProviderDetection format
    *
    * @param events - Array of Google Workspace audit log events
    * @returns Array of AI provider detection results
    */
-  detectAIProviders(events: GoogleWorkspaceEvent[]): AIProviderDetection[] {
+  private detectAIProvidersInternal(events: GoogleWorkspaceEvent[]): AIProviderDetection[] {
     const detections: AIProviderDetection[] = [];
     const processedProviders = new Set<string>(); // Prevent duplicate detections
 
@@ -131,18 +143,25 @@ export class AIProviderDetectorService {
    * Extract API endpoint from event details
    */
   private extractApiEndpoint(actionDetails: string, resourceId: string): string | undefined {
-    const actionDetailsLower = actionDetails.toLowerCase();
-
-    // Common API endpoint patterns
+    // Common API endpoint patterns (match URLs with proper protocol)
     const endpointPatterns = [
-      /https?:\/\/[a-z0-9.-]+\.(?:openai|anthropic|cohere|huggingface|replicate|mistral|together|googleapis)\.(?:com|ai|co|xyz)[^\s"]*/gi,
-      /api\.[a-z0-9.-]+\.(?:com|ai|co|xyz)/gi
+      /https?:\/\/[a-z0-9.-]+\.(?:openai|anthropic|cohere|huggingface|replicate|mistral|together|googleapis)\.(?:com|ai|co|xyz)(?:\/[a-z0-9\/._-]*)?/gi,
+      /(?:https?:\/\/)?api\.[a-z0-9.-]+\.(?:com|ai|co|xyz)(?:\/[a-z0-9\/._-]*)?/gi
     ];
 
     for (const pattern of endpointPatterns) {
-      const matches = actionDetailsLower.match(pattern);
+      const matches = actionDetails.match(pattern);
       if (matches && matches.length > 0) {
-        return matches[0];
+        // Return the first match, removing any escape backslashes
+        let endpoint = matches[0];
+
+        // Remove escape backslashes (\" becomes ")
+        endpoint = endpoint.replace(/\\/g, '');
+
+        // Remove trailing quotes or commas
+        endpoint = endpoint.replace(/[",]+$/, '');
+
+        return endpoint;
       }
     }
 

@@ -31,7 +31,7 @@ interface AutomationFeedbackProps {
   onFeedbackSubmitted?: (feedback: AutomationFeedbackType) => void;
 
   /** Callback to open full modal/details view on feedback tab */
-  onOpenFeedbackView?: () => void;
+  onOpenFeedbackView?: (expandForm?: boolean) => void;
 
   /** Compact mode (inline) */
   compact?: boolean;

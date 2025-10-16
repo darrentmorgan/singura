@@ -9,15 +9,17 @@ import { ClerkAuthRequest } from '../middleware/clerk-auth';
 import { validateRequest } from '../middleware/validation';
 import { discoveryService } from '../services/discovery-service';
 import { riskService } from '../services/risk-service';
+import { exportService } from '../services/export.service';
 import { db } from '../database/pool';
-import { 
-  DiscoveredAutomation, 
-  RiskAssessment, 
-  AutomationType, 
-  AutomationStatus, 
+import {
+  DiscoveredAutomation,
+  RiskAssessment,
+  AutomationType,
+  AutomationStatus,
   RiskLevel,
-  PlatformType 
+  PlatformType
 } from '../types/database';
+import { ExportRequest, Automation } from '@singura/shared-types';
 
 // Database query result interfaces for type safety
 interface AutomationQueryResult {
@@ -862,6 +864,234 @@ router.post('/:id/assess-risk', async (req: ClerkAuthRequest, res: Response): Pr
       success: false,
       error: 'RISK_ASSESSMENT_FAILED',
       message: 'Failed to assess automation risk'
+    });
+  }
+});
+
+/**
+ * POST /automations/export/csv
+ * Export automations to CSV format
+ */
+router.post('/export/csv', async (req: ClerkAuthRequest, res: Response): Promise<void> => {
+  try {
+    const organizationId = req.user?.organizationId;
+    const { automationIds } = req.body as ExportRequest;
+
+    if (!organizationId) {
+      res.status(401).json({
+        success: false,
+        error: 'ORGANIZATION_NOT_FOUND',
+        message: 'Organization ID not found in token'
+      });
+      return;
+    }
+
+    // Validate request body
+    if (!automationIds || !Array.isArray(automationIds) || automationIds.length === 0) {
+      res.status(400).json({
+        success: false,
+        error: 'INVALID_REQUEST',
+        message: 'automationIds array is required'
+      });
+      return;
+    }
+
+    // Fetch automations from database
+    const query = `
+      SELECT
+        da.id,
+        da.name,
+        da.description,
+        da.automation_type as type,
+        da.status,
+        pc.platform_type as platform,
+        ra.risk_level,
+        ra.risk_score,
+        da.first_discovered_at,
+        da.last_triggered_at,
+        da.owner_info,
+        da.platform_metadata
+      FROM discovered_automations da
+      LEFT JOIN platform_connections pc ON da.platform_connection_id = pc.id
+      LEFT JOIN risk_assessments ra ON da.id = ra.automation_id
+      WHERE da.id = ANY($1::uuid[]) AND da.organization_id = $2
+    `;
+
+    const result = await db.query(query, [automationIds, organizationId]) as {
+      rows: Array<{
+        id: string;
+        name: string;
+        description: string | null;
+        type: string;
+        status: string;
+        platform: string;
+        risk_level: string | null;
+        risk_score: number | null;
+        first_discovered_at: Date;
+        last_triggered_at: Date | null;
+        owner_info: any;
+        platform_metadata: any;
+      }>
+    };
+
+    // Transform to Automation type for export service
+    const automations: Automation[] = result.rows.map(row => ({
+      id: row.id,
+      name: row.name,
+      description: row.description || '',
+      type: row.type as any,
+      status: row.status as any,
+      platform: row.platform || 'unknown',
+      platformId: row.id,
+      organizationId,
+      connectionId: '',
+      risk: {
+        level: (row.risk_level || 'medium') as any,
+        score: row.risk_score || 0,
+        factors: []
+      },
+      permissions: {
+        scopes: [],
+        roles: []
+      },
+      metadata: {
+        discoveredAt: row.first_discovered_at.toISOString(),
+        lastActiveAt: row.last_triggered_at?.toISOString() || row.first_discovered_at.toISOString(),
+        ...row.platform_metadata
+      },
+      affectedUsers: row.owner_info?.email ? [row.owner_info.email] : []
+    }));
+
+    // Generate CSV
+    const csvBuffer = await exportService.exportToCSV(automations);
+
+    // Set response headers for file download
+    res.setHeader('Content-Type', 'text/csv');
+    res.setHeader('Content-Disposition', `attachment; filename="automations-export-${new Date().toISOString().split('T')[0]}.csv"`);
+    res.setHeader('Content-Length', csvBuffer.length.toString());
+
+    res.send(csvBuffer);
+
+  } catch (error) {
+    console.error('Failed to export automations to CSV:', error);
+    res.status(500).json({
+      success: false,
+      error: 'EXPORT_FAILED',
+      message: 'Failed to export automations to CSV'
+    });
+  }
+});
+
+/**
+ * POST /automations/export/pdf
+ * Export automations to PDF format
+ */
+router.post('/export/pdf', async (req: ClerkAuthRequest, res: Response): Promise<void> => {
+  try {
+    const organizationId = req.user?.organizationId;
+    const { automationIds } = req.body as ExportRequest;
+
+    if (!organizationId) {
+      res.status(401).json({
+        success: false,
+        error: 'ORGANIZATION_NOT_FOUND',
+        message: 'Organization ID not found in token'
+      });
+      return;
+    }
+
+    // Validate request body
+    if (!automationIds || !Array.isArray(automationIds) || automationIds.length === 0) {
+      res.status(400).json({
+        success: false,
+        error: 'INVALID_REQUEST',
+        message: 'automationIds array is required'
+      });
+      return;
+    }
+
+    // Fetch automations from database
+    const query = `
+      SELECT
+        da.id,
+        da.name,
+        da.description,
+        da.automation_type as type,
+        da.status,
+        pc.platform_type as platform,
+        ra.risk_level,
+        ra.risk_score,
+        da.first_discovered_at,
+        da.last_triggered_at,
+        da.owner_info,
+        da.platform_metadata
+      FROM discovered_automations da
+      LEFT JOIN platform_connections pc ON da.platform_connection_id = pc.id
+      LEFT JOIN risk_assessments ra ON da.id = ra.automation_id
+      WHERE da.id = ANY($1::uuid[]) AND da.organization_id = $2
+    `;
+
+    const result = await db.query(query, [automationIds, organizationId]) as {
+      rows: Array<{
+        id: string;
+        name: string;
+        description: string | null;
+        type: string;
+        status: string;
+        platform: string;
+        risk_level: string | null;
+        risk_score: number | null;
+        first_discovered_at: Date;
+        last_triggered_at: Date | null;
+        owner_info: any;
+        platform_metadata: any;
+      }>
+    };
+
+    // Transform to Automation type for export service
+    const automations: Automation[] = result.rows.map(row => ({
+      id: row.id,
+      name: row.name,
+      description: row.description || '',
+      type: row.type as any,
+      status: row.status as any,
+      platform: row.platform || 'unknown',
+      platformId: row.id,
+      organizationId,
+      connectionId: '',
+      risk: {
+        level: (row.risk_level || 'medium') as any,
+        score: row.risk_score || 0,
+        factors: []
+      },
+      permissions: {
+        scopes: [],
+        roles: []
+      },
+      metadata: {
+        discoveredAt: row.first_discovered_at.toISOString(),
+        lastActiveAt: row.last_triggered_at?.toISOString() || row.first_discovered_at.toISOString(),
+        ...row.platform_metadata
+      },
+      affectedUsers: row.owner_info?.email ? [row.owner_info.email] : []
+    }));
+
+    // Generate PDF
+    const pdfBuffer = await exportService.exportToPDF(automations);
+
+    // Set response headers for file download
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename="automations-export-${new Date().toISOString().split('T')[0]}.pdf"`);
+    res.setHeader('Content-Length', pdfBuffer.length.toString());
+
+    res.send(pdfBuffer);
+
+  } catch (error) {
+    console.error('Failed to export automations to PDF:', error);
+    res.status(500).json({
+      success: false,
+      error: 'EXPORT_FAILED',
+      message: 'Failed to export automations to PDF'
     });
   }
 });

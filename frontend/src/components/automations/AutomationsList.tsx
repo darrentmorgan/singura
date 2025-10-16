@@ -4,23 +4,25 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { 
-  Search, 
-  Filter, 
-  RefreshCw, 
+import {
+  Search,
+  Filter,
+  RefreshCw,
   BarChart3,
   Bot,
   AlertTriangle,
   Grid3x3,
   List,
   SortAsc,
-  SortDesc
+  SortDesc,
+  Download
 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import AutomationCard from './AutomationCard';
 import AutomationDetailsModal from './AutomationDetailsModal';
+import { ExportDialog } from './ExportDialog';
 import {
   AutomationDiscovery
 } from '@/types/api';
@@ -61,6 +63,7 @@ export const AutomationsList: React.FC<AutomationsListProps> = ({
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
   const [modalInitialTab, setModalInitialTab] = useState<'permissions' | 'risk' | 'feedback' | 'details'>('permissions');
   const [feedbackFormExpanded, setFeedbackFormExpanded] = useState(false);
+  const [isExportDialogOpen, setIsExportDialogOpen] = useState(false);
   
   // Store state
   const automations = useAutomations();
@@ -216,6 +219,17 @@ export const AutomationsList: React.FC<AutomationsListProps> = ({
               <Button
                 variant="outline"
                 size="sm"
+                onClick={() => setIsExportDialogOpen(true)}
+                disabled={filteredAutomations.length === 0}
+                className="border-gray-300 hover:bg-gray-50 dark:border-gray-600 dark:hover:bg-gray-800"
+              >
+                <Download className="h-4 w-4 mr-2" />
+                Export
+              </Button>
+
+              <Button
+                variant="outline"
+                size="sm"
                 onClick={handleRefresh}
                 disabled={isLoading}
                 className="border-gray-300 hover:bg-gray-50 dark:border-gray-600 dark:hover:bg-gray-800"
@@ -223,7 +237,7 @@ export const AutomationsList: React.FC<AutomationsListProps> = ({
                 <RefreshCw className={cn("h-4 w-4 mr-2", isLoading && "animate-spin")} />
                 Refresh
               </Button>
-              
+
               <Button
                 variant="outline"
                 size="sm"
@@ -471,6 +485,14 @@ export const AutomationsList: React.FC<AutomationsListProps> = ({
           feedbackFormExpanded={feedbackFormExpanded}
         />
       )}
+
+      {/* Export Dialog */}
+      <ExportDialog
+        isOpen={isExportDialogOpen}
+        onClose={() => setIsExportDialogOpen(false)}
+        automations={filteredAutomations as any}
+        selectedAutomationIds={[]}
+      />
     </div>
   );
 };
