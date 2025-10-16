@@ -22,6 +22,7 @@ module.exports = {
     '!src/**/index.ts'
   ],
   coverageDirectory: 'coverage',
+  coverageProvider: 'v8', // Use v8 instead of babel for TypeScript coverage
   coverageReporters: ['text', 'lcov', 'html', 'json'],
   coverageThreshold: {
     global: {

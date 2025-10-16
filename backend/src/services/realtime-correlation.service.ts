@@ -150,10 +150,49 @@ export class RealTimeCorrelationService extends EventEmitter {
       console.log(`📡 Client connected: ${socket.id}`);
 
       // Handle client authentication and subscription setup
-      socket.on('authenticate', (data: { organizationId: string; userRole: string; token?: string }) => {
+      socket.on('authenticate', async (data: { organizationId?: string; userRole: string; token: string }) => {
         try {
-          // TODO: Implement proper JWT token validation
-          const { organizationId, userRole } = data;
+          // Validate JWT token with Clerk SDK
+          const { token, userRole } = data;
+
+          if (!token) {
+            socket.emit('authentication_error', {
+              error: 'Authentication token required',
+              code: 'TOKEN_MISSING'
+            });
+            return;
+          }
+
+          // Import Clerk verification dynamically
+          const { verifyToken } = await import('@clerk/backend');
+
+          // Verify JWT token
+          const tokenPayload = await verifyToken(token, {
+            secretKey: process.env.CLERK_SECRET_KEY || '',
+            authorizedParties: [process.env.CLERK_PUBLISHABLE_KEY || '']
+          });
+
+          if (!tokenPayload || !tokenPayload.sub) {
+            socket.emit('authentication_error', {
+              error: 'Invalid token payload',
+              code: 'INVALID_TOKEN'
+            });
+            return;
+          }
+
+          // Extract verified user information from token
+          const userId = tokenPayload.sub;
+          const organizationId = tokenPayload.org_id || data.organizationId || userId;
+          const sessionId = tokenPayload.sid;
+
+          // Security check: If organizationId was provided, verify it matches token
+          if (data.organizationId && data.organizationId !== organizationId) {
+            socket.emit('authentication_error', {
+              error: 'Organization ID mismatch',
+              code: 'ORG_MISMATCH'
+            });
+            return;
+          }
 
           // Set default subscription preferences based on user role
           const defaultSubscriptions = this.getDefaultSubscriptionsByRole(userRole);
@@ -175,15 +214,21 @@ export class RealTimeCorrelationService extends EventEmitter {
           // Send initial status
           socket.emit('authenticated', {
             success: true,
+            userId,
             organizationId,
+            sessionId,
             subscriptions: defaultSubscriptions
           });
 
-          console.log(`✅ Client authenticated: ${socket.id} (org: ${organizationId}, role: ${userRole})`);
+          console.log(`✅ Client authenticated: ${socket.id} (user: ${userId}, org: ${organizationId}, role: ${userRole})`);
 
         } catch (error) {
           console.error('Authentication failed:', error);
-          socket.emit('authentication_error', { error: 'Authentication failed' });
+          socket.emit('authentication_error', {
+            error: 'Authentication failed',
+            code: 'AUTH_ERROR',
+            message: error instanceof Error ? error.message : 'Invalid or expired token'
+          });
         }
       });
 
@@ -269,16 +314,16 @@ export class RealTimeCorrelationService extends EventEmitter {
     });
 
     this.correlationOrchestrator.on('correlationProgress', (data) => {
+      // organizationId comes from correlation orchestrator event data
       this.broadcastToSubscribedClients('correlation:progress', {
-        organizationId: 'current', // TODO: Get from context
         ...data,
         timestamp: new Date()
       }, 'analysisProgress');
     });
 
     this.correlationOrchestrator.on('correlationCompleted', (data) => {
+      // organizationId comes from correlation orchestrator event data
       this.broadcastToSubscribedClients('correlation:completed', {
-        organizationId: 'current', // TODO: Get from context
         ...data,
         timestamp: new Date()
       }, 'analysisProgress');
@@ -296,64 +341,68 @@ export class RealTimeCorrelationService extends EventEmitter {
 
     // Chain detection events
     this.correlationOrchestrator.on('chainDetected', (data) => {
+      // organizationId comes from correlation orchestrator event data
       this.broadcastToSubscribedClients('chain:detected', {
-        organizationId: 'current', // TODO: Get from context
         ...data,
         timestamp: new Date()
       }, 'chainDetection');
 
       // Check for high-risk alerts
       if (['high', 'critical'].includes(data.riskLevel)) {
-        this.broadcastHighRiskAlert(data.chain, data.riskLevel as 'high' | 'critical');
+        this.broadcastHighRiskAlert(data.chain, data.riskLevel as 'high' | 'critical', data.organizationId);
       }
     });
 
     // Risk assessment events
     this.correlationOrchestrator.on('riskAssessmentUpdate', (data) => {
+      // organizationId comes from correlation orchestrator event data
       this.broadcastToSubscribedClients('risk:assessment_update', {
-        organizationId: 'current', // TODO: Get from context
         ...data,
         timestamp: new Date()
       }, 'riskAlerts');
 
       // Check risk thresholds
-      this.checkRiskThresholds(data.assessment);
+      this.checkRiskThresholds(data.assessment, data.organizationId);
     });
   }
 
   /**
    * Broadcast high-risk automation chain alerts to priority subscribers
    */
-  private broadcastHighRiskAlert(chain: AutomationWorkflowChain, alertLevel: 'high' | 'critical'): void {
+  private broadcastHighRiskAlert(chain: AutomationWorkflowChain, alertLevel: 'high' | 'critical', organizationId: string): void {
     const alertData = {
-      organizationId: 'current', // TODO: Get from context
+      organizationId,
       chain,
       alertLevel,
       timestamp: new Date()
     };
 
-    // Send to all clients subscribed to risk alerts
+    // Send to all clients subscribed to risk alerts for this organization
     this.connectedClients.forEach((socket, socketId) => {
       const prefs = this.clientSubscriptions.get(socketId);
-      if (prefs?.subscriptions.riskAlerts && prefs.riskLevelFilter.includes(alertLevel)) {
+      if (prefs?.organizationId === organizationId &&
+          prefs.subscriptions.riskAlerts &&
+          prefs.riskLevelFilter.includes(alertLevel)) {
         socket.emit('chain:high_risk_alert', alertData);
       }
     });
 
-    console.log(`🚨 High-risk alert broadcasted: ${alertLevel} risk chain detected`);
+    console.log(`🚨 High-risk alert broadcasted: ${alertLevel} risk chain detected for org: ${organizationId}`);
   }
 
   /**
    * Check risk thresholds and send alerts when exceeded
    */
-  private checkRiskThresholds(assessment: MultiPlatformRiskAssessment): void {
+  private checkRiskThresholds(assessment: MultiPlatformRiskAssessment, organizationId: string): void {
     const currentRiskScore = assessment.overallAssessment.compositeRiskScore;
 
     this.connectedClients.forEach((socket, socketId) => {
       const prefs = this.clientSubscriptions.get(socketId);
-      if (prefs?.subscriptions.riskAlerts && currentRiskScore > prefs.alertThresholds.riskScore) {
+      if (prefs?.organizationId === organizationId &&
+          prefs.subscriptions.riskAlerts &&
+          currentRiskScore > prefs.alertThresholds.riskScore) {
         socket.emit('risk:threshold_exceeded', {
-          organizationId: prefs.organizationId,
+          organizationId,
           currentRisk: currentRiskScore,
           threshold: prefs.alertThresholds.riskScore,
           timestamp: new Date()
@@ -385,16 +434,25 @@ export class RealTimeCorrelationService extends EventEmitter {
 
   /**
    * Broadcast messages to clients with specific subscription preferences
+   * Automatically filters by organizationId if present in event data
    */
   private broadcastToSubscribedClients<T extends keyof RealTimeCorrelationEvents>(
     event: T,
     data: RealTimeCorrelationEvents[T],
     subscriptionType: keyof SubscriptionPreferences['subscriptions']
   ): void {
+    // Extract organizationId from data if available
+    const orgId = (data as any).organizationId;
+
     this.connectedClients.forEach((socket, socketId) => {
       const prefs = this.clientSubscriptions.get(socketId);
+
+      // Check subscription and organization match
       if (prefs?.subscriptions[subscriptionType]) {
-        socket.emit(event, data);
+        // If organizationId is in data, only send to matching organization clients
+        if (!orgId || prefs.organizationId === orgId) {
+          socket.emit(event, data);
+        }
       }
     });
   }
