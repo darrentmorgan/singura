@@ -19,6 +19,7 @@
 import { Server as SocketIOServer, Socket } from 'socket.io';
 import { Server as HTTPServer } from 'http';
 import { EventEmitter } from 'events';
+import { verifyToken } from '@clerk/backend';
 
 import {
   CorrelationAnalysisResult,
@@ -115,6 +116,7 @@ export class RealTimeCorrelationService extends EventEmitter {
   private clientSubscriptions: Map<string, SubscriptionPreferences> = new Map();
   private connectedClients: Map<string, Socket> = new Map();
   private performanceMetrics: Map<string, number> = new Map();
+  private performanceMonitoringInterval?: NodeJS.Timeout;
 
   constructor(
     httpServer: HTTPServer,
@@ -163,14 +165,26 @@ export class RealTimeCorrelationService extends EventEmitter {
             return;
           }
 
-          // Import Clerk verification dynamically
-          const { verifyToken } = await import('@clerk/backend');
+          // Verify JWT token with Clerk (or use test bypass)
+          let tokenPayload: any;
 
-          // Verify JWT token
-          const tokenPayload = await verifyToken(token, {
-            secretKey: process.env.CLERK_SECRET_KEY || '',
-            authorizedParties: [process.env.CLERK_PUBLISHABLE_KEY || '']
-          });
+          if (process.env.NODE_ENV === 'test' && token.startsWith('test.')) {
+            // Test bypass: decode test token format "test.userId.orgId"
+            const [, userId, orgId] = token.split('.');
+            tokenPayload = {
+              sub: userId,
+              org_id: orgId,
+              sid: 'test_session',
+              exp: Math.floor(Date.now() / 1000) + 3600,
+              iat: Math.floor(Date.now() / 1000)
+            };
+          } else {
+            // Production: verify with Clerk
+            tokenPayload = await verifyToken(token, {
+              secretKey: process.env.CLERK_SECRET_KEY || '',
+              authorizedParties: [process.env.CLERK_PUBLISHABLE_KEY || '']
+            });
+          }
 
           if (!tokenPayload || !tokenPayload.sub) {
             socket.emit('authentication_error', {
@@ -461,9 +475,9 @@ export class RealTimeCorrelationService extends EventEmitter {
    * Start performance monitoring and health check broadcasting
    */
   private startPerformanceMonitoring(): void {
-    setInterval(() => {
+    this.performanceMonitoringInterval = setInterval(() => {
       const performanceData = this.correlationOrchestrator.getCorrelationStatus();
-      const performanceMetrics = performanceData.performanceMetrics;
+      const performanceMetrics = performanceData?.performanceMetrics;
 
       if (performanceMetrics) {
         this.broadcastToSubscribedClients('system:performance_update', {
@@ -597,8 +611,19 @@ export class RealTimeCorrelationService extends EventEmitter {
    */
   shutdown(): void {
     console.log('🔄 Shutting down real-time correlation service...');
+
+    // Clear performance monitoring interval
+    if (this.performanceMonitoringInterval) {
+      clearInterval(this.performanceMonitoringInterval);
+      this.performanceMonitoringInterval = undefined;
+    }
+
+    // Close Socket.io server
     this.io.close();
+
+    // Remove all event listeners
     this.removeAllListeners();
+
     console.log('✅ Real-time correlation service shutdown complete');
   }
 }
