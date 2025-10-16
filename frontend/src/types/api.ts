@@ -118,6 +118,7 @@ export interface AutomationDiscovery {
   name: string;
   type: 'bot' | 'workflow' | 'integration' | 'webhook' | 'app';
   platform: PlatformType;
+  connectionId: string; // Platform connection ID this automation belongs to
   status: AutomationStatus;
   description?: string;
   createdBy?: string;

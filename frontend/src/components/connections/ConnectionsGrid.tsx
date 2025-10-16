@@ -12,6 +12,7 @@ import PlatformCard from './PlatformCard';
 import { PlatformType, ConnectionStatus } from '@/types/api';
 import { useConnections, useConnectionsActions, useConnectionsLoading } from '@/stores/connections';
 import { useUIActions } from '@/stores/ui';
+import { useMultipleConnectionStats } from '@/hooks/useConnectionStats';
 import { cn } from '@/lib/utils';
 
 const AVAILABLE_PLATFORMS: PlatformType[] = [
@@ -45,6 +46,10 @@ export const ConnectionsGrid: React.FC<ConnectionsGridProps> = ({
   const isLoading = useConnectionsLoading();
   const { fetchConnections, fetchConnectionStats } = useConnectionsActions();
   const { showSuccess, showError } = useUIActions();
+
+  // Fetch connection stats for all connections
+  const connectionIds = connections.map(conn => conn.id);
+  const { statsMap } = useMultipleConnectionStats(connectionIds);
 
   useEffect(() => {
     // Initial data fetch
@@ -180,22 +185,25 @@ export const ConnectionsGrid: React.FC<ConnectionsGridProps> = ({
         <div>
           <h3 className="text-lg font-semibold text-foreground mb-4">Connected Platforms</h3>
           <div className={cn("grid gap-6", gridCols)}>
-            {filteredConnections.map((connection) => (
-              <PlatformCard
-                key={connection.id}
-                platform={connection.platform_type}
-                isConnected={true}
-                connection={{
-                  id: connection.id,
-                  status: connection.status,
-                  displayName: connection.display_name,
-                  lastSync: connection.last_sync_at,
-                  error: connection.error_message,
-                  automationCount: 0, // TODO: Add automation count from discovery
-                }}
-                isLoading={isLoading}
-              />
-            ))}
+            {filteredConnections.map((connection) => {
+              const stats = statsMap.get(connection.id);
+              return (
+                <PlatformCard
+                  key={connection.id}
+                  platform={connection.platform_type}
+                  isConnected={true}
+                  connection={{
+                    id: connection.id,
+                    status: connection.status,
+                    displayName: connection.display_name,
+                    lastSync: connection.last_sync_at,
+                    error: connection.error_message,
+                    automationCount: stats?.automationCount || 0, // Now using real automation count
+                  }}
+                  isLoading={isLoading}
+                />
+              );
+            })}
           </div>
         </div>
       )}

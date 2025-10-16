@@ -8,6 +8,7 @@
 import React from 'react';
 import { useOrganization } from '@clerk/clerk-react';
 import { PlatformCard } from './PlatformCard';
+import { useConnectionStats } from '@/hooks/useConnectionStats';
 import type { PlatformType } from '@singura/shared-types';
 import type { PlatformConnection } from '@/types/api';
 
@@ -37,6 +38,12 @@ export const ClerkConnectionWrapper: React.FC<ClerkConnectionWrapperProps> = (pr
     );
   }
 
+  // Fetch connection stats if we have a connection
+  const { stats } = useConnectionStats({
+    connectionId: props.connection?.id || '',
+    enabled: !!props.connection?.id
+  });
+
   // Pass through to PlatformCard with organization context available
   // Map connection to match PlatformCard's expected type
   const mappedConnection = props.connection ? {
@@ -45,7 +52,7 @@ export const ClerkConnectionWrapper: React.FC<ClerkConnectionWrapperProps> = (pr
     displayName: props.connection.display_name,
     lastSync: props.connection.last_sync_at,
     error: props.connection.error_message,
-    automationCount: 0, // TODO: Get from metadata if available
+    automationCount: stats?.automationCount || 0, // Now using real automation count from stats
   } : undefined;
 
   return <PlatformCard {...props} connection={mappedConnection} />;

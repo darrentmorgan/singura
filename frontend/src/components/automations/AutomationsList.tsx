@@ -107,9 +107,8 @@ export const AutomationsList: React.FC<AutomationsListProps> = ({
 
   // Filter automations by connection if specified
   const displayAutomations = connectionId
-    ? filteredAutomations.filter(() =>
-        // TODO: Add connectionId field to automations
-        true // For now, show all
+    ? filteredAutomations.filter(automation =>
+        automation.connectionId === connectionId // Now properly filtering by connectionId
       )
     : filteredAutomations;
 

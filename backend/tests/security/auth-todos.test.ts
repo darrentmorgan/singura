@@ -5,12 +5,10 @@
 
 import { describe, it, expect, jest, beforeEach, afterEach } from '@jest/globals';
 import { Request, Response } from 'express';
-import { verifyToken } from '@clerk/backend';
-import { clerkClient } from '@clerk/clerk-sdk-node';
+import { verifyToken, clerkClient } from '@clerk/backend';
 
 // Mock modules
 jest.mock('@clerk/backend');
-jest.mock('@clerk/clerk-sdk-node');
 jest.mock('ioredis');
 
 describe('Authentication & OAuth TODO Resolution Tests', () => {
