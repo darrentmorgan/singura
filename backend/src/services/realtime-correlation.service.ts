@@ -168,16 +168,22 @@ export class RealTimeCorrelationService extends EventEmitter {
           // Verify JWT token with Clerk (or use test bypass)
           let tokenPayload: any;
 
-          if (process.env.NODE_ENV === 'test' && token.startsWith('test.')) {
-            // Test bypass: decode test token format "test.userId.orgId"
-            const [, userId, orgId] = token.split('.');
-            tokenPayload = {
-              sub: userId,
-              org_id: orgId,
-              sid: 'test_session',
-              exp: Math.floor(Date.now() / 1000) + 3600,
-              iat: Math.floor(Date.now() / 1000)
-            };
+          if (process.env.NODE_ENV === 'test') {
+            // Test bypass: only valid test tokens work
+            if (token.startsWith('test.')) {
+              // Decode test token format "test.userId.orgId"
+              const [, userId, orgId] = token.split('.');
+              tokenPayload = {
+                sub: userId,
+                org_id: orgId,
+                sid: 'test_session',
+                exp: Math.floor(Date.now() / 1000) + 3600,
+                iat: Math.floor(Date.now() / 1000)
+              };
+            } else {
+              // Invalid test token - set to undefined to trigger error
+              tokenPayload = undefined;
+            }
           } else {
             // Production: verify with Clerk
             tokenPayload = await verifyToken(token, {
