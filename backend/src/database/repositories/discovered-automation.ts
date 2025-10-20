@@ -397,6 +397,51 @@ export class DiscoveredAutomationRepository extends BaseRepository<
     const result = await db.query<DiscoveredAutomation>(query, values);
     return result.rows;
   }
+
+  /**
+   * Get recent automations for an organization (for ML training)
+   *
+   * @param organizationId - Organization ID
+   * @param days - Number of days to look back (default: 7)
+   * @returns Recent automations as AutomationEvents
+   */
+  async getRecentByOrganization(
+    organizationId: string,
+    days: number = 7
+  ): Promise<any[]> {
+    const query = `
+      SELECT
+        id,
+        organization_id as "organizationId",
+        platform_connection_id as "platformConnectionId",
+        external_id as "externalId",
+        name,
+        description,
+        automation_type as type,
+        status,
+        trigger_type as "triggerType",
+        actions,
+        permissions_required as permissions,
+        data_access_patterns as "dataAccessPatterns",
+        owner_info as "ownerInfo",
+        last_modified_at as "lastModifiedAt",
+        last_triggered_at as "lastTriggered",
+        execution_frequency as "executionFrequency",
+        platform_metadata as metadata,
+        created_at as "createdAt",
+        updated_at as "updatedAt",
+        pc.platform_type as platform
+      FROM ${this.tableName} da
+      LEFT JOIN platform_connections pc ON da.platform_connection_id = pc.id
+      WHERE da.organization_id = $1
+        AND da.created_at >= NOW() - INTERVAL '${days} days'
+        AND da.is_active = true
+      ORDER BY da.created_at DESC
+    `;
+
+    const result = await db.query(query, [organizationId]);
+    return result.rows;
+  }
 }
 
 // Export singleton instance

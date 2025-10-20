@@ -5,7 +5,6 @@
 
 import { WebClient } from '@slack/web-api';
 import { PlatformConnector, OAuthCredentials, ConnectionResult, AutomationEvent, AuditLogEntry, PermissionCheck } from './types';
-import { oauthService } from '../services/oauth-service';
 import { encryptedCredentialRepository } from '../database/repositories/encrypted-credential';
 
 export interface SlackTeamInfo {
@@ -234,20 +233,59 @@ export class SlackConnector implements PlatformConnector {
    */
   private async collectAppInstallationEvents(since: Date): Promise<AuditLogEntry[]> {
     const events: AuditLogEntry[] = [];
-    
+
+    if (!this.client) {
+      console.warn('Slack client not authenticated for app installation events');
+      return events;
+    }
+
     try {
-      // TODO: Implement proper Slack apps API integration
-      // Currently disabled until we can resolve the correct API endpoint
-      console.warn('App installation detection temporarily disabled - API integration needed');
-      
-      /* 
-      // Get list of installed apps (requires proper Slack API integration)
-      const appsResult = await this.client.apps.list();
-      
-      if (appsResult.ok && appsResult.apps) {
-        // Process app installations...
+      // Slack doesn't have apps.list() API
+      // Instead, discover apps through bot users in the workspace
+      const usersResult = await this.client.users.list();
+
+      if (usersResult.ok && usersResult.members) {
+        // Filter for app users (bots associated with apps)
+        const appUsers = usersResult.members.filter((user: any) =>
+          user.is_app_user === true && user.id
+        );
+
+        console.log(`Found ${appUsers.length} app users in Slack workspace`);
+
+        for (const appUser of appUsers) {
+          // Get workspace info for context
+          const teamInfo = await this.client.team.info();
+
+          events.push({
+            id: `app-${appUser.id}`,
+            timestamp: new Date(), // Apps don't have installation time in basic API
+            actorId: appUser.id!,
+            actorType: 'bot',
+            actionType: 'app_installed',
+            resourceType: 'application',
+            resourceId: (appUser.profile as any)?.app_id || appUser.id!,
+            details: {
+              platform: 'slack',
+              description: `App "${appUser.profile?.real_name || appUser.name}" detected`,
+              appId: (appUser.profile as any)?.app_id,
+              appName: appUser.profile?.real_name || appUser.name,
+              botUserId: appUser.id,
+              teamId: teamInfo.ok ? teamInfo.team?.id : undefined,
+              teamName: teamInfo.ok ? teamInfo.team?.name : undefined,
+              isBot: appUser.is_bot,
+              isAppUser: appUser.is_app_user,
+              hasAIBehavior: this.detectAIKeywords(
+                `${appUser.profile?.real_name || ''} ${appUser.profile?.title || ''}`
+              ),
+              riskFactors: [
+                'App with bot user access',
+                appUser.is_app_user ? 'Third-party application' : 'Internal bot',
+                'Can access workspace conversations'
+              ]
+            }
+          });
+        }
       }
-      */
     } catch (error) {
       console.warn('Could not collect app installation events:', error);
     }
@@ -899,7 +937,7 @@ export class SlackConnector implements PlatformConnector {
     automatedNaming: boolean;
     sensitiveContent: boolean;
   } {
-    let bulkUpload = false;
+    const bulkUpload = false;
     let automatedNaming = false;
     let sensitiveContent = false;
     
@@ -1106,10 +1144,70 @@ export class SlackConnector implements PlatformConnector {
   private async discoverApps(): Promise<AutomationEvent[]> {
     const automations: AutomationEvent[] = [];
 
+    if (!this.client) {
+      console.warn('Slack client not initialized, cannot discover apps');
+      return automations;
+    }
+
     try {
-      // TODO: Implement apps discovery when API is available
-      console.warn('Slack apps.list API not available, returning empty apps array');
-      return [];
+      // Slack doesn't have apps.list() API
+      // Instead, discover apps through bot users in the workspace
+      const usersResult = await this.client.users.list();
+
+      if (usersResult.ok && usersResult.members) {
+        // Filter for app users (bots associated with apps)
+        const appUsers = usersResult.members.filter((user: any) =>
+          user.is_app_user === true && user.id
+        );
+
+        console.log(`Found ${appUsers.length} app users in Slack workspace`);
+
+        // Cache team info for performance
+        const teamInfo = await this.client.team.info();
+        const team = teamInfo.ok ? teamInfo.team : null;
+
+        for (const appUser of appUsers) {
+          // Check for AI patterns in app name
+          const appName = appUser.profile?.real_name || appUser.name || 'Unknown App';
+          const hasAIPatterns = this.detectAIKeywords(
+            `${appName} ${appUser.profile?.title || ''}`
+          );
+
+          automations.push({
+            id: `slack-app-${appUser.id}`,
+            name: appName,
+            type: 'integration',
+            platform: 'slack',
+            status: appUser.deleted ? 'inactive' : 'active',
+            trigger: 'event',
+            actions: ['message_processing', 'data_access', 'workspace_interaction'],
+            createdAt: new Date(), // Apps don't expose installation time
+            lastTriggered: new Date(),
+            riskLevel: hasAIPatterns ? 'high' : 'medium',
+            metadata: {
+              appId: (appUser.profile as any)?.app_id,
+              botUserId: appUser.id,
+              displayName: appUser.profile?.display_name,
+              realName: appName,
+              teamId: team?.id,
+              teamName: team?.name,
+              description: `Slack app: ${appName}`,
+              isBot: appUser.is_bot,
+              isAppUser: appUser.is_app_user,
+              hasAIBehavior: hasAIPatterns,
+              riskFactors: [
+                'Third-party application with workspace access',
+                'Can read and write messages',
+                'Has bot user for automated actions',
+                ...(hasAIPatterns ? ['AI-powered app detected'] : [])
+              ]
+            }
+          });
+        }
+      }
+
+      console.log(`Discovered ${automations.length} Slack apps`);
+      return automations;
     } catch (error) {
       console.error('Error discovering Slack apps:', error);
       return [];

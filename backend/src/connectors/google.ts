@@ -6,7 +6,6 @@
 import { google, Auth } from 'googleapis';
 import { PlatformConnector, OAuthCredentials, ConnectionResult, AutomationEvent, AuditLogEntry, PermissionCheck } from './types';
 import { AIAuditLogQuery, AIAuditLogResult, AIplatformAuditLog, AIPlatform } from '@singura/shared-types';
-import { oauthService } from '../services/oauth-service';
 import { encryptedCredentialRepository } from '../database/repositories/encrypted-credential';
 import { googleOAuthAIDetector } from '../services/detection/google-oauth-ai-detector.service';
 

@@ -9,8 +9,7 @@ import {
   UpdatePlatformConnectionInput,
   PlatformConnectionFilters,
   PlatformType,
-  ConnectionStatus,
-  ValidationError
+  ConnectionStatus
 } from '../../types/database';
 
 export class PlatformConnectionRepository extends BaseRepository<

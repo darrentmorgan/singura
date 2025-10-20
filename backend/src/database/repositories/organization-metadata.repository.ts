@@ -37,7 +37,7 @@ export class OrganizationMetadataRepository {
         return null;
       }
 
-      const row = result.rows[0];
+      const row = result.rows[0] as any;
       return {
         id: row.id,
         organizationId: row.organization_id,
@@ -101,11 +101,11 @@ export class OrganizationMetadataRepository {
         metadata.timezone || null,
         metadata.country || null,
         metadata.stateProvince || null,
-        metadata.metadata || {}
+        JSON.stringify(metadata.metadata || {})
       ];
 
       const result = await pool.query(query, values);
-      const row = result.rows[0];
+      const row = result.rows[0] as any;
 
       return {
         id: row.id,
@@ -224,7 +224,7 @@ export class OrganizationMetadataRepository {
       `;
 
       const result = await pool.query(statsQuery, [connectionId, organizationId]);
-      const row = result.rows[0];
+      const row = result.rows[0] as any;
 
       return {
         automationCount: parseInt(row.automation_count) || 0,

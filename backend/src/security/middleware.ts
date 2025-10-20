@@ -9,7 +9,7 @@ import { Request, Response, NextFunction } from 'express';
 import rateLimit from 'express-rate-limit';
 import helmet from 'helmet';
 import * as cors from 'cors';
-import { body, validationResult, ValidationError, ValidationChain } from 'express-validator';
+import { body, validationResult, ValidationChain } from 'express-validator';
 import * as crypto from 'crypto';
 import { jwtService } from './jwt';
 

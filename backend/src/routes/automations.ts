@@ -3,21 +3,17 @@
  * Handles automation discovery, retrieval, and management
  */
 
-import { Router, Request, Response } from 'express';
+import { Router, Response } from 'express';
 import { z } from 'zod';
 import { ClerkAuthRequest } from '../middleware/clerk-auth';
 import { validateRequest } from '../middleware/validation';
-import { discoveryService } from '../services/discovery-service';
 import { riskService } from '../services/risk-service';
 import { exportService } from '../services/export.service';
 import { db } from '../database/pool';
 import {
   DiscoveredAutomation,
-  RiskAssessment,
   AutomationType,
-  AutomationStatus,
-  RiskLevel,
-  PlatformType
+  AutomationStatus
 } from '../types/database';
 import { ExportRequest, Automation } from '@singura/shared-types';
 
@@ -917,7 +913,7 @@ router.post('/export/csv', async (req: ClerkAuthRequest, res: Response): Promise
       WHERE da.id = ANY($1::uuid[]) AND da.organization_id = $2
     `;
 
-    const result = await db.query(query, [automationIds, organizationId]) as {
+    const result = await db.query(query, [automationIds as any, organizationId]) as {
       rows: Array<{
         id: string;
         name: string;
@@ -960,7 +956,7 @@ router.post('/export/csv', async (req: ClerkAuthRequest, res: Response): Promise
         ...row.platform_metadata
       },
       affectedUsers: row.owner_info?.email ? [row.owner_info.email] : []
-    }));
+    } as any));
 
     // Generate CSV
     const csvBuffer = await exportService.exportToCSV(automations);
@@ -1031,7 +1027,7 @@ router.post('/export/pdf', async (req: ClerkAuthRequest, res: Response): Promise
       WHERE da.id = ANY($1::uuid[]) AND da.organization_id = $2
     `;
 
-    const result = await db.query(query, [automationIds, organizationId]) as {
+    const result = await db.query(query, [automationIds as any, organizationId]) as {
       rows: Array<{
         id: string;
         name: string;
@@ -1074,7 +1070,7 @@ router.post('/export/pdf', async (req: ClerkAuthRequest, res: Response): Promise
         ...row.platform_metadata
       },
       affectedUsers: row.owner_info?.email ? [row.owner_info.email] : []
-    }));
+    } as any));
 
     // Generate PDF
     const pdfBuffer = await exportService.exportToPDF(automations);

@@ -20,6 +20,9 @@ export { DiscoveredAutomationRepository, discoveredAutomationRepository } from '
 export { OAuthScopeLibraryRepository, oauthScopeLibraryRepository } from './oauth-scope-library';
 export type { OAuthScopeLibrary } from './oauth-scope-library';
 
+// Legacy exports for backward compatibility
+export { discoveredAutomationRepository as discoveredAutomationsRepository } from './discovered-automation';
+
 // Re-export repository instances for easy access
 export const repositories = {
   organization: organizationRepository,

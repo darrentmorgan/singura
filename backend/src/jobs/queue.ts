@@ -7,7 +7,6 @@ import Bull from 'bull';
 import Redis from 'ioredis';
 import { discoveryService } from '../services/discovery-service';
 import { riskService } from '../services/risk-service';
-import { DiscoveryJobConfig, DiscoveryJobResult } from '../services/discovery-service';
 import { DiscoveredAutomation } from '../types/database';
 import {
   DiscoveryJobData,
@@ -15,13 +14,10 @@ import {
   NotificationJobData,
   NotificationData,
   AutomationDiscoveryResult,
-  RiskAssessmentJobResult,
-  NotificationJobResult,
   NotificationChannelResult,
   QueueHealthDetails,
   QueueStats,
-  HighRiskAutomation,
-  JobError
+  HighRiskAutomation
 } from '@singura/shared-types';
 
 // Redis connection configuration
@@ -205,7 +201,7 @@ export class JobQueueManager {
         await job.progress(10);
 
         // Get automations to assess
-        let automations: AutomationDiscoveryResult[] = [];
+        const automations: AutomationDiscoveryResult[] = [];
         if (automationIds) {
           // Assess specific automations
           // This would fetch from database

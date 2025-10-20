@@ -5,28 +5,16 @@
 
 import { Router, Request, Response } from 'express';
 import { param, query } from 'express-validator';
-import { 
-  PlatformConnection, 
-  Platform, 
-  ConnectionStatus,
-  CreateConnectionRequest,
-  CreateConnectionResponse,
-  GetConnectionsResponse,
-  UpdateConnectionRequest,
-  APIResponse 
+import {
+  PlatformConnection,
+  ConnectionStatus
 } from '@singura/shared-types';
 
-// Define missing response type
-interface UpdateConnectionResponse {
-  connection: PlatformConnection;
-}
 import { securityMiddleware } from '../security/middleware';
 import { auditService } from '../security/audit';
 import { platformConnectionRepository } from '../database/repositories/platform-connection';
 import { oauthService } from '../services/oauth-service';
-import { riskService } from '../services/risk-service';
 import { slackConnector } from '../connectors/slack';
-import { PlatformType } from '../types/database';
 import { AutomationEvent, AuditLogEntry } from '../connectors/types';
 
 const router: Router = Router();

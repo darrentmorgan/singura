@@ -8,8 +8,7 @@ import {
   EncryptedCredential,
   CreateEncryptedCredentialInput,
   EncryptedCredentialFilters,
-  CredentialType,
-  ValidationError
+  CredentialType
 } from '../../types/database';
 import { encryptionService, EncryptedData } from '../../security/encryption';
 import { auditService } from '../../security/audit';

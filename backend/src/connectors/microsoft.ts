@@ -6,7 +6,6 @@
 import { Client } from '@microsoft/microsoft-graph-client';
 import { AuthenticationProvider } from '@microsoft/microsoft-graph-client';
 import { PlatformConnector, OAuthCredentials, ConnectionResult, AutomationEvent, AuditLogEntry, PermissionCheck } from './types';
-import { oauthService } from '../services/oauth-service';
 import { encryptedCredentialRepository } from '../database/repositories/encrypted-credential';
 
 export interface MicrosoftUser {

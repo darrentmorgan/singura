@@ -7,10 +7,8 @@ import {
   Organization,
   CreateOrganizationInput,
   UpdateOrganizationInput,
-  OrganizationFilters,
-  ValidationError
+  OrganizationFilters
 } from '../../types/database';
-import { db } from '../pool';
 
 export class OrganizationRepository extends BaseRepository<
   Organization,
