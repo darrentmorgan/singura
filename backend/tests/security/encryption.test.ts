@@ -475,10 +475,10 @@ describe('EncryptionService', () => {
     it('should not leak sensitive information in errors', () => {
       const encrypted = service.encrypt(testPlaintext);
       encrypted.ciphertext = 'tampered';
-      
+
       try {
         service.decrypt(encrypted);
-        fail('Should have thrown error');
+        throw new Error('Should have thrown error');
       } catch (error) {
         const errorMessage = (error as Error).message;
         expect(errorMessage).not.toContain(testPlaintext);

@@ -328,8 +328,6 @@ describe('RealTimeCorrelationService - Socket.io Integration', () => {
 
   describe('Organization Isolation', () => {
     it('should only receive events for authenticated organization', (done) => {
-      let client1: ClientSocket;
-      let client2: ClientSocket;
       let client1Ready = false;
       let client2Ready = false;
 
@@ -338,7 +336,7 @@ describe('RealTimeCorrelationService - Socket.io Integration', () => {
       const org2Token = `test.${org2.userId}.${org2.id}`;
 
       // Connect client 1 (org1)
-      client1 = ioClient(serverAddress, { transports: ['websocket'], forceNew: true });
+      const client1: ClientSocket = ioClient(serverAddress, { transports: ['websocket'], forceNew: true });
       client1.on('connect', () => {
         client1.emit('authenticate', {
           token: org1Token,
@@ -351,7 +349,7 @@ describe('RealTimeCorrelationService - Socket.io Integration', () => {
       });
 
       // Connect client 2 (org2)
-      client2 = ioClient(serverAddress, { transports: ['websocket'], forceNew: true });
+      const client2: ClientSocket = ioClient(serverAddress, { transports: ['websocket'], forceNew: true });
       client2.on('connect', () => {
         client2.emit('authenticate', {
           token: org2Token,

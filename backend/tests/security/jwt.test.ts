@@ -655,10 +655,10 @@ describe('JWTService', () => {
       const payload = jwt.decode(tokens.accessToken) as TokenPayload;
       
       service.revokeToken(payload.jti);
-      
+
       try {
         service.validateToken(tokens.accessToken);
-        fail('Should have thrown error');
+        throw new Error('Should have thrown error');
       } catch (error) {
         const errorMessage = (error as Error).message;
         expect(errorMessage).not.toContain(testUserId);

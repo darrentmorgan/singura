@@ -500,7 +500,7 @@ describe('AnalyticsService', () => {
           seenHigh = true;
         }
         if (seenHigh && risk.riskLevel === 'critical') {
-          fail('Critical risk found after high risk - incorrect sorting');
+          throw new Error('Critical risk found after high risk - incorrect sorting');
         }
       }
 
