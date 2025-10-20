@@ -24,6 +24,7 @@ describe('AutomationDetailsModal', () => {
     name: 'Test Automation',
     type: 'bot',
     platform: 'slack',
+    connectionId: 'test-connection-id',
     status: 'active',
     riskLevel: 'medium',
     description: 'Test automation description',
@@ -38,6 +39,7 @@ describe('AutomationDetailsModal', () => {
     name: 'Automation Without Risk',
     type: 'workflow',
     platform: 'google',
+    connectionId: 'test-connection-id-2',
     status: 'active',
     riskLevel: undefined as unknown as 'low' | 'medium' | 'high', // Simulate undefined risk level
     riskScore: 50,

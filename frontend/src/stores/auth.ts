@@ -84,11 +84,11 @@ export const useAuthStore = create<AuthStore>()(
 
         try {
           // Call backend logout endpoint to invalidate server-side session
-          const { accessToken } = get();
+          const { accessToken, user } = get();
 
-          if (accessToken) {
+          if (accessToken && user?.id) {
             await authApi.logout({
-              sessionId: get().user?.id // Use user ID as session identifier
+              sessionId: user.id // Use user ID as session identifier
             });
 
             console.log('Successfully logged out from server');
