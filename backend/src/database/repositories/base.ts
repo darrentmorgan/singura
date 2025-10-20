@@ -79,7 +79,8 @@ export abstract class BaseRepository<T, CreateInput extends Record<string, unkno
     'oauth_scope_library',
     'oauth_scopes',
     'audit_logs',
-    'schema_migrations'
+    'schema_migrations',
+    'behavioral_baselines'
   ];
 
   constructor(tableName: string, primaryKey: string = 'id') {

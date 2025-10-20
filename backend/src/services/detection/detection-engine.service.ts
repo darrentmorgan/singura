@@ -19,6 +19,9 @@ import { AIProviderDetectorService } from './ai-provider-detector.service';
 import { TimingVarianceDetectorService } from './timing-variance-detector.service';
 import { PermissionEscalationDetectorService } from './permission-escalation-detector.service';
 import { DataVolumeDetectorService } from './data-volume-detector.service';
+import { MLBehavioralInferenceService } from '../ml-behavioral/ml-behavioral-inference.service';
+import { BehavioralBaselineLearningService } from '../ml-behavioral/behavioral-baseline-learning.service';
+import { ReinforcementLearningService } from '../reinforcement-learning.service';
 
 export class DetectionEngineService {
   private velocityDetector: VelocityDetectorService;
@@ -28,6 +31,9 @@ export class DetectionEngineService {
   private timingVarianceDetector: TimingVarianceDetectorService;
   private permissionEscalationDetector: PermissionEscalationDetectorService;
   private dataVolumeDetector: DataVolumeDetectorService;
+  private mlInferenceService: MLBehavioralInferenceService;
+  private baselineLearningService: BehavioralBaselineLearningService;
+  private reinforcementLearningService: ReinforcementLearningService;
 
   constructor(private organizationId?: string) {
     this.velocityDetector = new VelocityDetectorService();
@@ -37,6 +43,16 @@ export class DetectionEngineService {
     this.timingVarianceDetector = new TimingVarianceDetectorService();
     this.permissionEscalationDetector = new PermissionEscalationDetectorService();
     this.dataVolumeDetector = new DataVolumeDetectorService();
+
+    // Initialize ML services
+    this.mlInferenceService = new MLBehavioralInferenceService();
+    this.baselineLearningService = new BehavioralBaselineLearningService();
+    this.reinforcementLearningService = new ReinforcementLearningService();
+
+    // Initialize ML inference service asynchronously
+    this.mlInferenceService.initialize().catch(err => {
+      console.error('Failed to initialize ML inference service:', err);
+    });
   }
 
   async detectShadowAI(
@@ -67,14 +83,14 @@ export class DetectionEngineService {
       humanLikelihood: 50,
       automationIndicators: []
     };
-    const offHoursPatterns = this.offHoursDetector.detectOffHoursActivity(events, activityTimeframe);
+    const offHoursPatterns = this.offHoursDetector.detectOffHoursActivity(events, businessHours);
 
     // AI Provider detection (using new comprehensive detection)
-    const aiProviderDetections: AIProviderDetection[] = this.aiProviderDetector.detectAIProviders(events);
+    const aiProviderDetections = this.aiProviderDetector.detectAIProviders(events) as any;
 
     // Generate legacy signatures for backward compatibility
     const aiProviderSignatures = this.aiProviderDetector.generateAutomationSignatures(aiProviderDetections, events);
-    const aiRiskIndicators = this.aiProviderDetector.generateAIIntegrationRiskIndicator(aiProviderSignatures);
+    const aiRiskIndicators = this.aiProviderDetector.generateAIIntegrationRiskIndicator(aiProviderSignatures as any);
 
     // Convert AI signatures to activity patterns
     const aiActivityPatterns = aiProviderSignatures.map(signature => ({
@@ -112,6 +128,52 @@ export class DetectionEngineService {
       this.organizationId || 'unknown'
     );
 
+    // ML Behavioral Analysis
+    const mlAnalysisResults = await Promise.allSettled(
+      events.map(async (event) => {
+        try {
+          return await this.mlInferenceService.analyzeBehavior(
+            event as any, // Convert GoogleWorkspaceEvent to AutomationEvent
+            {
+              organizationId: this.organizationId || 'unknown',
+              platform: 'google-workspace'
+            }
+          );
+        } catch (error) {
+          console.error('ML analysis failed for event:', error);
+          return null;
+        }
+      })
+    );
+
+    // Extract successful ML patterns
+    const mlPatterns: GoogleActivityPattern[] = mlAnalysisResults
+      .filter((result): result is PromiseFulfilledResult<any> =>
+        result.status === 'fulfilled' && result.value !== null
+      )
+      .map(result => ({
+        patternId: result.value.automationId,
+        patternType: 'api_usage' as const, // Use existing type for now
+        detectedAt: result.value.timestamp,
+        confidence: result.value.behavioralRiskScore,
+        metadata: {
+          userId: 'ml-inference',
+          userEmail: 'ml@system',
+          resourceType: 'script' as const,
+          actionType: 'script_execution' as const,
+          timestamp: result.value.timestamp
+        },
+        evidence: {
+          description: result.value.explanation.executiveSummary,
+          dataPoints: {
+            riskScore: result.value.behavioralRiskScore,
+            confidence: result.value.confidence,
+            factors: result.value.explanation.primaryFactors
+          },
+          supportingEvents: []
+        }
+      }));
+
     // Combine all patterns and indicators
     const activityPatterns = [
       ...velocityPatterns,
@@ -120,7 +182,8 @@ export class DetectionEngineService {
       ...aiActivityPatterns,
       ...timingVariancePatterns,
       ...permissionEscalationPatterns,
-      ...dataVolumePatterns
+      ...dataVolumePatterns,
+      ...mlPatterns
     ];
 
     const riskIndicators = [
