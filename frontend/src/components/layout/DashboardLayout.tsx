@@ -12,7 +12,6 @@ import Sidebar from './Sidebar';
 import { useUIActions } from '@/stores/ui';
 import { useConnectionsActions } from '@/stores/connections';
 import { websocketService } from '@/services/websocket';
-import { cn } from '@/lib/utils';
 
 interface DashboardLayoutProps {
   children?: React.ReactNode;

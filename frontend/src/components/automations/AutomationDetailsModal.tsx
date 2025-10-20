@@ -547,7 +547,7 @@ export const AutomationDetailsModal: React.FC<AutomationDetailsModalProps> = ({
                       automationId={automation.id}
                       compact={false}
                       initiallyExpanded={feedbackFormExpanded}
-                      onFeedbackSubmitted={(feedback) => {
+                      onFeedbackSubmitted={(_feedback) => {
                         // Refresh feedback list after submission
                         fetchFeedback();
                       }}

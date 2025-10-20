@@ -105,6 +105,7 @@ export function useMultipleConnectionStats(connectionIds: string[]) {
     };
 
     fetchAllStats();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [JSON.stringify(connectionIds)]); // Use stringified array as dependency
 
   return { statsMap, isLoading, error };

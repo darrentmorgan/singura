@@ -3,17 +3,18 @@
  * Allows users to export automations to CSV or PDF format
  */
 
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Download, FileText, FileSpreadsheet, X, CheckCircle } from 'lucide-react';
 import { useOrganization } from '@clerk/clerk-react';
 import { api } from '../../services/api';
 import { toast } from 'react-hot-toast';
 import type { Automation, ExportRequest } from '@singura/shared-types';
+import type { AutomationDiscovery } from '@/types/api';
 
 interface ExportDialogProps {
   isOpen: boolean;
   onClose: () => void;
-  automations: Automation[];
+  automations: Automation[] | AutomationDiscovery[];
   selectedAutomationIds?: string[];
 }
 
@@ -224,15 +225,15 @@ export function ExportDialog({
                                 {automation.name}
                               </span>
                               <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
-                                automation.risk?.level === 'critical'
+                                ('risk' in automation ? automation.risk?.level : automation.riskLevel) === 'critical'
                                   ? 'bg-red-100 text-red-800'
-                                  : automation.risk?.level === 'high'
+                                  : ('risk' in automation ? automation.risk?.level : automation.riskLevel) === 'high'
                                   ? 'bg-orange-100 text-orange-800'
-                                  : automation.risk?.level === 'medium'
+                                  : ('risk' in automation ? automation.risk?.level : automation.riskLevel) === 'medium'
                                   ? 'bg-yellow-100 text-yellow-800'
                                   : 'bg-green-100 text-green-800'
                               }`}>
-                                {automation.risk?.level || 'unknown'}
+                                {('risk' in automation ? automation.risk?.level : automation.riskLevel) || 'unknown'}
                               </span>
                             </div>
                             <span className="text-xs text-gray-500">

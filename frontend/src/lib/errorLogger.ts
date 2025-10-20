@@ -6,7 +6,7 @@
 import * as Sentry from '@sentry/react';
 
 interface ErrorContext {
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 interface ErrorLogOptions {
@@ -65,7 +65,7 @@ export function logError(message: string, options: ErrorLogOptions): void {
       Sentry.captureException(error, {
         tags: {
           errorId: errorId || 'unknown',
-          component: context?.component || 'unknown',
+          component: String(context?.component || 'unknown'),
         },
         contexts: {
           custom: context || {},
@@ -127,7 +127,7 @@ export function initializeSentry(): void {
       tracesSampleRate: import.meta.env.PROD ? 0.1 : 1.0,
       replaysSessionSampleRate: 0.1,
       replaysOnErrorSampleRate: 1.0,
-      beforeSend(event, hint) {
+      beforeSend(event, _hint) {
         // Filter out certain errors if needed
         if (event.exception?.values?.[0]?.type === 'NetworkError') {
           return null; // Don't send network errors to Sentry

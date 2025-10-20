@@ -74,5 +74,5 @@ export const testPDFGeneration = async () => {
 
 // Export for manual testing
 if (typeof window !== 'undefined') {
-  (window as any).testPDFGeneration = testPDFGeneration;
+  (window as unknown as Record<string, unknown>).testPDFGeneration = testPDFGeneration;
 }

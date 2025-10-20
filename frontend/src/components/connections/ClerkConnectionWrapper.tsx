@@ -26,6 +26,12 @@ interface ClerkConnectionWrapperProps {
 export const ClerkConnectionWrapper: React.FC<ClerkConnectionWrapperProps> = (props) => {
   const { organization } = useOrganization();
 
+  // Fetch connection stats if we have a connection (must call hooks unconditionally)
+  const { stats } = useConnectionStats({
+    connectionId: props.connection?.id || '',
+    enabled: !!props.connection?.id && !!organization
+  });
+
   // If no organization, show message to create one
   if (!organization) {
     return (
@@ -37,12 +43,6 @@ export const ClerkConnectionWrapper: React.FC<ClerkConnectionWrapperProps> = (pr
       </div>
     );
   }
-
-  // Fetch connection stats if we have a connection
-  const { stats } = useConnectionStats({
-    connectionId: props.connection?.id || '',
-    enabled: !!props.connection?.id
-  });
 
   // Pass through to PlatformCard with organization context available
   // Map connection to match PlatformCard's expected type
@@ -61,6 +61,7 @@ export const ClerkConnectionWrapper: React.FC<ClerkConnectionWrapperProps> = (pr
 /**
  * Hook to get Clerk organization ID for OAuth flows
  */
+// eslint-disable-next-line react-refresh/only-export-components
 export function useClerkOrgId(): string | null {
   const { organization } = useOrganization();
   return organization?.id || null;

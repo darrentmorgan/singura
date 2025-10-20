@@ -74,7 +74,7 @@ export const ConnectionsPage: React.FC = () => {
           <div>
             <h1 className="text-3xl font-bold text-foreground" data-testid="connections-page-title">Platform Connections</h1>
             <p className="text-muted-foreground mt-1">
-              Connect and manage your organization's platforms to discover automations and monitor security.
+              Connect and manage your organization&apos;s platforms to discover automations and monitor security.
             </p>
           </div>
 

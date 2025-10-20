@@ -489,7 +489,7 @@ export const AutomationsList: React.FC<AutomationsListProps> = ({
       <ExportDialog
         isOpen={isExportDialogOpen}
         onClose={() => setIsExportDialogOpen(false)}
-        automations={filteredAutomations as any}
+        automations={filteredAutomations}
         selectedAutomationIds={[]}
       />
     </div>

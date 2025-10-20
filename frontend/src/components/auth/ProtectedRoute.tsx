@@ -83,6 +83,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
 /**
  * Higher-order component version of ProtectedRoute
  */
+// eslint-disable-next-line react-refresh/only-export-components
 export const withAuth = <P extends object>(
   Component: React.ComponentType<P>,
   options?: {

@@ -67,6 +67,7 @@ export const AutomationFeedback: React.FC<AutomationFeedbackProps> = ({
     if (!existingFeedback && automationId && organization?.id) {
       fetchExistingFeedback();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [automationId, organization?.id]);
 
   const fetchExistingFeedback = async () => {
@@ -150,9 +151,10 @@ export const AutomationFeedback: React.FC<AutomationFeedbackProps> = ({
       } else {
         throw new Error('Failed to submit feedback');
       }
-    } catch (error: any) {
+    } catch (error) {
       console.error('Failed to submit feedback:', error);
-      toast.error(error?.message || 'Failed to submit feedback. Please try again.');
+      const errorMessage = error instanceof Error ? error.message : 'Failed to submit feedback. Please try again.';
+      toast.error(errorMessage);
     } finally {
       setIsLoading(false);
     }

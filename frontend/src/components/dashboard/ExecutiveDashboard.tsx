@@ -26,7 +26,6 @@ import {
   Users,
   Download,
   RefreshCw,
-  Calendar,
   ChevronUp,
   ChevronDown
 } from 'lucide-react';
@@ -233,6 +232,7 @@ export const ExecutiveDashboard: React.FC = () => {
 
   useEffect(() => {
     fetchAnalyticsData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [timeRange]);
 
   const handleRefresh = () => {

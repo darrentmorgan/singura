@@ -192,9 +192,9 @@ export const WaitlistModal = ({ open, onOpenChange }: WaitlistModalProps) => {
         {success ? (
           <div className="text-center py-8">
             <CheckCircle className="h-16 w-16 text-primary mx-auto mb-4" />
-            <DialogTitle className="text-2xl mb-2">You're on the list!</DialogTitle>
+            <DialogTitle className="text-2xl mb-2">You&apos;re on the list!</DialogTitle>
             <DialogDescription className="text-base">
-              We'll be in touch soon with early access details.
+              We&apos;ll be in touch soon with early access details.
             </DialogDescription>
           </div>
         ) : (

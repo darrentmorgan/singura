@@ -238,12 +238,13 @@ export const useAutomationsStore = create<AutomationsStore>()(
         });
 
         if (response.success && response.automations) {
+          const paginationData = response.pagination as { total?: number; totalPages?: number } | undefined;
           set({
             automations: response.automations,
             pagination: {
               ...pagination,
-              total: (response.pagination as any).total || 0,
-              totalPages: (response.pagination as any).totalPages || 0,
+              total: paginationData?.total || 0,
+              totalPages: paginationData?.totalPages || 0,
             },
             isAnalyzing: false,
             error: null,
@@ -269,10 +270,10 @@ export const useAutomationsStore = create<AutomationsStore>()(
     fetchAutomationStats: async () => {
       try {
         const response = await automationsApi.getAutomationStats();
-        
+
         if (response.success && response.data) {
           set({
-            stats: response.data as any,
+            stats: response.data as AutomationsState['stats'],
           });
           return true;
         }
@@ -499,21 +500,27 @@ export const useFilteredAutomations = () => useAutomationsStore(state => {
   
   // Apply sorting
   filtered.sort((a, b) => {
-    let aVal: any = a[sorting.sortBy];
-    let bVal: any = b[sorting.sortBy];
-    
+    const aVal: string | number | Date | undefined = a[sorting.sortBy];
+    const bVal: string | number | Date | undefined = b[sorting.sortBy];
+
     // Handle date sorting
     if (sorting.sortBy === 'lastTriggered' || sorting.sortBy === 'createdAt') {
-      aVal = aVal ? new Date(aVal).getTime() : 0;
-      bVal = bVal ? new Date(bVal).getTime() : 0;
+      const aTime = aVal ? new Date(aVal as string | Date).getTime() : 0;
+      const bTime = bVal ? new Date(bVal as string | Date).getTime() : 0;
+      return sorting.sortOrder === 'ASC' ? aTime - bTime : bTime - aTime;
     }
-    
+
     // Handle string sorting
-    if (typeof aVal === 'string') {
-      aVal = aVal.toLowerCase();
-      bVal = bVal?.toLowerCase() || '';
+    if (typeof aVal === 'string' && typeof bVal === 'string') {
+      const aLower = aVal.toLowerCase();
+      const bLower = bVal.toLowerCase();
+      if (aLower < bLower) return sorting.sortOrder === 'ASC' ? -1 : 1;
+      if (aLower > bLower) return sorting.sortOrder === 'ASC' ? 1 : -1;
+      return 0;
     }
-    
+
+    // Default comparison
+    if (aVal === undefined || bVal === undefined) return 0;
     if (aVal < bVal) return sorting.sortOrder === 'ASC' ? -1 : 1;
     if (aVal > bVal) return sorting.sortOrder === 'ASC' ? 1 : -1;
     return 0;

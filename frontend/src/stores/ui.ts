@@ -27,8 +27,8 @@ interface UIState {
   errors: Record<string, ErrorState>;
   
   // Page-specific UI state
-  pageState: Record<string, any>;
-  
+  pageState: Record<string, unknown>;
+
   // User preferences
   preferences: {
     language: string;
@@ -46,7 +46,7 @@ interface UIState {
   globalSearch: {
     query: string;
     isOpen: boolean;
-    results: any[];
+    results: unknown[];
     isSearching: boolean;
   };
   
@@ -95,8 +95,8 @@ interface UIActions {
   clearAllErrors: () => void;
   
   // Page state management
-  setPageState: (page: string, state: any) => void;
-  getPageState: (page: string) => any;
+  setPageState: (page: string, state: unknown) => void;
+  getPageState: (page: string) => unknown;
   clearPageState: (page: string) => void;
   
   // User preferences
@@ -295,7 +295,8 @@ export const useUIStore = create<UIStore>()(
 
       clearLoading: (key: string) => {
         set(state => {
-          const { [key]: _, ...rest } = state.loading;
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          const { [key]: _removed, ...rest } = state.loading;
           return { loading: rest };
         });
       },
@@ -316,7 +317,8 @@ export const useUIStore = create<UIStore>()(
 
       clearError: (key: string) => {
         set(state => {
-          const { [key]: _, ...rest } = state.errors;
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          const { [key]: _removed, ...rest } = state.errors;
           return { errors: rest };
         });
       },
@@ -326,7 +328,7 @@ export const useUIStore = create<UIStore>()(
       },
 
       // Page state management
-      setPageState: (page: string, state: any) => {
+      setPageState: (page: string, state: unknown) => {
         set(prevState => ({
           pageState: {
             ...prevState.pageState,
@@ -341,7 +343,8 @@ export const useUIStore = create<UIStore>()(
 
       clearPageState: (page: string) => {
         set(state => {
-          const { [page]: _, ...rest } = state.pageState;
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          const { [page]: _removed, ...rest } = state.pageState;
           return { pageState: rest };
         });
       },

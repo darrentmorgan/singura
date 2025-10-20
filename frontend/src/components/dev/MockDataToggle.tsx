@@ -27,15 +27,17 @@ export const MockDataToggle: React.FC<MockDataToggleProps> = ({ className }) => 
   const [error, setError] = useState<string | null>(null);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
 
+  // Load initial toggle state (only in development, but hook must be called unconditionally)
+  useEffect(() => {
+    if (isDevelopment) {
+      loadToggleState();
+    }
+  }, []);
+
   // SECURITY: Don't render anything in production
   if (!isDevelopment) {
     return null;
   }
-
-  // Load initial toggle state
-  useEffect(() => {
-    loadToggleState();
-  }, []);
 
   const loadToggleState = async (): Promise<void> => {
     try {

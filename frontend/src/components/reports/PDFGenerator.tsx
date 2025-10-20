@@ -318,13 +318,6 @@ export const PDFGenerator: React.FC<PDFGeneratorProps> = ({
 
   const fileName = `${reportType}_${new Date().toISOString().split('T')[0]}.pdf`;
 
-  // Error boundary for PDF generation
-  const handlePDFError = (error: Error) => {
-    console.error('PDF generation failed:', error);
-    // Show user-friendly error message
-    return null;
-  };
-
   try {
     return (
       <div className={className}>
@@ -339,7 +332,7 @@ export const PDFGenerator: React.FC<PDFGeneratorProps> = ({
           }
           fileName={fileName}
         >
-          {({ blob, url, loading, error }) => {
+          {({ loading, error }) => {
             if (error) {
               return (
                 <Button variant="outline" className="text-red-600 border-red-200">
@@ -380,6 +373,7 @@ export const PDFGenerator: React.FC<PDFGeneratorProps> = ({
 };
 
 // Export PDF generation utility function for programmatic use
+// eslint-disable-next-line react-refresh/only-export-components
 export const generatePDF = async (
   automations: Automation[],
   reportType: 'risk_assessment' | 'compliance' | 'automation_inventory' | 'security_summary' = 'risk_assessment',

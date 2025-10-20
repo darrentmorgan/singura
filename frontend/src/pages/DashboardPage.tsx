@@ -4,14 +4,11 @@
  */
 
 import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
-import { 
-  Plus, 
-  Activity, 
-  Shield, 
-  AlertTriangle, 
-  TrendingUp,
-  Users,
+import { Link, useNavigate } from 'react-router-dom';
+import {
+  Plus,
+  Activity,
+  AlertTriangle,
   Bot,
   Link2,
   ChevronRight
@@ -20,13 +17,12 @@ import {
 import { Button } from '@/components/ui/button';
 import AutomationMetrics from '@/components/automations/AutomationMetrics';
 import AutomationsList from '@/components/automations/AutomationsList';
-import { useConnections, useConnectionStats, useConnectionsActions } from '@/stores/connections';
-import { useAutomations, useAutomationsStats, useAutomationsActions } from '@/stores/automations';
+import { useConnections, useConnectionsActions } from '@/stores/connections';
+import { useAutomations, useAutomationsActions } from '@/stores/automations';
 import { useAuthUser } from '@/stores/auth';
 import { useUIActions } from '@/stores/ui';
 import { cn } from '@/lib/utils';
 import { PDFGenerator } from '@/components/reports/PDFGenerator';
-import { MockDataToggle } from '@/components/dev/MockDataToggle';
 
 // Platform icons
 const platformIcons = {
@@ -40,78 +36,15 @@ const platformIcons = {
   jira: '🔧',
 };
 
-interface MetricCardProps {
-  title: string;
-  value: string | number;
-  change?: {
-    value: number;
-    type: 'increase' | 'decrease';
-    period: string;
-  };
-  icon: React.ReactNode;
-  color?: 'blue' | 'green' | 'red' | 'yellow' | 'purple';
-  onClick?: () => void;
-}
-
-const MetricCard: React.FC<MetricCardProps> = ({ 
-  title, 
-  value, 
-  change, 
-  icon, 
-  color = 'blue',
-  onClick 
-}) => {
-  const colorClasses = {
-    blue: 'bg-blue-50 text-blue-600 border-blue-200 dark:bg-blue-950 dark:text-blue-400 dark:border-blue-900',
-    green: 'bg-green-50 text-green-600 border-green-200 dark:bg-green-950 dark:text-green-400 dark:border-green-900',
-    red: 'bg-red-50 text-red-600 border-red-200 dark:bg-red-950 dark:text-red-400 dark:border-red-900',
-    yellow: 'bg-yellow-50 text-yellow-600 border-yellow-200 dark:bg-yellow-950 dark:text-yellow-400 dark:border-yellow-900',
-    purple: 'bg-purple-50 text-purple-600 border-purple-200 dark:bg-purple-950 dark:text-purple-400 dark:border-purple-900',
-  };
-
-  return (
-    <div 
-      className={cn(
-        "bg-card border rounded-lg p-6 hover:shadow-md transition-shadow",
-        onClick && "cursor-pointer hover:shadow-lg"
-      )}
-      onClick={onClick}
-    >
-      <div className="flex items-center justify-between">
-        <div className="space-y-2">
-          <p className="text-sm font-medium text-muted-foreground">{title}</p>
-          <p className="text-2xl font-bold text-foreground">{value}</p>
-          {change && (
-            <div className="flex items-center space-x-1 text-xs">
-              {change.type === 'increase' ? (
-                <TrendingUp className="h-3 w-3 text-green-500" />
-              ) : (
-                <TrendingUp className="h-3 w-3 text-red-500 rotate-180" />
-              )}
-              <span className={change.type === 'increase' ? 'text-green-600' : 'text-red-600'}>
-                {Math.abs(change.value)}% {change.period}
-              </span>
-            </div>
-          )}
-        </div>
-        <div className={cn("p-3 rounded-full", colorClasses[color])}>
-          {icon}
-        </div>
-      </div>
-    </div>
-  );
-};
-
 export const DashboardPage: React.FC = () => {
+  const navigate = useNavigate();
   const user = useAuthUser();
   const [currentTime, setCurrentTime] = useState(new Date());
-  
+
   // Store state
   const connections = useConnections();
-  const connectionStats = useConnectionStats();
   const automations = useAutomations();
-  const automationStats = useAutomationsStats();
-  
+
   // Actions
   const { fetchConnections, fetchConnectionStats } = useConnectionsActions();
   const { fetchAutomations, fetchAutomationStats } = useAutomationsActions();
@@ -144,24 +77,12 @@ export const DashboardPage: React.FC = () => {
     return () => clearInterval(timer);
   }, []);
 
-  const activeConnections = connections.filter(conn => conn.status === 'active');
-  const errorConnections = connections.filter(conn => conn.status === 'error');
-  const highRiskAutomations = automations.filter(auto => auto.riskLevel === 'high');
-
   const handleConnectPlatform = () => {
-    window.location.href = '/connections/new';
-  };
-
-  const handleViewConnections = () => {
-    window.location.href = '/connections';
+    navigate('/connections');
   };
 
   const handleViewAutomations = () => {
-    window.location.href = '/automations';
-  };
-
-  const handleViewSecurity = () => {
-    window.location.href = '/security';
+    navigate('/automations');
   };
 
   const getGreeting = () => {
@@ -179,7 +100,7 @@ export const DashboardPage: React.FC = () => {
           {getGreeting()}, {user?.name || user?.email?.split('@')[0] || 'there'}!
         </h1>
         <p className="text-muted-foreground">
-          Here's what's happening with your automation landscape today.
+          Here&apos;s what&apos;s happening with your automation landscape today.
         </p>
       </div>
 
@@ -221,7 +142,7 @@ export const DashboardPage: React.FC = () => {
                 <div 
                   key={connection.id}
                   className="flex items-center space-x-4 p-3 rounded-lg border hover:bg-accent hover:text-accent-foreground transition-colors cursor-pointer"
-                  onClick={() => window.location.href = `/connections/${connection.id}`}
+                  onClick={() => navigate(`/connections/${connection.id}`)}
                 >
                   <div className="text-2xl">
                     {platformIcons[connection.platform_type] || '🔗'}

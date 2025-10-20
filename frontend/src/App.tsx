@@ -21,6 +21,7 @@ import LoginPage from '@/pages/LoginPage';
 import DashboardPage from '@/pages/DashboardPage';
 import ConnectionsPage from '@/pages/ConnectionsPage';
 import AutomationsPage from '@/pages/AutomationsPage';
+import { ExecutiveDashboard } from '@/components/dashboard/ExecutiveDashboard';
 
 // Services and Stores
 import { websocketService } from '@/services/websocket';
@@ -215,16 +216,7 @@ const SecurityPage: React.FC = () => (
   </div>
 );
 
-const AnalyticsPage: React.FC = () => (
-  <div className="flex-1 p-6">
-    <div className="text-center py-12 space-y-4">
-      <h1 className="text-3xl font-bold text-foreground">Analytics Dashboard</h1>
-      <p className="text-muted-foreground">
-        Advanced analytics and reporting features coming soon.
-      </p>
-    </div>
-  </div>
-);
+const AnalyticsPage: React.FC = () => <ExecutiveDashboard />;
 
 const SettingsPage: React.FC = () => (
   <div className="flex-1 p-6">

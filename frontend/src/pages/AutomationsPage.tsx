@@ -5,7 +5,8 @@
 
 import React, { useEffect, useState } from 'react';
 import { Helmet } from 'react-helmet-async';
-import { Play, Pause, RotateCw } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Play, Pause } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { BRAND } from '@/lib/brand';
@@ -21,14 +22,15 @@ import { useConnections, useConnectionsActions } from '@/stores/connections';
 import { useUIActions } from '@/stores/ui';
 
 export const AutomationsPage: React.FC = () => {
+  const navigate = useNavigate();
   const [activeDiscoveries, setActiveDiscoveries] = useState<string[]>([]);
-  
+
   // Store state
   const connections = useConnections();
   const discoveryProgress = useDiscoveryProgress();
   const isLoading = useAutomationsLoading();
   const automationStats = useAutomationsStats();
-  
+
   // Actions
   const {
     fetchAutomations,
@@ -158,7 +160,7 @@ export const AutomationsPage: React.FC = () => {
             <div className="flex items-center space-x-2">
               <Button
                 variant="outline"
-                onClick={() => window.location.href = '/connections'}
+                onClick={() => navigate('/connections')}
                 disabled={connections.length === 0}
               >
                 Manage Connections
@@ -220,8 +222,7 @@ export const AutomationsPage: React.FC = () => {
             <div className="space-y-4">
               {activeDiscoveries.map(connectionId => {
                 const progress = discoveryProgress[connectionId];
-                const connection = connections.find(c => c.id === connectionId);
-                
+
                 return (
                   <DiscoveryProgress
                     key={connectionId}
@@ -247,7 +248,7 @@ export const AutomationsPage: React.FC = () => {
                 To discover automations, you need to connect at least one platform first.
               </p>
             </div>
-            <Button onClick={() => window.location.href = '/connections'}>
+            <Button onClick={() => navigate('/connections')}>
               Connect Your First Platform
             </Button>
           </div>
@@ -266,7 +267,7 @@ export const AutomationsPage: React.FC = () => {
                 Check your connection status and retry failed connections.
               </p>
             </div>
-            <Button onClick={() => window.location.href = '/connections'}>
+            <Button onClick={() => navigate('/connections')}>
               Check Connections
             </Button>
           </div>

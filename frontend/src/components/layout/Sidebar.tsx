@@ -4,7 +4,7 @@
  */
 
 import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@clerk/clerk-react';
 import {
   LayoutDashboard,
@@ -20,7 +20,6 @@ import {
   Activity
 } from 'lucide-react';
 
-import { Button } from '@/components/ui/button';
 import { useSidebarState, useConnectionStatus, useUIActions } from '@/stores/ui';
 import { useConnections, useActiveConnections } from '@/stores/connections';
 import { cn } from '@/lib/utils';
@@ -53,13 +52,14 @@ interface NavItem {
 
 export const Sidebar: React.FC<SidebarProps> = ({ className }) => {
   const location = useLocation();
+  const navigate = useNavigate();
   const { isSignedIn } = useAuth();
 
   // UI state
   const { isOpen, isCollapsed } = useSidebarState();
   const { isOnline, websocketConnected } = useConnectionStatus();
-  const { setSidebarOpen, showError } = useUIActions();
-  
+  const { setSidebarOpen } = useUIActions();
+
   // Connection state
   const connections = useConnections();
   const activeConnections = useActiveConnections();
@@ -127,8 +127,9 @@ export const Sidebar: React.FC<SidebarProps> = ({ className }) => {
   ];
 
   const handleConnectionClick = (connectionId: string) => {
-    // Navigate to connection details
-    window.location.href = `/connections/${connectionId}`;
+    // Navigate to connection details using React Router
+    navigate(`/connections/${connectionId}`);
+    handleCloseSidebar();
   };
 
   const handleCloseSidebar = () => {

@@ -27,7 +27,7 @@ interface FeedbackListProps {
 
 export const FeedbackList: React.FC<FeedbackListProps> = ({
   feedback,
-  showAutomationName = false,
+  showAutomationName: _showAutomationName = false,
   isLoading = false,
   emptyMessage = 'No feedback yet',
   className,

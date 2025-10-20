@@ -8,7 +8,7 @@ import { AlertTriangle, RefreshCw, Home, Bug } from 'lucide-react';
 import * as Sentry from '@sentry/react';
 
 import { Button } from '@/components/ui/button';
-import { logError, ERROR_IDS } from '@/lib/errorLogger';
+import { logError } from '@/lib/errorLogger';
 
 interface ErrorBoundaryState {
   hasError: boolean;
@@ -76,7 +76,6 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundarySta
         scope.setLevel('error');
 
         // Add user context if available
-        const client = Sentry.getCurrentScope().getClient();
         const user = Sentry.getCurrentScope().getUser();
         if (user) {
           scope.setUser(user);

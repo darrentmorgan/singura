@@ -368,7 +368,7 @@ export class WebSocketService {
     };
 
     // Subscribe to auth store changes
-    useAuthStore.subscribe((state) => {
+    useAuthStore.subscribe((_state) => {
       handleAuthChange();
     });
 
