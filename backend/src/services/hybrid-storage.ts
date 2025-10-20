@@ -18,7 +18,7 @@ import { PlatformConnection, ConnectionMetadata } from '../types/database';
  */
 export class HybridStorageService {
   private lastDbConnectivity: boolean = true;
-  private connectionCheckInterval: NodeJS.Timeout | null = null;
+  private connectionCheckInterval: ReturnType<typeof setTimeout> | null = null;
 
   constructor() {
     // Start periodic database connectivity check

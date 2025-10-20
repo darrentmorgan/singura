@@ -357,6 +357,7 @@ export class AuditLogRepository extends BaseRepository<
     const cutoffDate = new Date(Date.now() - olderThanDays * 24 * 60 * 60 * 1000);
     let totalDeleted = 0;
 
+    // eslint-disable-next-line no-constant-condition
     while (true) {
       const query = `
         DELETE FROM audit_logs

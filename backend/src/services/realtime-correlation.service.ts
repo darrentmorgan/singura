@@ -116,7 +116,7 @@ export class RealTimeCorrelationService extends EventEmitter {
   private clientSubscriptions: Map<string, SubscriptionPreferences> = new Map();
   private connectedClients: Map<string, Socket> = new Map();
   private performanceMetrics: Map<string, number> = new Map();
-  private performanceMonitoringInterval?: NodeJS.Timeout;
+  private performanceMonitoringInterval?: ReturnType<typeof setTimeout>;
 
   constructor(
     httpServer: HTTPServer,

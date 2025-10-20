@@ -461,7 +461,7 @@ export class OAuthService {
           email: String(userInfo.mail || userInfo.userPrincipalName || ''),
           tenantId: userInfo.tid
         };
-      case 'slack':
+      case 'slack': {
         const slackUser = (userInfo.user as Record<string, unknown>) || {};
         const slackTeam = (userInfo.team as Record<string, unknown>) || {};
         return {
@@ -470,6 +470,7 @@ export class OAuthService {
           teamId: slackTeam.id,
           teamName: slackTeam.name
         };
+      }
       default:
         return {
           id: String(userInfo.id || 'unknown'),

@@ -304,16 +304,17 @@ export class ComplianceService {
           report.findings = await this.generateOWASPFindings(organizationId, periodStart, periodEnd);
           report.metadata.owaspReport = await this.generateOWASPReport(organizationId, periodStart, periodEnd);
           break;
-        case 'comprehensive':
+        case 'comprehensive': {
           const soc2Findings = await this.generateSOC2Findings(organizationId, periodStart, periodEnd);
           const gdprFindings = await this.generateGDPRFindings(organizationId, periodStart, periodEnd);
           const owaspFindings = await this.generateOWASPFindings(organizationId, periodStart, periodEnd);
           report.findings = [...soc2Findings, ...gdprFindings, ...owaspFindings];
-          
+
           report.metadata.soc2Report = await this.generateSOC2Report(organizationId, periodStart, periodEnd);
           report.metadata.gdprReport = await this.generateGDPRReport(organizationId, periodStart, periodEnd);
           report.metadata.owaspReport = await this.generateOWASPReport(organizationId, periodStart, periodEnd);
           break;
+        }
       }
 
       // Calculate summary

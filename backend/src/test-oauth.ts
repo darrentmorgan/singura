@@ -75,7 +75,7 @@ async function testEnvironmentConfiguration() {
     'DATABASE_URL'
   ];
 
-  let missingVars: string[] = [];
+  const missingVars: string[] = [];
   let configuredVars = 0;
 
   for (const varName of requiredVars) {
@@ -100,23 +100,24 @@ async function testEnvironmentConfiguration() {
   return missingVars.length === 0;
 }
 
-// Run tests if this script is executed directly
-if (require.main === module) {
-  async function runTests() {
-    console.log('🚀 SaaS X-Ray OAuth Test Suite\n');
+// Run tests function
+async function runTests() {
+  console.log('🚀 SaaS X-Ray OAuth Test Suite\n');
 
-    const envOk = await testEnvironmentConfiguration();
-    if (!envOk) {
-      console.log('\n❌ Environment configuration incomplete. Please configure missing variables.');
-      process.exit(1);
-    }
-
-    await testOAuthConfigurations();
-
-    console.log('\n🎉 All tests passed! OAuth backend is ready for integration.');
-    process.exit(0);
+  const envOk = await testEnvironmentConfiguration();
+  if (!envOk) {
+    console.log('\n❌ Environment configuration incomplete. Please configure missing variables.');
+    process.exit(1);
   }
 
+  await testOAuthConfigurations();
+
+  console.log('\n🎉 All tests passed! OAuth backend is ready for integration.');
+  process.exit(0);
+}
+
+// Run tests if this script is executed directly
+if (require.main === module) {
   runTests().catch(error => {
     console.error('Test suite failed:', error);
     process.exit(1);

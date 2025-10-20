@@ -266,16 +266,12 @@ export class RealTimeDiscoveryService {
    * Get discovery statistics with real-time capabilities
    */
   async getDiscoveryStatsWithUpdates(organizationId: string, days: number = 30): Promise<DiscoveryStats> {
-    try {
-      const stats = await this.baseService.getDiscoveryStats(organizationId, days);
-      
-      // Could emit stats updated event if needed
-      // await publishSystemEvent('stats_updated', { organizationId, stats });
-      
-      return stats;
-    } catch (error) {
-      throw error;
-    }
+    const stats = await this.baseService.getDiscoveryStats(organizationId, days);
+
+    // Could emit stats updated event if needed
+    // await publishSystemEvent('stats_updated', { organizationId, stats });
+
+    return stats;
   }
 
   /**

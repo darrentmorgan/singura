@@ -367,6 +367,15 @@ describe('RealTimeCorrelationService - Socket.io Integration', () => {
           let client1Received = false;
           let client2Received = false;
 
+          const checkCompletion = () => {
+            if (client1Received) {
+              // Clean up
+              client1.disconnect();
+              client2.disconnect();
+              done();
+            }
+          };
+
           // Client 1 should receive org1 events
           client1.on('correlation:started', (data: any) => {
             if (data.organizationId === org1.id) {
@@ -393,15 +402,6 @@ describe('RealTimeCorrelationService - Socket.io Integration', () => {
             platformCount: 2,
             eventCount: 100
           });
-
-          function checkCompletion() {
-            if (client1Received) {
-              // Clean up
-              client1.disconnect();
-              client2.disconnect();
-              done();
-            }
-          }
 
           // Timeout if event not received
           setTimeout(() => {

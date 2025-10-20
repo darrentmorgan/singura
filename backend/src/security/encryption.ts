@@ -308,7 +308,7 @@ export class EncryptionService {
       if (!/[0-9]/.test(key)) {
         issues.push('Key should contain numbers');
       }
-      if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>?]/.test(key)) {
+      if (!/[!@#$%^&*()_+\-=[\]{};':"\\|,.<>?]/.test(key)) {
         issues.push('Key should contain special characters');
       }
     }

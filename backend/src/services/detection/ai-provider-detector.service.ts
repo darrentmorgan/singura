@@ -145,8 +145,8 @@ export class AIProviderDetectorService {
   private extractApiEndpoint(actionDetails: string, resourceId: string): string | undefined {
     // Common API endpoint patterns (match URLs with proper protocol)
     const endpointPatterns = [
-      /https?:\/\/[a-z0-9.-]+\.(?:openai|anthropic|cohere|huggingface|replicate|mistral|together|googleapis)\.(?:com|ai|co|xyz)(?:\/[a-z0-9\/._-]*)?/gi,
-      /(?:https?:\/\/)?api\.[a-z0-9.-]+\.(?:com|ai|co|xyz)(?:\/[a-z0-9\/._-]*)?/gi
+      /https?:\/\/[a-z0-9.-]+\.(?:openai|anthropic|cohere|huggingface|replicate|mistral|together|googleapis)\.(?:com|ai|co|xyz)(?:\/[a-z0-9/._-]*)?/gi,
+      /(?:https?:\/\/)?api\.[a-z0-9.-]+\.(?:com|ai|co|xyz)(?:\/[a-z0-9/._-]*)?/gi
     ];
 
     for (const pattern of endpointPatterns) {
