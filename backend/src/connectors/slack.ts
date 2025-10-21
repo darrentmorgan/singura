@@ -231,7 +231,7 @@ export class SlackConnector implements PlatformConnector {
   /**
    * Collect app installation events for shadow AI detection
    */
-  private async collectAppInstallationEvents(since: Date): Promise<AuditLogEntry[]> {
+  private async collectAppInstallationEvents(_since: Date): Promise<AuditLogEntry[]> {
     const events: AuditLogEntry[] = [];
 
     if (!this.client) {
@@ -614,7 +614,7 @@ export class SlackConnector implements PlatformConnector {
   /**
    * Analyze bot activity patterns for shadow AI detection
    */
-  private async analyzeBotActivity(botId: string, since: Date): Promise<{
+  private async analyzeBotActivity(_botId: string, _since: Date): Promise<{
     hasActivity: boolean;
     lastActivity: number;
     messageFrequency: number;
@@ -653,7 +653,7 @@ export class SlackConnector implements PlatformConnector {
   /**
    * Detect webhook indicators through heuristic analysis
    */
-  private async detectWebhookIndicators(since: Date): Promise<Array<{
+  private async detectWebhookIndicators(_since: Date): Promise<Array<{
     id: string;
     detectedAt: Date;
     actorId: string;
@@ -978,7 +978,7 @@ export class SlackConnector implements PlatformConnector {
   /**
    * Detect permission changes through indirect methods
    */
-  private async detectPermissionChanges(since: Date): Promise<Array<{
+  private async detectPermissionChanges(_since: Date): Promise<Array<{
     id: string;
     timestamp: Date;
     actorId: string;

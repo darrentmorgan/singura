@@ -78,7 +78,7 @@ export interface PlatformConnector {
   /**
    * Authenticate with the platform using OAuth credentials
    */
-  authenticate(credentials: OAuthCredentials): Promise<ConnectionResult>;
+  authenticate(_credentials: OAuthCredentials): Promise<ConnectionResult>;
 
   /**
    * Discover automations, bots, and integrations in the platform
@@ -88,7 +88,7 @@ export interface PlatformConnector {
   /**
    * Get audit logs from the platform (if available)
    */
-  getAuditLogs(since: Date): Promise<AuditLogEntry[]>;
+  getAuditLogs(_since: Date): Promise<AuditLogEntry[]>;
 
   /**
    * Validate current permissions and connection health

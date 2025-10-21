@@ -68,10 +68,10 @@ export interface TeamsApp {
  * Custom authentication provider for Microsoft Graph
  */
 class TokenAuthenticationProvider implements AuthenticationProvider {
-  constructor(private accessToken: string) {}
+  constructor(private _accessToken: string) {}
 
   async getAccessToken(): Promise<string> {
-    return this.accessToken;
+    return this._accessToken;
   }
 }
 

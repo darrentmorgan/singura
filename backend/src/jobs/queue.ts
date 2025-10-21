@@ -494,14 +494,14 @@ export class JobQueueManager {
    * Send email notification (placeholder)
    */
   private async sendEmailNotification(
-    type: string, 
-    organizationId: string, 
-    data: NotificationData
+    type: string,
+    organizationId: string,
+    _data: NotificationData
   ): Promise<{ sent: boolean; type: string; messageId?: string; metadata?: Record<string, unknown> }> {
     // This would integrate with email service (SendGrid, SES, etc.)
     console.log(`Sending email notification: ${type} for organization ${organizationId}`);
-    return { 
-      sent: true, 
+    return {
+      sent: true,
       type: 'email',
       messageId: `email-${Date.now()}`,
       metadata: { type, organizationId }
@@ -512,14 +512,14 @@ export class JobQueueManager {
    * Send Slack notification (placeholder)
    */
   private async sendSlackNotification(
-    type: string, 
-    organizationId: string, 
-    data: NotificationData
+    type: string,
+    organizationId: string,
+    _data: NotificationData
   ): Promise<{ sent: boolean; type: string; messageId?: string; metadata?: Record<string, unknown> }> {
     // This would integrate with Slack API
     console.log(`Sending Slack notification: ${type} for organization ${organizationId}`);
-    return { 
-      sent: true, 
+    return {
+      sent: true,
       type: 'slack',
       messageId: `slack-${Date.now()}`,
       metadata: { type, organizationId }
@@ -530,9 +530,9 @@ export class JobQueueManager {
    * Send webhook notification (placeholder)
    */
   private async sendWebhookNotification(
-    type: string, 
-    organizationId: string, 
-    data: NotificationData
+    type: string,
+    organizationId: string,
+    _data: NotificationData
   ): Promise<{ sent: boolean; type: string; messageId?: string; metadata?: Record<string, unknown> }> {
     // This would send HTTP webhook
     console.log(`Sending webhook notification: ${type} for organization ${organizationId}`);
