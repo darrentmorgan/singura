@@ -5,7 +5,7 @@
 
 import React, { useEffect, useRef } from 'react';
 import { SignIn, useAuth } from '@clerk/clerk-react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { Shield } from 'lucide-react';
 import { BRAND, CONTENT } from '@/lib/brand';
 
@@ -13,10 +13,13 @@ export const LoginPage: React.FC = () => {
   const { isSignedIn, isLoaded } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const hasRedirected = useRef(false);
 
-  // Get the intended destination from location state (set by ProtectedRoute)
-  const from = (location.state as { redirect?: string })?.redirect || '/dashboard';
+  // Get the intended destination from query parameter (set by ProtectedRoute)
+  // ProtectedRoute redirects to /login?redirect=/automations
+  const redirectParam = searchParams.get('redirect');
+  const from = redirectParam || '/dashboard';
 
   // If already signed in, redirect to intended destination using useNavigate() instead of <Navigate>
   // This avoids known issues with <Navigate> component + Clerk + React Router
