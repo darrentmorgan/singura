@@ -87,7 +87,8 @@ export const AutomationsPage: React.FC = () => {
     };
 
     loadInitialData();
-  }, [fetchConnections, fetchAutomations, fetchAutomationStats, showError]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Only run once on mount, action functions are stable
 
   // Track active discoveries
   useEffect(() => {

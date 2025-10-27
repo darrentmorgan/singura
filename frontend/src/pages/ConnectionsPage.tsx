@@ -59,7 +59,8 @@ export const ConnectionsPage: React.FC = () => {
     };
 
     loadInitialData();
-  }, [fetchConnections, fetchConnectionStats, showError, showSuccess, searchParams, setSearchParams]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]); // Re-run when OAuth callback adds search params, action functions are stable
 
   return (
     <>
