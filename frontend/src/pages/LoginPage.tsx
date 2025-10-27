@@ -48,6 +48,19 @@ export const LoginPage: React.FC = () => {
     }
   }, [isLoaded, isSignedIn, from, navigate, searchParams]);
 
+  // If user is already signed in, show loading state while redirecting
+  // DON'T render Clerk SignIn component as it might interfere
+  if (isLoaded && isSignedIn) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="text-center space-y-4">
+          <Shield className="h-12 w-12 text-primary mx-auto animate-pulse" />
+          <p className="text-muted-foreground">Redirecting...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen flex">
       {/* Left side - Branding/Info */}

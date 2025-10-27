@@ -113,8 +113,15 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
 
   // If not signed in (after transition guard), redirect to login
   if (!isSignedIn) {
-    console.log('[ProtectedRoute] Redirecting to login - user not signed in');
-    return <Navigate to={`/login?redirect=${encodeURIComponent(location.pathname + location.search)}`} replace />;
+    const redirectUrl = `/login?redirect=${encodeURIComponent(location.pathname + location.search)}`;
+    console.log('[ProtectedRoute] 🚨 Redirecting to login - user not signed in', {
+      currentPath: location.pathname,
+      currentSearch: location.search,
+      redirectUrl,
+      isLoaded,
+      isSignedIn
+    });
+    return <Navigate to={redirectUrl} replace />;
   }
 
   console.log('[ProtectedRoute] User is signed in, rendering children');
