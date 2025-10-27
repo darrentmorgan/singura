@@ -3,7 +3,7 @@
  * Uses Clerk's built-in SignIn component
  */
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { SignIn, useAuth } from '@clerk/clerk-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Shield } from 'lucide-react';
@@ -13,16 +13,19 @@ export const LoginPage: React.FC = () => {
   const { isSignedIn, isLoaded } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
+  const hasRedirected = useRef(false);
 
   // Get the intended destination from location state (set by ProtectedRoute)
   const from = (location.state as { redirect?: string })?.redirect || '/dashboard';
 
   // If already signed in, redirect to intended destination using useNavigate() instead of <Navigate>
   // This avoids known issues with <Navigate> component + Clerk + React Router
+  // Use ref to prevent redirect loop during auth state rehydration
   useEffect(() => {
-    console.log('[LoginPage] useEffect', { isLoaded, isSignedIn, from });
-    if (isLoaded && isSignedIn) {
+    console.log('[LoginPage] useEffect', { isLoaded, isSignedIn, from, hasRedirected: hasRedirected.current });
+    if (isLoaded && isSignedIn && !hasRedirected.current) {
       console.log('[LoginPage] Redirecting to:', from);
+      hasRedirected.current = true;
       navigate(from, { replace: true });
     }
   }, [isLoaded, isSignedIn, from, navigate]);
