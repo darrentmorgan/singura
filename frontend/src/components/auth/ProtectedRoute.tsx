@@ -35,16 +35,44 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   const { isLoaded, isSignedIn } = useAuth();
   const { user } = useUser();
 
+  // Navigation transition guard: Wait 500ms before checking auth to allow Clerk to stabilize
+  const [showContent, setShowContent] = useState(false);
+  const authCheckTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    // Clear any existing timer
+    if (authCheckTimerRef.current) {
+      clearTimeout(authCheckTimerRef.current);
+    }
+
+    // Reset showContent when location changes
+    setShowContent(false);
+
+    // Wait 500ms for Clerk auth to stabilize during navigation transitions
+    if (isLoaded && isSignedIn) {
+      authCheckTimerRef.current = setTimeout(() => {
+        setShowContent(true);
+      }, 500);
+    }
+
+    return () => {
+      if (authCheckTimerRef.current) {
+        clearTimeout(authCheckTimerRef.current);
+      }
+    };
+  }, [location.pathname, isLoaded, isSignedIn]);
+
   // Debug logging
   console.log('[ProtectedRoute]', {
     pathname: location.pathname,
     isLoaded,
-    isSignedIn
+    isSignedIn,
+    showContent
   });
 
-  // Show loading spinner while Clerk initializes
-  if (!isLoaded) {
-    console.log('[ProtectedRoute] Showing loading spinner');
+  // Show loading spinner while Clerk initializes OR during transition guard
+  if (!isLoaded || (isLoaded && isSignedIn && !showContent)) {
+    console.log('[ProtectedRoute] Showing loading spinner (transition guard active)');
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center space-y-4">
@@ -65,7 +93,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     );
   }
 
-  // If not signed in, redirect to login
+  // If not signed in (after transition guard), redirect to login
   if (!isSignedIn) {
     console.log('[ProtectedRoute] Redirecting to login - user not signed in');
     return <Navigate to={`/login?redirect=${encodeURIComponent(location.pathname + location.search)}`} replace />;
