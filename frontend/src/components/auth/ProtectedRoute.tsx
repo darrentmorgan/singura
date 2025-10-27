@@ -1,16 +1,22 @@
 /**
  * Protected Route Component - Clerk Integration with React Router v7
  *
- * WORKAROUND: Implements a 500ms navigation transition guard to prevent redirect loops
+ * SOLUTION: Tracks authentication state across navigation to prevent redirect loops
  * caused by Clerk's client-side auth state initialization during React Router navigation.
  *
  * Context: In library mode (Vite + BrowserRouter), auth state is purely client-side.
  * During route transitions, Clerk's auth state briefly becomes uninitialized (~50-500ms),
- * causing SignedOut to render and redirect to /login, which then redirects back to /dashboard.
+ * which could cause redirects to /login during legitimate navigation between protected routes.
  *
- * The transition guard suppresses auth checks during this initialization window, allowing
- * Clerk's state to settle before checking authentication. This is a known limitation of
- * client-side auth in SPAs and is addressed in framework mode with server-side loaders.
+ * Implementation:
+ * 1. Tracks if user was ever authenticated (wasAuthenticatedRef)
+ * 2. On navigation, detects actual pathname changes vs re-renders (prevPathnameRef)
+ * 3. If auth temporarily becomes uninitialized during navigation BUT user was previously
+ *    authenticated, shows loading spinner instead of redirecting
+ * 4. Only redirects to /login if user was never authenticated
+ *
+ * This prevents the cascade: /automations → /login → /dashboard when clicking components
+ * on protected pages, as auth state no longer triggers redirects during navigation.
  *
  * Future: Consider migrating to React Router framework mode for true server-side auth.
  */
@@ -40,7 +46,16 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   const authCheckTimerRef = useRef<NodeJS.Timeout | null>(null);
   const prevPathnameRef = useRef<string>(location.pathname);
 
+  // Track if user was ever authenticated in this session
+  // This prevents redirects during navigation when auth temporarily becomes uninitialized
+  const wasAuthenticatedRef = useRef<boolean>(false);
+
   useEffect(() => {
+    // Track authentication state to prevent redirects during navigation
+    if (isLoaded && isSignedIn) {
+      wasAuthenticatedRef.current = true;
+    }
+
     // Only reset auth check if pathname ACTUALLY changed (not just re-render)
     const pathnameChanged = prevPathnameRef.current !== location.pathname;
 
@@ -85,7 +100,8 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     pathname: location.pathname,
     isLoaded,
     isSignedIn,
-    showContent
+    showContent,
+    wasAuthenticated: wasAuthenticatedRef.current
   });
 
   // Show loading spinner while Clerk initializes OR during transition guard
@@ -111,15 +127,41 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     );
   }
 
-  // If not signed in (after transition guard), redirect to login
+  // If not signed in (after transition guard), handle appropriately
   if (!isSignedIn) {
+    // If user was previously authenticated, they're just navigating between protected routes
+    // Show loading spinner instead of redirecting (auth will reinitialize)
+    if (wasAuthenticatedRef.current) {
+      console.log('[ProtectedRoute] User was authenticated, showing spinner during navigation');
+      return (
+        <div className="min-h-screen flex items-center justify-center bg-background">
+          <div className="text-center space-y-4">
+            <div className="flex items-center justify-center">
+              <Shield className="h-8 w-8 text-primary mr-2" />
+              <Loader2 className="h-6 w-6 animate-spin text-primary" />
+            </div>
+            <div>
+              <h2 className="text-lg font-semibold text-foreground">
+                Loading...
+              </h2>
+              <p className="text-sm text-muted-foreground mt-1">
+                Please wait
+              </p>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // User was never authenticated, redirect to login
     const redirectUrl = `/login?redirect=${encodeURIComponent(location.pathname + location.search)}`;
     console.log('[ProtectedRoute] 🚨 Redirecting to login - user not signed in', {
       currentPath: location.pathname,
       currentSearch: location.search,
       redirectUrl,
       isLoaded,
-      isSignedIn
+      isSignedIn,
+      wasAuthenticated: wasAuthenticatedRef.current
     });
     return <Navigate to={redirectUrl} replace />;
   }

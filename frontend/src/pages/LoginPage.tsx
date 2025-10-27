@@ -154,8 +154,6 @@ export const LoginPage: React.FC = () => {
             routing="path"
             path="/login"
             signUpUrl="/sign-up"
-            forceRedirectUrl={from}
-            fallbackRedirectUrl="/dashboard"
             appearance={{
               elements: {
                 rootBox: "w-full",
