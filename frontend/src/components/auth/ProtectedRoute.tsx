@@ -38,18 +38,36 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   // Navigation transition guard: Wait 500ms before checking auth to allow Clerk to stabilize
   const [showContent, setShowContent] = useState(false);
   const authCheckTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const prevPathnameRef = useRef<string>(location.pathname);
 
   useEffect(() => {
-    // Clear any existing timer
-    if (authCheckTimerRef.current) {
-      clearTimeout(authCheckTimerRef.current);
-    }
+    // Only reset auth check if pathname ACTUALLY changed (not just re-render)
+    const pathnameChanged = prevPathnameRef.current !== location.pathname;
 
-    // Reset showContent when location changes
-    setShowContent(false);
+    if (pathnameChanged) {
+      console.log('[ProtectedRoute] Pathname changed:', prevPathnameRef.current, '→', location.pathname);
+      prevPathnameRef.current = location.pathname;
 
-    // Wait 500ms for Clerk auth to stabilize during navigation transitions
-    if (isLoaded && isSignedIn) {
+      // Clear any existing timer
+      if (authCheckTimerRef.current) {
+        clearTimeout(authCheckTimerRef.current);
+      }
+
+      // Reset showContent when pathname actually changes
+      setShowContent(false);
+
+      // Wait 500ms for Clerk auth to stabilize during navigation transitions
+      if (isLoaded && isSignedIn) {
+        authCheckTimerRef.current = setTimeout(() => {
+          setShowContent(true);
+        }, 500);
+      }
+    } else if (isLoaded && isSignedIn && !showContent) {
+      // Auth state changed but pathname didn't - just update showContent
+      console.log('[ProtectedRoute] Auth state changed, pathname stable');
+      if (authCheckTimerRef.current) {
+        clearTimeout(authCheckTimerRef.current);
+      }
       authCheckTimerRef.current = setTimeout(() => {
         setShowContent(true);
       }, 500);
@@ -60,7 +78,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
         clearTimeout(authCheckTimerRef.current);
       }
     };
-  }, [location.pathname, isLoaded, isSignedIn]);
+  }, [location.pathname, isLoaded, isSignedIn, showContent]);
 
   // Debug logging
   console.log('[ProtectedRoute]', {

@@ -3,7 +3,7 @@
  * Uses Clerk's built-in SignIn component
  */
 
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useMemo } from 'react';
 import { SignIn, useAuth } from '@clerk/clerk-react';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { Shield } from 'lucide-react';
@@ -18,20 +18,35 @@ export const LoginPage: React.FC = () => {
 
   // Get the intended destination from query parameter (set by ProtectedRoute)
   // ProtectedRoute redirects to /login?redirect=/automations
+  // Use useMemo to stabilize this value and prevent unnecessary useEffect reruns
   const redirectParam = searchParams.get('redirect');
-  const from = redirectParam || '/dashboard';
+  const from = useMemo(() => {
+    const destination = redirectParam || '/dashboard';
+    console.log('[LoginPage] Computed redirect destination:', {
+      redirectParam,
+      destination,
+      searchParamsEntries: Array.from(searchParams.entries())
+    });
+    return destination;
+  }, [redirectParam, searchParams]);
 
   // If already signed in, redirect to intended destination using useNavigate() instead of <Navigate>
   // This avoids known issues with <Navigate> component + Clerk + React Router
   // Use ref to prevent redirect loop during auth state rehydration
   useEffect(() => {
-    console.log('[LoginPage] useEffect', { isLoaded, isSignedIn, from, hasRedirected: hasRedirected.current });
+    console.log('[LoginPage] useEffect', {
+      isLoaded,
+      isSignedIn,
+      from,
+      hasRedirected: hasRedirected.current,
+      searchParams: Array.from(searchParams.entries())
+    });
     if (isLoaded && isSignedIn && !hasRedirected.current) {
-      console.log('[LoginPage] Redirecting to:', from);
+      console.log('[LoginPage] ✅ Redirecting to:', from);
       hasRedirected.current = true;
       navigate(from, { replace: true });
     }
-  }, [isLoaded, isSignedIn, from, navigate]);
+  }, [isLoaded, isSignedIn, from, navigate, searchParams]);
 
   return (
     <div className="min-h-screen flex">
