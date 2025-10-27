@@ -140,7 +140,6 @@ export const Header: React.FC<HeaderProps> = ({ className }) => {
           <OrganizationSwitcher
             hidePersonal={false}
             afterCreateOrganizationUrl="/connections"
-            afterSelectOrganizationUrl="/connections"
             appearance={{
               elements: {
                 rootBox: "flex items-center",

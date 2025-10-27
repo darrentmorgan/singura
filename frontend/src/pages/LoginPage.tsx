@@ -3,12 +3,30 @@
  * Uses Clerk's built-in SignIn component
  */
 
-import React from 'react';
-import { SignIn } from '@clerk/clerk-react';
+import React, { useEffect } from 'react';
+import { SignIn, useAuth } from '@clerk/clerk-react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { Shield } from 'lucide-react';
 import { BRAND, CONTENT } from '@/lib/brand';
 
 export const LoginPage: React.FC = () => {
+  const { isSignedIn, isLoaded } = useAuth();
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  // Get the intended destination from location state (set by ProtectedRoute)
+  const from = (location.state as { redirect?: string })?.redirect || '/dashboard';
+
+  // If already signed in, redirect to intended destination using useNavigate() instead of <Navigate>
+  // This avoids known issues with <Navigate> component + Clerk + React Router
+  useEffect(() => {
+    console.log('[LoginPage] useEffect', { isLoaded, isSignedIn, from });
+    if (isLoaded && isSignedIn) {
+      console.log('[LoginPage] Redirecting to:', from);
+      navigate(from, { replace: true });
+    }
+  }, [isLoaded, isSignedIn, from, navigate]);
+
   return (
     <div className="min-h-screen flex">
       {/* Left side - Branding/Info */}
@@ -102,7 +120,8 @@ export const LoginPage: React.FC = () => {
             routing="path"
             path="/login"
             signUpUrl="/sign-up"
-            afterSignInUrl="/dashboard"
+            forceRedirectUrl={from}
+            fallbackRedirectUrl="/dashboard"
             appearance={{
               elements: {
                 rootBox: "w-full",

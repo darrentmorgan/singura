@@ -3,23 +3,25 @@
  * Main page for viewing discovered automations and managing discovery
  */
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { useNavigate } from 'react-router-dom';
-import { Play, Pause } from 'lucide-react';
+import { Play, Pause, Search, Activity } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { BRAND } from '@/lib/brand';
 import AutomationsList from '@/components/automations/AutomationsList';
 import DiscoveryProgress from '@/components/automations/DiscoveryProgress';
-import { 
-  useAutomationsActions, 
-  useDiscoveryProgress, 
+import {
+  useAutomationsActions,
+  useDiscoveryProgress,
   useAutomationsLoading,
-  useAutomationsStats
+  useAutomationsStats,
+  useAutomations
 } from '@/stores/automations';
 import { useConnections, useConnectionsActions } from '@/stores/connections';
 import { useUIActions } from '@/stores/ui';
+import { calculateOverallConfidence, getUniqueDetectionMethods } from '@/utils/detectionHelpers';
 
 export const AutomationsPage: React.FC = () => {
   const navigate = useNavigate();
@@ -30,6 +32,36 @@ export const AutomationsPage: React.FC = () => {
   const discoveryProgress = useDiscoveryProgress();
   const isLoading = useAutomationsLoading();
   const automationStats = useAutomationsStats();
+  const automations = useAutomations();
+
+  // Calculate detection statistics
+  const detectionStats = useMemo(() => {
+    let totalPatterns = 0;
+    let totalConfidence = 0;
+    let automationsWithPatterns = 0;
+    const allMethods = new Set<string>();
+
+    automations.forEach(automation => {
+      const patterns = automation.detectionMetadata?.detectionPatterns || [];
+      if (patterns.length > 0) {
+        automationsWithPatterns++;
+        totalPatterns += patterns.length;
+        const avgConfidence = calculateOverallConfidence(patterns);
+        totalConfidence += avgConfidence;
+
+        getUniqueDetectionMethods(patterns).forEach(method => {
+          allMethods.add(method);
+        });
+      }
+    });
+
+    return {
+      totalPatterns,
+      avgConfidence: automationsWithPatterns > 0 ? Math.round(totalConfidence / automationsWithPatterns) : 0,
+      detectionMethods: Array.from(allMethods),
+      automationsWithPatterns
+    };
+  }, [automations]);
 
   // Actions
   const {
@@ -177,39 +209,58 @@ export const AutomationsPage: React.FC = () => {
             </div>
           </div>
 
-          {/* Connection Status Summary */}
-          <div className="grid gap-4 md:grid-cols-4">
+          {/* Connection and Detection Status Summary */}
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
             <div className="bg-card border rounded-lg p-4">
-              <div className="flex items-center space-x-2">
-                <div className="w-2 h-2 bg-blue-500 rounded-full" />
-                <p className="text-sm font-medium text-muted-foreground">Total Connections</p>
-              </div>
-              <p className="text-2xl font-bold text-foreground mt-2">{connections.length}</p>
-            </div>
-
-            <div className="bg-card border rounded-lg p-4">
-              <div className="flex items-center space-x-2">
-                <div className="w-2 h-2 bg-green-500 rounded-full" />
-                <p className="text-sm font-medium text-muted-foreground">Active</p>
-              </div>
-              <p className="text-2xl font-bold text-foreground mt-2">{activeConnections.length}</p>
-            </div>
-
-            <div className="bg-card border rounded-lg p-4">
-              <div className="flex items-center space-x-2">
-                <div className="w-2 h-2 bg-orange-500 rounded-full" />
-                <p className="text-sm font-medium text-muted-foreground">Discovering</p>
-              </div>
-              <p className="text-2xl font-bold text-foreground mt-2">{activeDiscoveries.length}</p>
-            </div>
-
-            <div className="bg-card border rounded-lg p-4">
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center justify-between mb-2">
+                <p className="text-sm font-medium text-muted-foreground">Total Automations</p>
                 <div className="w-2 h-2 bg-purple-500 rounded-full" />
-                <p className="text-sm font-medium text-muted-foreground">Automations</p>
               </div>
-              <p className="text-2xl font-bold text-foreground mt-2">
+              <p className="text-2xl font-bold text-foreground">
                 {automationStats?.totalAutomations || 0}
+              </p>
+              <p className="text-xs text-muted-foreground mt-1">
+                {activeConnections.length} active connection{activeConnections.length !== 1 ? 's' : ''}
+              </p>
+            </div>
+
+            <div className="bg-card border rounded-lg p-4">
+              <div className="flex items-center justify-between mb-2">
+                <p className="text-sm font-medium text-muted-foreground">Patterns Detected</p>
+                <Search className="h-4 w-4 text-blue-500" />
+              </div>
+              <p className="text-2xl font-bold text-foreground">
+                {detectionStats.totalPatterns.toLocaleString()}
+              </p>
+              <p className="text-xs text-muted-foreground mt-1">
+                Avg {detectionStats.avgConfidence}% confidence
+              </p>
+            </div>
+
+            <div className="bg-card border rounded-lg p-4">
+              <div className="flex items-center justify-between mb-2">
+                <p className="text-sm font-medium text-muted-foreground">Detection Methods</p>
+                <Activity className="h-4 w-4 text-green-500" />
+              </div>
+              <p className="text-2xl font-bold text-foreground">
+                {detectionStats.detectionMethods.length}
+              </p>
+              <p className="text-xs text-muted-foreground mt-1 truncate" title={detectionStats.detectionMethods.join(', ')}>
+                {detectionStats.detectionMethods.slice(0, 2).join(', ')}
+                {detectionStats.detectionMethods.length > 2 && ` +${detectionStats.detectionMethods.length - 2}`}
+              </p>
+            </div>
+
+            <div className="bg-card border rounded-lg p-4">
+              <div className="flex items-center justify-between mb-2">
+                <p className="text-sm font-medium text-muted-foreground">High Risk</p>
+                <div className="w-2 h-2 bg-red-500 rounded-full" />
+              </div>
+              <p className="text-2xl font-bold text-foreground">
+                {automationStats?.byRiskLevel?.high || 0}
+              </p>
+              <p className="text-xs text-muted-foreground mt-1">
+                {activeDiscoveries.length > 0 ? `${activeDiscoveries.length} discovering` : 'No active scans'}
               </p>
             </div>
           </div>

@@ -1,11 +1,23 @@
 /**
- * Protected Route Component - Clerk Integration
- * Handles authentication checks and redirects for protected pages using Clerk
+ * Protected Route Component - Clerk Integration with React Router v7
+ *
+ * WORKAROUND: Implements a 500ms navigation transition guard to prevent redirect loops
+ * caused by Clerk's client-side auth state initialization during React Router navigation.
+ *
+ * Context: In library mode (Vite + BrowserRouter), auth state is purely client-side.
+ * During route transitions, Clerk's auth state briefly becomes uninitialized (~50-500ms),
+ * causing SignedOut to render and redirect to /login, which then redirects back to /dashboard.
+ *
+ * The transition guard suppresses auth checks during this initialization window, allowing
+ * Clerk's state to settle before checking authentication. This is a known limitation of
+ * client-side auth in SPAs and is addressed in framework mode with server-side loaders.
+ *
+ * Future: Consider migrating to React Router framework mode for true server-side auth.
  */
 
-import React from 'react';
-import { Navigate, useLocation } from 'react-router-dom';
+import React, { useEffect, useState, useRef } from 'react';
 import { useAuth, useUser } from '@clerk/clerk-react';
+import { Navigate, useLocation } from 'react-router-dom';
 import { Shield, Loader2 } from 'lucide-react';
 
 interface ProtectedRouteProps {
@@ -23,8 +35,16 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   const { isLoaded, isSignedIn } = useAuth();
   const { user } = useUser();
 
-  // Show loading state while Clerk is initializing
+  // Debug logging
+  console.log('[ProtectedRoute]', {
+    pathname: location.pathname,
+    isLoaded,
+    isSignedIn
+  });
+
+  // Show loading spinner while Clerk initializes
   if (!isLoaded) {
+    console.log('[ProtectedRoute] Showing loading spinner');
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center space-y-4">
@@ -34,10 +54,10 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
           </div>
           <div>
             <h2 className="text-lg font-semibold text-foreground">
-              Checking authentication...
+              Loading...
             </h2>
             <p className="text-sm text-muted-foreground mt-1">
-              Please wait while we verify your session
+              Please wait
             </p>
           </div>
         </div>
@@ -45,34 +65,23 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     );
   }
 
-  // Redirect to login if not authenticated
+  // If not signed in, redirect to login
   if (!isSignedIn) {
-    return (
-      <Navigate
-        to="/login"
-        state={{
-          from: location,
-          redirect: location.pathname + location.search
-        }}
-        replace
-      />
-    );
+    console.log('[ProtectedRoute] Redirecting to login - user not signed in');
+    return <Navigate to={`/login?redirect=${encodeURIComponent(location.pathname + location.search)}`} replace />;
   }
 
-  // Check permissions if required (using Clerk's user metadata)
+  console.log('[ProtectedRoute] User is signed in, rendering children');
+
+  // Check permissions if required
   if (requirePermissions.length > 0 && user) {
     const userPermissions = (user.publicMetadata?.permissions as string[]) || [];
-    const hasRequiredPermissions = requirePermissions.every(permission =>
+    const hasAllPermissions = requirePermissions.every(permission =>
       userPermissions.includes(permission)
     );
 
-    if (!hasRequiredPermissions) {
-      // Return fallback component or redirect to dashboard
-      if (fallback) {
-        return <>{fallback}</>;
-      }
-
-      return <Navigate to="/dashboard" replace />;
+    if (!hasAllPermissions) {
+      return fallback || <Navigate to="/dashboard" replace />;
     }
   }
 

@@ -71,11 +71,6 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
     };
   }, [isSignedIn, fetchConnections, fetchConnectionStats, setOnlineStatus]);
 
-  // Don't render layout if not authenticated (auth guard should handle this)
-  if (!isLoaded || !isSignedIn) {
-    return null;
-  }
-
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
