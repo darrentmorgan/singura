@@ -69,7 +69,8 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
       window.removeEventListener('offline', handleOffline);
       document.removeEventListener('keydown', handleKeyDown);
     };
-  }, [isSignedIn, fetchConnections, fetchConnectionStats, setOnlineStatus]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isSignedIn]); // Only re-run when auth state changes, not when action functions change
 
   return (
     <div className="min-h-screen bg-background">
