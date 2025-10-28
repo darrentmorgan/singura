@@ -4,7 +4,7 @@
  */
 
 import React, { useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { Routes, Route } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Helmet, HelmetProvider } from 'react-helmet-async';
 import toast, { Toaster } from 'react-hot-toast';
@@ -236,36 +236,35 @@ const App: React.FC = () => {
     <ErrorBoundary>
       <HelmetProvider>
         <QueryClientProvider client={queryClient}>
-          <Router>
-            <Helmet>
-              <title>{CONTENT.seo.title}</title>
-              <meta name="description" content={CONTENT.seo.description} />
-              <meta name="viewport" content="width=device-width, initial-scale=1" />
-            </Helmet>
+          <Helmet>
+            <title>{CONTENT.seo.title}</title>
+            <meta name="description" content={CONTENT.seo.description} />
+            <meta name="viewport" content="width=device-width, initial-scale=1" />
+          </Helmet>
 
-            {/* Global Managers */}
-            <ThemeManager />
-            <ConnectionManager />
-            <NotificationManager />
+          {/* Global Managers */}
+          <ThemeManager />
+          <ConnectionManager />
+          <NotificationManager />
 
-            {/* Global Modal */}
-            <GlobalModal />
+          {/* Global Modal */}
+          <GlobalModal />
 
-            {/* Toast Notifications */}
-            <Toaster
-              position="top-right"
-              toastOptions={{
-                duration: 4000,
-                style: {
-                  background: 'hsl(var(--card))',
-                  color: 'hsl(var(--card-foreground))',
-                  border: '1px solid hsl(var(--border))',
-                },
-              }}
-            />
+          {/* Toast Notifications */}
+          <Toaster
+            position="top-right"
+            toastOptions={{
+              duration: 4000,
+              style: {
+                background: 'hsl(var(--card))',
+                color: 'hsl(var(--card-foreground))',
+                border: '1px solid hsl(var(--border))',
+              },
+            }}
+          />
 
-            {/* Routes */}
-            <Routes>
+          {/* Routes */}
+          <Routes>
               {/* Public Routes */}
               <Route path="/" element={<LandingPage />} />
               <Route path="/login/*" element={<LoginPage />} />
@@ -288,7 +287,7 @@ const App: React.FC = () => {
               <Route path="/oauth/callback" element={<OAuthCallback />} />
 
               {/* Protected Routes */}
-              
+
               <Route path="/dashboard" element={
                 <ProtectedRoute>
                   <DashboardLayout>
@@ -296,7 +295,7 @@ const App: React.FC = () => {
                   </DashboardLayout>
                 </ProtectedRoute>
               } />
-              
+
               <Route path="/connections" element={
                 <ProtectedRoute>
                   <DashboardLayout>
@@ -304,7 +303,7 @@ const App: React.FC = () => {
                   </DashboardLayout>
                 </ProtectedRoute>
               } />
-              
+
               <Route path="/connections/:id" element={
                 <ProtectedRoute>
                   <DashboardLayout>
@@ -312,7 +311,7 @@ const App: React.FC = () => {
                   </DashboardLayout>
                 </ProtectedRoute>
               } />
-              
+
               <Route path="/automations" element={
                 <ProtectedRoute>
                   <DashboardLayout>
@@ -320,7 +319,7 @@ const App: React.FC = () => {
                   </DashboardLayout>
                 </ProtectedRoute>
               } />
-              
+
               <Route path="/security" element={
                 <ProtectedRoute>
                   <DashboardLayout>
@@ -328,7 +327,7 @@ const App: React.FC = () => {
                   </DashboardLayout>
                 </ProtectedRoute>
               } />
-              
+
               <Route path="/analytics" element={
                 <ProtectedRoute>
                   <DashboardLayout>
@@ -336,7 +335,7 @@ const App: React.FC = () => {
                   </DashboardLayout>
                 </ProtectedRoute>
               } />
-              
+
               <Route path="/settings" element={
                 <ProtectedRoute>
                   <DashboardLayout>
@@ -366,10 +365,9 @@ const App: React.FC = () => {
                 </ProtectedRoute>
               } />
 
-              {/* 404 Route */}
-              <Route path="*" element={<NotFoundPage />} />
-            </Routes>
-          </Router>
+            {/* 404 Route */}
+            <Route path="*" element={<NotFoundPage />} />
+          </Routes>
         </QueryClientProvider>
       </HelmetProvider>
     </ErrorBoundary>

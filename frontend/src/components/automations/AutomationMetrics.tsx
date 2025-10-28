@@ -92,7 +92,8 @@ export const AutomationMetrics: React.FC<AutomationMetricsProps> = ({
 
   useEffect(() => {
     fetchAutomationStats();
-  }, [fetchAutomationStats]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Only run once on mount, parent page also fetches
 
   if (!stats) {
     return (

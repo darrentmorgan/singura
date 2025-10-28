@@ -1,3 +1,22 @@
+<!-- OPENSPEC:START -->
+# OpenSpec Instructions
+
+These instructions are for AI assistants working in this project.
+
+Always open `@/openspec/AGENTS.md` when the request:
+- Mentions planning or proposals (words like proposal, spec, change, plan)
+- Introduces new capabilities, breaking changes, architecture shifts, or big performance/security work
+- Sounds ambiguous and you need the authoritative spec before coding
+
+Use `@/openspec/AGENTS.md` to learn:
+- How to create and apply change proposals
+- Spec format and conventions
+- Project structure and guidelines
+
+Keep this managed block so 'openspec update' can refresh the instructions.
+
+<!-- OPENSPEC:END -->
+
 # Singura Development - Quick Reference
 
 ## 🚨 CRITICAL: Pre-Action Checklist (MANDATORY)
@@ -184,13 +203,14 @@ await client.bots.list();   // ❌
 
 ## Critical Pitfalls (MUST AVOID)
 
-**Top 6 Learned Lessons**:
+**Top 7 Learned Lessons**:
 1. Service Instance State Loss → Use singleton exports
 2. Slack API Method Validation → Methods like `apps.list()` don't exist
 3. Dual Storage Architecture → Link connection metadata + OAuth tokens
 4. Database Persistence Fallback → Docker containers may fail
 5. OAuth Scope Research → Research BEFORE implementing
 6. Database Migrations Not Applied → Automated runner required
+7. **Incomplete Auth Migration → Remove ALL old auth code** ⚠️ NEW
 
 **Full Details**: See `.claude/PITFALLS.md` with examples and solutions
 
@@ -201,7 +221,8 @@ await client.bots.list();   // ❌
 **Core Docs**:
 - **Architecture**: `.claude/ARCHITECTURE.md` - System design, tech stack
 - **Patterns**: `.claude/PATTERNS.md` - Singleton, OAuth, repository, browser testing
-- **Pitfalls**: `.claude/PITFALLS.md` - All 6 pitfalls with solutions
+- **Pitfalls**: `.claude/PITFALLS.md` - All 7 pitfalls with solutions
+- **Auth Fix**: `docs/fixes/AUTH_REDIRECT_BUG_FIX.md` - Complete auth migration guide
 - **Sub-Agents**: `.claude/agents/README.md` - 13 specialists
 - **Delegation Examples**: `.claude/docs/DELEGATION_EXAMPLES.md` - Full scenarios
 - **Agent Response Format**: `.claude/docs/AGENT_RESPONSE_FORMAT.md` - Standards

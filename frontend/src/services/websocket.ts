@@ -13,7 +13,6 @@ import {
 import { useConnectionsStore } from '@/stores/connections';
 import { useAutomationsStore } from '@/stores/automations';
 import { useUIStore } from '@/stores/ui';
-import { useAuthStore } from '@/stores/auth';
 
 // WebSocket Configuration
 const WS_URL = import.meta.env.VITE_WS_URL || 'ws://localhost:4201';
@@ -354,26 +353,11 @@ export class WebSocketService {
 
   /**
    * Setup application event listeners
+   *
+   * Note: WebSocket connection lifecycle is managed by DashboardLayout using Clerk auth.
+   * This method only sets up network connectivity and tab visibility listeners.
    */
   private setupEventListeners(): void {
-    // Listen for auth changes
-    const handleAuthChange = () => {
-      const { isAuthenticated } = useAuthStore.getState();
-      
-      if (isAuthenticated && !this.isConnected()) {
-        this.connect();
-      } else if (!isAuthenticated && this.isConnected()) {
-        this.disconnect();
-      }
-    };
-
-    // Subscribe to auth store changes
-    useAuthStore.subscribe((_state) => {
-      handleAuthChange();
-    });
-
-    this.eventListeners.set('auth', handleAuthChange);
-
     // Listen for online/offline events
     const handleOnline = () => {
       console.log('Network came online, attempting WebSocket reconnection');
@@ -464,30 +448,20 @@ export class WebSocketService {
 
   /**
    * Handle authentication errors
+   *
+   * Note: With Clerk authentication, token refresh is handled by Clerk SDK.
+   * If WebSocket auth fails, we disconnect and let DashboardLayout handle reconnection
+   * based on Clerk's auth state.
    */
   private async handleAuthError(): Promise<void> {
-    const { refreshAccessToken, isAuthenticated } = useAuthStore.getState();
-    
-    if (!isAuthenticated) {
-      console.log('User not authenticated, disconnecting WebSocket');
-      this.disconnect();
-      return;
-    }
+    console.log('WebSocket authentication error - disconnecting (Clerk will handle re-auth)');
+    this.disconnect();
 
-    try {
-      const success = await refreshAccessToken();
-      if (success) {
-        console.log('Token refreshed, reconnecting WebSocket');
-        this.disconnect();
-        await this.connect();
-      } else {
-        console.error('Token refresh failed, disconnecting WebSocket');
-        this.disconnect();
-      }
-    } catch (error) {
-      console.error('Failed to refresh token for WebSocket:', error);
-      this.disconnect();
-    }
+    // Show user-friendly error
+    useUIStore.getState().showError(
+      'Real-time connection lost. Please refresh the page if issues persist.',
+      'Connection Error'
+    );
   }
 
   /**

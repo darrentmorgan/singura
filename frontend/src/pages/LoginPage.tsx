@@ -3,12 +3,72 @@
  * Uses Clerk's built-in SignIn component
  */
 
-import React from 'react';
-import { SignIn } from '@clerk/clerk-react';
+import React, { useEffect, useRef, useMemo } from 'react';
+import { SignIn, useAuth } from '@clerk/clerk-react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Shield } from 'lucide-react';
 import { BRAND, CONTENT } from '@/lib/brand';
 
 export const LoginPage: React.FC = () => {
+  const { isSignedIn, isLoaded } = useAuth();
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const hasRedirected = useRef(false);
+
+  // Get the intended destination from query parameter (set by ProtectedRoute)
+  // ProtectedRoute redirects to /login?redirect=/automations
+  // Use useMemo to stabilize this value and prevent unnecessary useEffect reruns
+  const redirectParam = searchParams.get('redirect');
+  const from = useMemo(() => {
+    // IMPORTANT: Only redirect if we have an explicit redirect param
+    // This prevents redirect loops when Clerk routes through /login
+    const destination = redirectParam || null;
+    console.log('[LoginPage] Computed redirect destination:', {
+      redirectParam,
+      destination,
+      searchParamsEntries: Array.from(searchParams.entries())
+    });
+    return destination;
+  }, [redirectParam, searchParams]);
+
+  // If already signed in, redirect to intended destination using useNavigate() instead of <Navigate>
+  // This avoids known issues with <Navigate> component + Clerk + React Router
+  // Use ref to prevent redirect loop during auth state rehydration
+  useEffect(() => {
+    console.log('[LoginPage] useEffect', {
+      isLoaded,
+      isSignedIn,
+      from,
+      hasRedirected: hasRedirected.current,
+      searchParams: Array.from(searchParams.entries())
+    });
+    // Only redirect if we have an explicit destination AND user is signed in
+    if (isLoaded && isSignedIn && from && !hasRedirected.current) {
+      console.log('[LoginPage] ✅ Redirecting to:', from);
+      hasRedirected.current = true;
+      navigate(from, { replace: true });
+    } else if (isLoaded && isSignedIn && !from && !hasRedirected.current) {
+      // User is signed in but landed on /login without redirect param
+      // Redirect to dashboard as a sensible default
+      console.log('[LoginPage] ✅ Signed in user on /login, redirecting to dashboard');
+      hasRedirected.current = true;
+      navigate('/dashboard', { replace: true });
+    }
+  }, [isLoaded, isSignedIn, from, navigate, searchParams]);
+
+  // If user is already signed in, show loading state while redirecting
+  // DON'T render Clerk SignIn component as it might interfere
+  if (isLoaded && isSignedIn) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="text-center space-y-4">
+          <Shield className="h-12 w-12 text-primary mx-auto animate-pulse" />
+          <p className="text-muted-foreground">Redirecting...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen flex">
       {/* Left side - Branding/Info */}
@@ -102,7 +162,6 @@ export const LoginPage: React.FC = () => {
             routing="path"
             path="/login"
             signUpUrl="/sign-up"
-            afterSignInUrl="/dashboard"
             appearance={{
               elements: {
                 rootBox: "w-full",

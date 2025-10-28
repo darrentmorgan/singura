@@ -66,7 +66,8 @@ export const DashboardPage: React.FC = () => {
     };
 
     loadData();
-  }, [fetchConnections, fetchConnectionStats, fetchAutomations, fetchAutomationStats]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Only run once on mount, action functions are stable
 
   // Update time every minute
   useEffect(() => {

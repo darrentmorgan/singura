@@ -269,7 +269,8 @@ export const CorrelationDashboard: React.FC<CorrelationDashboardProps> = ({
 
       return () => clearInterval(interval);
     }
-  }, [fetchCorrelationStatus, autoRefresh, refreshInterval, state.isAnalysisInProgress]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoRefresh, refreshInterval]); // Only re-initialize interval when these props change
 
   return (
     <div className="space-y-6">

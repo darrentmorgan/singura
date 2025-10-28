@@ -5,10 +5,11 @@
 
 import React from 'react';
 import ReactDOM from 'react-dom/client';
+import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import { ClerkProvider } from '@clerk/clerk-react';
-import * as Sentry from '@sentry/react';
 import App from './App';
 import { initializeSentry } from './lib/errorLogger';
+import { routes } from './routes';
 
 // Initialize Sentry for error tracking
 initializeSentry();
@@ -27,34 +28,24 @@ if (!rootElement) {
   throw new Error('Root element not found. Make sure there is an element with id="root" in your HTML.');
 }
 
+// Create router (React Router v7 - future flags are now default behavior)
+const router = createBrowserRouter(routes);
+
 // Create React root and render the app with Clerk
 const root = ReactDOM.createRoot(rootElement);
 
-// Wrap App with Sentry's ErrorBoundary for additional error tracking
-const SentryApp = import.meta.env.VITE_SENTRY_DSN
-  ? Sentry.withErrorBoundary(App, {
-      fallback: ({ error, resetError }) => (
-        <div className="min-h-screen bg-background flex items-center justify-center p-4">
-          <div className="text-center">
-            <h1 className="text-2xl font-bold mb-4">Something went wrong</h1>
-            <p className="mb-4">Error: {error?.toString()}</p>
-            <button
-              onClick={resetError}
-              className="px-4 py-2 bg-primary text-primary-foreground rounded"
-            >
-              Try again
-            </button>
-          </div>
-        </div>
-      ),
-      showDialog: false,
-    })
-  : App;
-
 root.render(
   <React.StrictMode>
-    <ClerkProvider publishableKey={CLERK_PUBLISHABLE_KEY}>
-      <SentryApp />
+    <ClerkProvider
+      publishableKey={CLERK_PUBLISHABLE_KEY}
+      afterSignInUrl={null}
+      afterSignUpUrl={null}
+      signInFallbackRedirectUrl={null}
+      signUpFallbackRedirectUrl={null}
+    >
+      <App>
+        <RouterProvider router={router} />
+      </App>
     </ClerkProvider>
   </React.StrictMode>
 );

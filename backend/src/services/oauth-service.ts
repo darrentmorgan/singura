@@ -5,12 +5,13 @@
  */
 
 import { Request, Response } from 'express';
-import { 
+import {
   OAuthAuthorizationRequest,
-  OAuthCallbackRequest, 
+  OAuthCallbackRequest,
   OAuthCredentials,
   PlatformConnection,
-  Platform 
+  Platform,
+  GoogleOAuthCredentials
 } from '@singura/shared-types';
 import { oauthSecurityService, OAuthConfig, TokenResponse } from '../security/oauth';
 import { encryptionService, EncryptedData } from '../security/encryption';
@@ -18,6 +19,7 @@ import { securityAuditService } from '../security/audit';
 import { platformConnectionRepository } from '../database/repositories/platform-connection';
 import { encryptedCredentialRepository } from '../database/repositories/encrypted-credential';
 import { PlatformType, ConnectionStatus, CredentialType } from '../types/database';
+import { oauthCredentialStorage } from './oauth-credential-storage-service';
 import axios from 'axios';
 
 export interface OAuthFlowResult {
@@ -531,9 +533,18 @@ export class OAuthService {
 
   /**
    * Store OAuth tokens securely
+   * FIXED: Stores in both database (persistence) AND singleton cache (performance)
    */
   private async storeOAuthTokens(connectionId: string, tokens: ExtendedTokenResponse): Promise<void> {
-    // Store access token
+    console.log(`🔍 [OAuth Service] Storing tokens for connection: ${connectionId}`);
+
+    // Get connection metadata to populate complete credential object
+    const connection = await platformConnectionRepository.findById(connectionId);
+    if (!connection) {
+      throw new Error(`Connection ${connectionId} not found when storing tokens`);
+    }
+
+    // Store access token in database (existing behavior)
     const accessTokenData: EncryptedData = encryptionService.encrypt(tokens.access_token);
     await encryptedCredentialRepository.replaceCredential(
       connectionId,
@@ -542,7 +553,7 @@ export class OAuthService {
       tokens.expires_in && typeof tokens.expires_in === 'number' ? new Date(Date.now() + tokens.expires_in * 1000) : undefined
     );
 
-    // Store refresh token if available
+    // Store refresh token if available (existing behavior)
     if (tokens.refresh_token && typeof tokens.refresh_token === 'string') {
       const refreshTokenData: EncryptedData = encryptionService.encrypt(tokens.refresh_token);
       await encryptedCredentialRepository.replaceCredential(
@@ -551,17 +562,66 @@ export class OAuthService {
         JSON.stringify(refreshTokenData)
       );
     }
+
+    // CRITICAL FIX: ALSO store in singleton cache for discovery service
+    // This bridges the architectural gap between database persistence and memory cache
+    if (connection.platform_type === 'google') {
+      try {
+        // Build complete GoogleOAuthCredentials object from connection metadata
+        const metadata = connection.metadata as unknown as Record<string, unknown>;
+        const expiresAt = tokens.expires_in && typeof tokens.expires_in === 'number'
+          ? new Date(Date.now() + tokens.expires_in * 1000)
+          : undefined;
+
+        const googleCredentials: GoogleOAuthCredentials = {
+          accessToken: tokens.access_token,
+          refreshToken: tokens.refresh_token && typeof tokens.refresh_token === 'string'
+            ? tokens.refresh_token
+            : undefined,
+          tokenType: tokens.token_type || 'Bearer',
+          scope: typeof tokens.scope === 'string' ? tokens.scope.split(' ') : [],
+          expiresAt,
+          userId: connection.platform_user_id,
+          email: metadata?.email as string | undefined,
+          domain: metadata?.domain as string | undefined,
+          organizationId: connection.organization_id
+        };
+
+        // Store in singleton cache for discovery service
+        const stored = await oauthCredentialStorage.storeCredentials(connectionId, googleCredentials);
+
+        if (stored) {
+          console.log(`✅ [OAuth Service] Credentials stored in BOTH database and singleton cache: ${connectionId}`);
+        } else {
+          console.warn(`⚠️  [OAuth Service] Failed to store credentials in singleton cache (database still persisted): ${connectionId}`);
+        }
+      } catch (cacheError) {
+        // Log error but don't fail - database persistence is critical, cache is performance optimization
+        console.error(`❌ [OAuth Service] Error storing credentials in singleton cache (database still persisted):`, cacheError);
+      }
+    }
+
+    console.log(`✅ [OAuth Service] Token storage complete for: ${connectionId}`);
   }
 
   /**
    * Update OAuth tokens
+   * FIXED: Updates in both database (persistence) AND singleton cache (performance)
    */
   private async updateOAuthTokens(
     connectionId: string,
     tokens: ExtendedTokenResponse,
     expiresAt: Date
   ): Promise<void> {
-    // Update access token
+    console.log(`🔍 [OAuth Service] Updating tokens for connection: ${connectionId}`);
+
+    // Get connection metadata
+    const connection = await platformConnectionRepository.findById(connectionId);
+    if (!connection) {
+      throw new Error(`Connection ${connectionId} not found when updating tokens`);
+    }
+
+    // Update access token in database (existing behavior)
     const accessTokenData: EncryptedData = encryptionService.encrypt(tokens.access_token);
     await encryptedCredentialRepository.replaceCredential(
       connectionId,
@@ -579,6 +639,38 @@ export class OAuthService {
         JSON.stringify(refreshTokenData)
       );
     }
+
+    // CRITICAL FIX: ALSO update in singleton cache for discovery service
+    if (connection.platform_type === 'google') {
+      try {
+        // Build complete GoogleOAuthCredentials object from connection metadata
+        const metadata = connection.metadata as unknown as Record<string, unknown>;
+
+        const googleCredentials: GoogleOAuthCredentials = {
+          accessToken: tokens.access_token,
+          refreshToken: tokens.refresh_token && typeof tokens.refresh_token === 'string'
+            ? tokens.refresh_token
+            : undefined,
+          tokenType: tokens.token_type || 'Bearer',
+          scope: typeof tokens.scope === 'string' ? tokens.scope.split(' ') : [],
+          expiresAt,
+          userId: connection.platform_user_id,
+          email: metadata?.email as string | undefined,
+          domain: metadata?.domain as string | undefined,
+          organizationId: connection.organization_id
+        };
+
+        // Update in singleton cache for discovery service
+        await oauthCredentialStorage.storeCredentials(connectionId, googleCredentials);
+
+        console.log(`✅ [OAuth Service] Credentials updated in BOTH database and singleton cache: ${connectionId}`);
+      } catch (cacheError) {
+        // Log error but don't fail - database persistence is critical
+        console.error(`❌ [OAuth Service] Error updating credentials in singleton cache (database still persisted):`, cacheError);
+      }
+    }
+
+    console.log(`✅ [OAuth Service] Token update complete for: ${connectionId}`);
   }
 
   /**

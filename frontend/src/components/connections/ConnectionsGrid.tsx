@@ -65,7 +65,8 @@ export const ConnectionsGrid: React.FC<ConnectionsGridProps> = ({
     };
 
     loadData();
-  }, [fetchConnections, fetchConnectionStats, showError]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Only run once on mount, parent page also fetches
 
   const handleRefreshAll = async () => {
     try {

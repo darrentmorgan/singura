@@ -98,12 +98,14 @@ export const AutomationsList: React.FC<AutomationsListProps> = ({
     };
 
     loadData();
-  }, [fetchAutomations, fetchAutomationStats, showError]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Only run once on mount, parent page also fetches
 
   // Update search filter
   useEffect(() => {
     setSearch(searchQuery);
-  }, [searchQuery, setSearch]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchQuery]); // Only re-run when search query changes, not when action function changes
 
   // Filter automations by connection if specified
   const displayAutomations = connectionId
