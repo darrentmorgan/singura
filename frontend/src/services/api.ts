@@ -32,11 +32,6 @@ const API_TIMEOUT = 30000; // 30 seconds
 
 class ApiService {
   private client: AxiosInstance;
-  private isRefreshing = false;
-  private failedQueue: Array<{
-    resolve: (token: string) => void;
-    reject: (error: unknown) => void;
-  }> = [];
 
   constructor() {
     this.client = axios.create({
@@ -51,14 +46,9 @@ class ApiService {
   }
 
   private setupInterceptors() {
-    // Request interceptor to add auth token and Clerk headers
+    // Request interceptor to add Clerk auth headers
     this.client.interceptors.request.use(
       (config: InternalAxiosRequestConfig) => {
-        const token = this.getAccessToken();
-        if (token && config.headers) {
-          config.headers.Authorization = `Bearer ${token}`;
-        }
-
         // Add Clerk context headers for backend middleware
         const clerkHeaders = getClerkAuthHeaders();
         if (clerkHeaders && config.headers) {
@@ -77,67 +67,17 @@ class ApiService {
       }
     );
 
-    // Response interceptor for error handling and token refresh
+    // Response interceptor for error handling
+    // Note: Auth is handled by Clerk, not by manual token refresh
     this.client.interceptors.response.use(
       (response: AxiosResponse) => {
         return response;
       },
       async (error: AxiosError) => {
-        const originalRequest = error.config as InternalAxiosRequestConfig & { _retry?: boolean };
-
-        if (error.response?.status === 401 && !originalRequest._retry) {
-          if (this.isRefreshing) {
-            // If we're already refreshing, queue this request
-            return new Promise((resolve, reject) => {
-              this.failedQueue.push({ resolve, reject });
-            }).then(token => {
-              if (originalRequest.headers) {
-                originalRequest.headers.Authorization = `Bearer ${token}`;
-              }
-              return this.client(originalRequest);
-            }).catch(err => {
-              return Promise.reject(err);
-            });
-          }
-
-          originalRequest._retry = true;
-          this.isRefreshing = true;
-
-          try {
-            const newToken = await this.refreshToken();
-            if (newToken) {
-              // Process all queued requests with the new token
-              this.processQueue(null, newToken);
-              
-              if (originalRequest.headers) {
-                originalRequest.headers.Authorization = `Bearer ${newToken}`;
-              }
-              return this.client(originalRequest);
-            }
-          } catch (refreshError) {
-            this.processQueue(refreshError, null);
-            this.handleAuthFailure();
-            return Promise.reject(refreshError);
-          } finally {
-            this.isRefreshing = false;
-          }
-        }
-
+        // Just handle the error - Clerk handles authentication
         return Promise.reject(this.handleError(error));
       }
     );
-  }
-
-  private processQueue(error: unknown, token: string | null) {
-    this.failedQueue.forEach(({ resolve, reject }) => {
-      if (error) {
-        reject(error);
-      } else {
-        resolve(token!);
-      }
-    });
-    
-    this.failedQueue = [];
   }
 
   private handleError(error: AxiosError): ApiError {
@@ -179,73 +119,6 @@ class ApiService {
       case 503: return 'Service Unavailable - Server is temporarily unavailable';
       case 504: return 'Gateway Timeout - Request took too long to complete';
       default: return 'An unexpected error occurred';
-    }
-  }
-
-  private getAccessToken(): string | null {
-    try {
-      const authData = localStorage.getItem('singura-auth');
-      if (authData) {
-        const parsed = JSON.parse(authData);
-        return parsed.state?.accessToken || null;
-      }
-    } catch (error) {
-      console.error('Failed to get access token from localStorage:', error);
-    }
-    return null;
-  }
-
-  private getRefreshToken(): string | null {
-    try {
-      const authData = localStorage.getItem('singura-auth');
-      if (authData) {
-        const parsed = JSON.parse(authData);
-        return parsed.state?.refreshToken || null;
-      }
-    } catch (error) {
-      console.error('Failed to get refresh token from localStorage:', error);
-    }
-    return null;
-  }
-
-  private async refreshToken(): Promise<string | null> {
-    const refreshToken = this.getRefreshToken();
-    if (!refreshToken) {
-      throw new Error('No refresh token available');
-    }
-
-    try {
-      const response = await axios.post(`${API_BASE_URL}/auth/refresh`, {
-        refreshToken,
-      });
-
-      if (response.data.success && response.data.accessToken) {
-        // Update tokens in localStorage
-        const authData = localStorage.getItem('singura-auth');
-        if (authData) {
-          const parsed = JSON.parse(authData);
-          parsed.state.accessToken = response.data.accessToken;
-          parsed.state.refreshToken = response.data.refreshToken;
-          localStorage.setItem('singura-auth', JSON.stringify(parsed));
-        }
-        
-        return response.data.accessToken;
-      }
-      
-      throw new Error('Token refresh failed');
-    } catch (error) {
-      console.error('Token refresh failed:', error);
-      throw error;
-    }
-  }
-
-  private handleAuthFailure() {
-    // Clear auth data and redirect to login
-    localStorage.removeItem('singura-auth');
-    
-    // Only redirect if we're not already on the login page
-    if (window.location.pathname !== '/login') {
-      window.location.href = '/login';
     }
   }
 
