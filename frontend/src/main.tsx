@@ -5,11 +5,11 @@
 
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import { BrowserRouter } from 'react-router-dom';
+import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import { ClerkProvider } from '@clerk/clerk-react';
-import * as Sentry from '@sentry/react';
 import App from './App';
 import { initializeSentry } from './lib/errorLogger';
+import { routes } from './routes';
 
 // Initialize Sentry for error tracking
 initializeSentry();
@@ -28,16 +28,25 @@ if (!rootElement) {
   throw new Error('Root element not found. Make sure there is an element with id="root" in your HTML.');
 }
 
+// Create router (React Router v7 - future flags are now default behavior)
+const router = createBrowserRouter(routes);
+
 // Create React root and render the app with Clerk
 const root = ReactDOM.createRoot(rootElement);
 
 root.render(
   <React.StrictMode>
-    <BrowserRouter>
-      <ClerkProvider publishableKey={CLERK_PUBLISHABLE_KEY}>
-        <App />
-      </ClerkProvider>
-    </BrowserRouter>
+    <ClerkProvider
+      publishableKey={CLERK_PUBLISHABLE_KEY}
+      afterSignInUrl={null}
+      afterSignUpUrl={null}
+      signInFallbackRedirectUrl={null}
+      signUpFallbackRedirectUrl={null}
+    >
+      <App>
+        <RouterProvider router={router} />
+      </App>
+    </ClerkProvider>
   </React.StrictMode>
 );
 

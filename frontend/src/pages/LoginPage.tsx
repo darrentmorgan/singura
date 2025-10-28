@@ -5,13 +5,12 @@
 
 import React, { useEffect, useRef, useMemo } from 'react';
 import { SignIn, useAuth } from '@clerk/clerk-react';
-import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Shield } from 'lucide-react';
 import { BRAND, CONTENT } from '@/lib/brand';
 
 export const LoginPage: React.FC = () => {
   const { isSignedIn, isLoaded } = useAuth();
-  const location = useLocation();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const hasRedirected = useRef(false);
@@ -21,7 +20,9 @@ export const LoginPage: React.FC = () => {
   // Use useMemo to stabilize this value and prevent unnecessary useEffect reruns
   const redirectParam = searchParams.get('redirect');
   const from = useMemo(() => {
-    const destination = redirectParam || '/dashboard';
+    // IMPORTANT: Only redirect if we have an explicit redirect param
+    // This prevents redirect loops when Clerk routes through /login
+    const destination = redirectParam || null;
     console.log('[LoginPage] Computed redirect destination:', {
       redirectParam,
       destination,
@@ -41,10 +42,17 @@ export const LoginPage: React.FC = () => {
       hasRedirected: hasRedirected.current,
       searchParams: Array.from(searchParams.entries())
     });
-    if (isLoaded && isSignedIn && !hasRedirected.current) {
+    // Only redirect if we have an explicit destination AND user is signed in
+    if (isLoaded && isSignedIn && from && !hasRedirected.current) {
       console.log('[LoginPage] ✅ Redirecting to:', from);
       hasRedirected.current = true;
       navigate(from, { replace: true });
+    } else if (isLoaded && isSignedIn && !from && !hasRedirected.current) {
+      // User is signed in but landed on /login without redirect param
+      // Redirect to dashboard as a sensible default
+      console.log('[LoginPage] ✅ Signed in user on /login, redirecting to dashboard');
+      hasRedirected.current = true;
+      navigate('/dashboard', { replace: true });
     }
   }, [isLoaded, isSignedIn, from, navigate, searchParams]);
 
