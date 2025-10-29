@@ -28,7 +28,7 @@
     "migrate:validate": "ts-node scripts/migrate.ts validate",
     "migrate:test": "NODE_ENV=test ts-node scripts/migrate.ts up",
     "seed": "node src/migrations/seed.js",
-    "lint": "eslint \"src/**/*.ts\" \"tests/**/*.ts\"",
+    "lint": "eslint \"src/**/*.ts\" \"tests/**/*.ts\" --max-warnings 300",
     "lint:fix": "eslint \"src/**/*.ts\" \"tests/**/*.ts\" --fix",
     "quality-check": "npm run lint && npm run test:coverage && npm run test:security",
     "verify:types": "tsc --noEmit --skipLibCheck",

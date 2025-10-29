@@ -22,28 +22,28 @@
 
 ---
 
-## Phase 1: Test Fixtures & Versioning (Week 1) 
+## Phase 1: Test Fixtures & Versioning (Week 1) ✅ COMPLETE
 
-- [ ] 1.1 Create fixture directory structure (`tests/fixtures/{slack,google,microsoft}/v1.0/{oauth,audit-logs,edge-cases}/`)
-- [ ] 1.2 Capture and sanitize real Slack API responses (10 files: oauth tokens, user lists, bots, audit logs)
-- [ ] 1.3 Capture and sanitize real Google Workspace API responses (10 files: Apps Script, service accounts, Drive automations, audit logs)
-- [ ] 1.4 Capture and sanitize real Microsoft 365 API responses (10 files: Power Automate, Azure Apps, Teams apps, audit logs)
-- [ ] 1.5 Implement `FixtureVersionManager` class with version fallback logic (`v1.1 → v1.0`)
-- [ ] 1.6 Add fixture loading utilities (`loadFixture(platform, version, scenario)`)
-- [ ] 1.7 Validate all fixtures against API schemas (JSON Schema validation)
-- [ ] 1.8 Write unit tests for FixtureVersionManager (100% coverage)
+- [x] 1.1 Create fixture directory structure (`tests/fixtures/{slack,google,microsoft}/v1.0/{oauth,audit-logs,edge-cases}/`)
+- [x] 1.2 Capture and sanitize real Slack API responses (10 files: oauth tokens, user lists, bots, audit logs)
+- [x] 1.3 Capture and sanitize real Google Workspace API responses (10 files: Apps Script, service accounts, Drive automations, audit logs)
+- [x] 1.4 Capture and sanitize real Microsoft 365 API responses (10 files: Power Automate, Azure Apps, Teams apps, audit logs)
+- [x] 1.5 Implement `FixtureVersionManager` class with version fallback logic (`v1.1 → v1.0`)
+- [x] 1.6 Add fixture loading utilities (`loadFixture(platform, version, scenario)`)
+- [x] 1.7 Validate all fixtures against API schemas (JSON Schema validation)
+- [x] 1.8 Write unit tests for FixtureVersionManager (100% coverage)
 
-## Phase 2: Detection Metrics & Baseline Monitoring (Week 2)
+## Phase 2: Detection Metrics & Baseline Monitoring (Week 2) 🚧 IN PROGRESS
 
-- [ ] 2.1 Create ground truth dataset (100 labeled automations: 50 malicious, 50 legitimate) in `tests/fixtures/ground-truth-dataset.json`
-- [ ] 2.2 Implement `DetectionMetrics` class (`precision()`, `recall()`, `f1Score()`, `confusionMatrix()`)
-- [ ] 2.3 Implement `BaselineManager` class (`recordBaseline()`, `compareToBaseline()`, `detectDrift()`)
+- [x] 2.1 Create ground truth dataset (100 labeled automations: 50 malicious, 50 legitimate) in `tests/fixtures/ground-truth-dataset.json`
+- [x] 2.2 Implement `DetectionMetrics` class (`precision()`, `recall()`, `f1Score()`, `confusionMatrix()`)
+- [x] 2.3 Implement `BaselineManager` class (`recordBaseline()`, `compareToBaseline()`, `detectDrift()`)
 - [ ] 2.4 Add metrics tracking hooks to all 11 detector services (emit events)
 - [ ] 2.5 Create precision-recall curve generator for visualization
 - [ ] 2.6 Add false positive/false negative tracking system
 - [ ] 2.7 Run detection suite against ground truth, validate precision ≥85%, recall ≥90%
 - [ ] 2.8 Write unit tests for DetectionMetrics and BaselineManager (100% coverage)
-- [ ] 2.9 Set up drift alert thresholds (5% precision drop = warning, 3% recall drop = critical)
+- [x] 2.9 Set up drift alert thresholds (5% precision drop = warning, 3% recall drop = critical)
 
 ## Phase 3: Stress Testing & Performance (Weeks 3-4)
 
