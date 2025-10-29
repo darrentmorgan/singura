@@ -1,0 +1,15 @@
+{
+  "ok": true,
+  "access_token": "xoxb-TEST-FIXTURE-TOKEN-NOT-A-REAL-SECRET",
+  "token_type": "bot",
+  "scope": "users:read,team:read,channels:read",
+  "bot_user_id": "U0123456789",
+  "app_id": "A0123456789",
+  "team": {
+    "id": "T0123456789",
+    "name": "Test Workspace"
+  },
+  "authed_user": {
+    "id": "U9876543210"
+  }
+}

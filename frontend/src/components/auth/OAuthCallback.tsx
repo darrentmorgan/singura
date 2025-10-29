@@ -131,8 +131,8 @@ export const OAuthCallback: React.FC = () => {
     };
 
     processCallback();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     // showSuccess and showError are stable UI action functions that don't need to trigger re-runs
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams, handleOAuthCallback, navigate]);
 
   const handleReturnToDashboard = () => {

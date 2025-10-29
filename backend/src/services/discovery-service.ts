@@ -105,7 +105,7 @@ export class DiscoveryService {
       
       // Count new vs updated automations
       let newAutomations = 0;
-      let updatedAutomations = 0;
+      const updatedAutomations = 0;
       
       for (const result of results) {
         // This would be calculated during the actual discovery process

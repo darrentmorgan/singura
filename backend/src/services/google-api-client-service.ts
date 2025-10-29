@@ -385,7 +385,7 @@ export class GoogleAPIClientService implements GoogleAPIClient {
       for (const file of response.data.files) {
         try {
           // Try to get script content for AI detection
-          let functions: string[] = [];
+          const functions: string[] = [];
           let hasAIIntegration = false;
 
           try {

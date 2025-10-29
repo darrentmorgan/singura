@@ -9,7 +9,15 @@ import {
   LoginResponse,
   RefreshTokenRequest,
   RefreshTokenResponse,
-  ExportRequest
+  ExportRequest,
+  AutomationFeedback,
+  CreateFeedbackInput,
+  UpdateFeedbackInput,
+  FeedbackFilters,
+  FeedbackStatistics,
+  FeedbackTrend,
+  MLTrainingBatch,
+  FeedbackResolution
 } from '@singura/shared-types';
 import {
   PlatformConnection,
@@ -48,15 +56,16 @@ class ApiService {
   private setupInterceptors() {
     // Request interceptor to add Clerk auth headers
     this.client.interceptors.request.use(
-      (config: InternalAxiosRequestConfig) => {
+      async (config: InternalAxiosRequestConfig) => {
         // Add Clerk context headers for backend middleware
-        const clerkHeaders = getClerkAuthHeaders();
+        const clerkHeaders = await getClerkAuthHeaders();
         if (clerkHeaders && config.headers) {
           Object.assign(config.headers, clerkHeaders);
           console.log('🔐 Adding Clerk headers to request:', {
             path: config.url,
             hasOrgId: !!clerkHeaders['x-clerk-organization-id'],
-            orgId: clerkHeaders['x-clerk-organization-id']
+            orgId: clerkHeaders['x-clerk-organization-id'],
+            hasAuth: !!clerkHeaders['Authorization']
           });
         }
 
@@ -266,6 +275,71 @@ class ApiService {
   async healthCheck(): Promise<ApiResponse<{ status: string, timestamp: string }>> {
     return this.request<ApiResponse<{ status: string, timestamp: string }>>('GET', '/health');
   }
+
+  // Feedback API methods
+  async createFeedback(input: CreateFeedbackInput): Promise<ApiResponse<AutomationFeedback>> {
+    return this.request<ApiResponse<AutomationFeedback>>('POST', '/feedback', input);
+  }
+
+  async getFeedback(id: string): Promise<ApiResponse<AutomationFeedback>> {
+    return this.request<ApiResponse<AutomationFeedback>>('GET', `/feedback/${id}`);
+  }
+
+  async getFeedbackList(filters?: FeedbackFilters): Promise<ApiResponse<AutomationFeedback[]>> {
+    const params = new URLSearchParams();
+
+    if (filters) {
+      Object.entries(filters).forEach(([key, value]) => {
+        if (value !== undefined && value !== null) {
+          if (value instanceof Date) {
+            params.append(key, value.toISOString());
+          } else {
+            params.append(key, String(value));
+          }
+        }
+      });
+    }
+
+    const url = params.toString() ? `/feedback?${params.toString()}` : '/feedback';
+    return this.request<ApiResponse<AutomationFeedback[]>>('GET', url);
+  }
+
+  async getFeedbackByAutomation(automationId: string): Promise<ApiResponse<AutomationFeedback[]>> {
+    return this.request<ApiResponse<AutomationFeedback[]>>('GET', `/feedback/automation/${automationId}`);
+  }
+
+  async getRecentFeedback(organizationId: string, limit = 10): Promise<ApiResponse<AutomationFeedback[]>> {
+    return this.request<ApiResponse<AutomationFeedback[]>>('GET', `/feedback/recent/${organizationId}?limit=${limit}`);
+  }
+
+  async updateFeedback(id: string, input: UpdateFeedbackInput): Promise<ApiResponse<AutomationFeedback>> {
+    return this.request<ApiResponse<AutomationFeedback>>('PUT', `/feedback/${id}`, input);
+  }
+
+  async acknowledgeFeedback(id: string): Promise<ApiResponse<AutomationFeedback>> {
+    return this.request<ApiResponse<AutomationFeedback>>('PUT', `/feedback/${id}/acknowledge`);
+  }
+
+  async resolveFeedback(id: string, resolution: FeedbackResolution): Promise<ApiResponse<AutomationFeedback>> {
+    return this.request<ApiResponse<AutomationFeedback>>('PUT', `/feedback/${id}/resolve`, { resolution });
+  }
+
+  async getFeedbackStatistics(organizationId: string): Promise<ApiResponse<FeedbackStatistics>> {
+    return this.request<ApiResponse<FeedbackStatistics>>('GET', `/feedback/statistics/${organizationId}`);
+  }
+
+  async getFeedbackTrends(organizationId: string, days = 30): Promise<ApiResponse<FeedbackTrend[]>> {
+    return this.request<ApiResponse<FeedbackTrend[]>>('GET', `/feedback/trends/${organizationId}?days=${days}`);
+  }
+
+  async exportMLTrainingBatch(organizationId?: string, limit?: number): Promise<ApiResponse<MLTrainingBatch>> {
+    const params = new URLSearchParams();
+    if (organizationId) params.append('organizationId', organizationId);
+    if (limit) params.append('limit', limit.toString());
+
+    const url = params.toString() ? `/feedback/ml/export?${params.toString()}` : '/feedback/ml/export';
+    return this.request<ApiResponse<MLTrainingBatch>>('GET', url);
+  }
 }
 
 // Export singleton instance
@@ -306,8 +380,19 @@ export const automationsApi = {
   exportPDF: (request: ExportRequest) => apiService.exportAutomationsPDF(request),
 };
 
-// Re-export feedback API
-export { feedbackApi } from './feedback-api';
+export const feedbackApi = {
+  createFeedback: (input: CreateFeedbackInput) => apiService.createFeedback(input),
+  getFeedback: (id: string) => apiService.getFeedback(id),
+  getFeedbackList: (filters?: FeedbackFilters) => apiService.getFeedbackList(filters),
+  getFeedbackByAutomation: (automationId: string) => apiService.getFeedbackByAutomation(automationId),
+  getRecentFeedback: (organizationId: string, limit?: number) => apiService.getRecentFeedback(organizationId, limit),
+  updateFeedback: (id: string, input: UpdateFeedbackInput) => apiService.updateFeedback(id, input),
+  acknowledgeFeedback: (id: string) => apiService.acknowledgeFeedback(id),
+  resolveFeedback: (id: string, resolution: FeedbackResolution) => apiService.resolveFeedback(id, resolution),
+  getStatistics: (organizationId: string) => apiService.getFeedbackStatistics(organizationId),
+  getTrends: (organizationId: string, days?: number) => apiService.getFeedbackTrends(organizationId, days),
+  exportMLTrainingBatch: (organizationId?: string, limit?: number) => apiService.exportMLTrainingBatch(organizationId, limit),
+};
 
 // Export convenience API object
 export const api = {
@@ -315,6 +400,7 @@ export const api = {
   ...connectionsApi,
   ...oauthApi,
   ...automationsApi,
+  ...feedbackApi,
   exportAutomationsCSV: apiService.exportAutomationsCSV.bind(apiService),
   exportAutomationsPDF: apiService.exportAutomationsPDF.bind(apiService),
 };

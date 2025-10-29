@@ -32,7 +32,12 @@ export const AutomationsPage: React.FC = () => {
   const discoveryProgress = useDiscoveryProgress();
   const isLoading = useAutomationsLoading();
   const automationStats = useAutomationsStats();
-  const automations = useAutomations();
+  const allAutomations = useAutomations();
+
+  // Filter OUT integrations - only show actual automation workflows
+  const automations = useMemo(() => {
+    return allAutomations.filter(a => a.type !== 'integration');
+  }, [allAutomations]);
 
   // Calculate detection statistics
   const detectionStats = useMemo(() => {
@@ -68,10 +73,17 @@ export const AutomationsPage: React.FC = () => {
     fetchAutomations,
     fetchAutomationStats,
     startDiscovery,
-    refreshDiscovery
+    refreshDiscovery,
+    setFilters
   } = useAutomationsActions();
   const { fetchConnections } = useConnectionsActions();
   const { showSuccess, showError, showWarning, openModal } = useUIActions();
+
+  // Clear type filter when page mounts (in case user came from Integrations page)
+  useEffect(() => {
+    setFilters({ type: undefined });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     const loadInitialData = async () => {
@@ -371,6 +383,7 @@ export const AutomationsPage: React.FC = () => {
 
         {/* Automations List */}
         <AutomationsList
+          automations={automations}
           showPlatformFilter={true}
           showHeader={true}
         />

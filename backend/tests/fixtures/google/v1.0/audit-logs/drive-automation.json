@@ -1,0 +1,76 @@
+{
+  "kind": "admin#reports#activities",
+  "etag": "etag-example-123",
+  "items": [
+    {
+      "kind": "admin#reports#activity",
+      "id": {
+        "time": "2025-10-29T10:30:00.000Z",
+        "uniqueQualifier": "1234567890",
+        "applicationName": "drive",
+        "customerId": "C01234567"
+      },
+      "etag": "etag-activity-456",
+      "actor": {
+        "callerType": "APPLICATION",
+        "email": "automation@test-project-123.iam.gserviceaccount.com",
+        "profileId": "123456789012345678901"
+      },
+      "events": [
+        {
+          "type": "access",
+          "name": "edit",
+          "parameters": [
+            {
+              "name": "doc_id",
+              "value": "1abcdefghijklmnopqrstuvwxyz234567"
+            },
+            {
+              "name": "doc_title",
+              "value": "Quarterly Report Q4 2025"
+            },
+            {
+              "name": "visibility",
+              "value": "shared_externally"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "kind": "admin#reports#activity",
+      "id": {
+        "time": "2025-10-29T11:45:00.000Z",
+        "uniqueQualifier": "1234567891",
+        "applicationName": "drive",
+        "customerId": "C01234567"
+      },
+      "etag": "etag-activity-457",
+      "actor": {
+        "callerType": "APPLICATION",
+        "email": "data-sync@test-project-123.iam.gserviceaccount.com",
+        "profileId": "987654321098765432109"
+      },
+      "events": [
+        {
+          "type": "acl_change",
+          "name": "change_user_access",
+          "parameters": [
+            {
+              "name": "doc_id",
+              "value": "2zyxwvutsrqponmlkjihgfedcba987654"
+            },
+            {
+              "name": "target_user",
+              "value": "external.user@competitor.com"
+            },
+            {
+              "name": "new_visibility",
+              "value": "people_with_link"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

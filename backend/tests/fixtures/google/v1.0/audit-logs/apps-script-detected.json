@@ -1,0 +1,34 @@
+{
+  "kind": "admin#reports#activities",
+  "etag": "\"abcdefghijk1234567890\"",
+  "items": [
+    {
+      "kind": "admin#reports#activity",
+      "id": {
+        "time": "2024-10-15T14:30:00.000Z",
+        "uniqueQualifier": "1234567890",
+        "applicationName": "drive"
+      },
+      "actor": {
+        "email": "automation@example.com",
+        "profileId": "1234567890"
+      },
+      "events": [
+        {
+          "name": "create",
+          "type": "apps_script_project",
+          "parameters": [
+            {
+              "name": "doc_title",
+              "value": "OpenAI Data Exporter"
+            },
+            {
+              "name": "project_id",
+              "value": "abcd1234efgh5678"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

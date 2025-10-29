@@ -42,6 +42,7 @@ type ViewMode = 'grid' | 'list';
 
 interface AutomationsListProps {
   connectionId?: string;
+  automations?: AutomationDiscovery[];
   showPlatformFilter?: boolean;
   showHeader?: boolean;
   maxItems?: number;
@@ -51,6 +52,7 @@ interface AutomationsListProps {
 
 export const AutomationsList: React.FC<AutomationsListProps> = ({
   connectionId,
+  automations: automationsProp,
   showPlatformFilter = true,
   showHeader = true,
   maxItems,
@@ -64,14 +66,18 @@ export const AutomationsList: React.FC<AutomationsListProps> = ({
   const [modalInitialTab, setModalInitialTab] = useState<'permissions' | 'risk' | 'feedback' | 'details'>('permissions');
   const [feedbackFormExpanded, setFeedbackFormExpanded] = useState(false);
   const [isExportDialogOpen, setIsExportDialogOpen] = useState(false);
-  
-  // Store state
-  const automations = useAutomations();
-  const filteredAutomations = useFilteredAutomations();
+
+  // Store state (use prop if provided, otherwise fetch from store)
+  const storeAutomations = useAutomations();
+  const storeFilteredAutomations = useFilteredAutomations();
   const isLoading = useAutomationsLoading();
   const filters = useAutomationsFilters();
   const sorting = useAutomationsSorting();
   const stats = useAutomationsStats();
+
+  // Use prop if provided, otherwise use store's filtered automations
+  const automations = automationsProp || storeAutomations;
+  const filteredAutomations = automationsProp || storeFilteredAutomations;
   
   // Actions
   const {

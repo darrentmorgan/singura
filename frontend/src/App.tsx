@@ -4,24 +4,9 @@
  */
 
 import React, { useEffect } from 'react';
-import { Routes, Route } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Helmet, HelmetProvider } from 'react-helmet-async';
 import toast, { Toaster } from 'react-hot-toast';
-import { OrganizationProfile, CreateOrganization, SignUp, UserProfile } from '@clerk/clerk-react';
-
-// Layout and Auth Components
-import DashboardLayout from '@/components/layout/DashboardLayout';
-import ProtectedRoute from '@/components/auth/ProtectedRoute';
-import OAuthCallback from '@/components/auth/OAuthCallback';
-
-// Pages
-import LandingPage from '@/pages/LandingPage';
-import LoginPage from '@/pages/LoginPage';
-import DashboardPage from '@/pages/DashboardPage';
-import ConnectionsPage from '@/pages/ConnectionsPage';
-import AutomationsPage from '@/pages/AutomationsPage';
-import { ExecutiveDashboard } from '@/components/dashboard/ExecutiveDashboard';
 
 // Services and Stores
 import { websocketService } from '@/services/websocket';
@@ -177,61 +162,7 @@ const ConnectionManager: React.FC = () => {
   return null;
 };
 
-// 404 Page Component
-const NotFoundPage: React.FC = () => (
-  <div className="min-h-screen flex items-center justify-center bg-background p-4">
-    <div className="text-center space-y-4">
-      <h1 className="text-4xl font-bold text-foreground">404</h1>
-      <h2 className="text-xl font-semibold text-foreground">Page Not Found</h2>
-      <p className="text-muted-foreground max-w-md">
-        The page you&apos;re looking for doesn&apos;t exist or has been moved.
-      </p>
-      <div className="space-x-4">
-        <button
-          onClick={() => window.history.back()}
-          className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-        >
-          Go Back
-        </button>
-        <a
-          href="/dashboard"
-          className="px-4 py-2 text-sm font-medium bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors"
-        >
-          Go to Dashboard
-        </a>
-      </div>
-    </div>
-  </div>
-);
-
-// Placeholder pages for future implementation
-const SecurityPage: React.FC = () => (
-  <div className="flex-1 p-6">
-    <div className="text-center py-12 space-y-4">
-      <h1 className="text-3xl font-bold text-foreground">Security Dashboard</h1>
-      <p className="text-muted-foreground">
-        Security analysis and compliance features coming soon.
-      </p>
-    </div>
-  </div>
-);
-
-const AnalyticsPage: React.FC = () => <ExecutiveDashboard />;
-
-const SettingsPage: React.FC = () => (
-  <div className="flex-1 p-6">
-    <UserProfile
-      appearance={{
-        elements: {
-          rootBox: "w-full",
-          card: "shadow-xl"
-        }
-      }}
-    />
-  </div>
-);
-
-const App: React.FC = () => {
+const App: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   return (
     <ErrorBoundary>
       <HelmetProvider>
@@ -263,111 +194,8 @@ const App: React.FC = () => {
             }}
           />
 
-          {/* Routes */}
-          <Routes>
-              {/* Public Routes */}
-              <Route path="/" element={<LandingPage />} />
-              <Route path="/login/*" element={<LoginPage />} />
-              <Route path="/sign-up/*" element={
-                <div className="min-h-screen flex items-center justify-center">
-                  <SignUp
-                    routing="path"
-                    path="/sign-up"
-                    signInUrl="/login"
-                    afterSignUpUrl="/dashboard"
-                    appearance={{
-                      elements: {
-                        rootBox: "w-full max-w-md",
-                        card: "shadow-xl",
-                      },
-                    }}
-                  />
-                </div>
-              } />
-              <Route path="/oauth/callback" element={<OAuthCallback />} />
-
-              {/* Protected Routes */}
-
-              <Route path="/dashboard" element={
-                <ProtectedRoute>
-                  <DashboardLayout>
-                    <DashboardPage />
-                  </DashboardLayout>
-                </ProtectedRoute>
-              } />
-
-              <Route path="/connections" element={
-                <ProtectedRoute>
-                  <DashboardLayout>
-                    <ConnectionsPage />
-                  </DashboardLayout>
-                </ProtectedRoute>
-              } />
-
-              <Route path="/connections/:id" element={
-                <ProtectedRoute>
-                  <DashboardLayout>
-                    <ConnectionsPage />
-                  </DashboardLayout>
-                </ProtectedRoute>
-              } />
-
-              <Route path="/automations" element={
-                <ProtectedRoute>
-                  <DashboardLayout>
-                    <AutomationsPage />
-                  </DashboardLayout>
-                </ProtectedRoute>
-              } />
-
-              <Route path="/security" element={
-                <ProtectedRoute>
-                  <DashboardLayout>
-                    <SecurityPage />
-                  </DashboardLayout>
-                </ProtectedRoute>
-              } />
-
-              <Route path="/analytics" element={
-                <ProtectedRoute>
-                  <DashboardLayout>
-                    <AnalyticsPage />
-                  </DashboardLayout>
-                </ProtectedRoute>
-              } />
-
-              <Route path="/settings" element={
-                <ProtectedRoute>
-                  <DashboardLayout>
-                    <SettingsPage />
-                  </DashboardLayout>
-                </ProtectedRoute>
-              } />
-
-              {/* Clerk Organization Routes */}
-              <Route path="/profile" element={
-                <ProtectedRoute>
-                  <DashboardLayout>
-                    <div className="flex-1 p-6">
-                      <OrganizationProfile />
-                    </div>
-                  </DashboardLayout>
-                </ProtectedRoute>
-              } />
-
-              <Route path="/create-organization" element={
-                <ProtectedRoute>
-                  <DashboardLayout>
-                    <div className="flex-1 p-6 flex items-center justify-center">
-                      <CreateOrganization afterCreateOrganizationUrl="/connections" />
-                    </div>
-                  </DashboardLayout>
-                </ProtectedRoute>
-              } />
-
-            {/* 404 Route */}
-            <Route path="*" element={<NotFoundPage />} />
-          </Routes>
+          {/* Router Provider (passed as children from main.tsx) */}
+          {children}
         </QueryClientProvider>
       </HelmetProvider>
     </ErrorBoundary>

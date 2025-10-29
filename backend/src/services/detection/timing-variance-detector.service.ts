@@ -118,7 +118,7 @@ export class TimingVarianceDetectorService {
 
     // Determine confidence based on CV thresholds
     let confidence = 0;
-    let patternType: GoogleActivityPattern['patternType'] = 'regular_interval';
+    const patternType: GoogleActivityPattern['patternType'] = 'regular_interval';
 
     if (cv < thresholds.criticalCVThreshold) {
       // <5% variance = definitely bot (95%+ confidence)

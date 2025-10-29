@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "chrome-devtools": {
+      "description": "Chrome DevTools MCP server for browser automation, debugging, and performance analysis",
+      "command": "npx",
+      "args": ["-y", "chrome-devtools-mcp@latest", "--isolated"]
+    }
+  }
+}

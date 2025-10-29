@@ -1,0 +1,8 @@
+{
+  "token_type": "Bearer",
+  "scope": "User.Read.All Directory.Read.All AuditLog.Read.All",
+  "expires_in": 3599,
+  "ext_expires_in": 3599,
+  "access_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsIng1dCI6Ik1uQ19WWmNB...",
+  "refresh_token": "0.AXEAabc123def456ghi789jkl012mno345pqr678stu901vwx234yz"
+}

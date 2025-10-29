@@ -11,7 +11,7 @@ import { MessageSquare, ChevronDown, ChevronUp, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { FeedbackButton } from './FeedbackButton';
 import { FeedbackForm } from './FeedbackForm';
-import { feedbackApi } from '@/services/feedback-api';
+import { feedbackApi } from '@/services/api';
 import {
   AutomationFeedback as AutomationFeedbackType,
   FeedbackSentiment,

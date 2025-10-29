@@ -1,0 +1,69 @@
+{
+  "@odata.context": "https://graph.microsoft.com/v1.0/$metadata#applications",
+  "value": [
+    {
+      "id": "00000000-0000-0000-0000-000000000001",
+      "appId": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+      "displayName": "Power Automate Flow",
+      "createdDateTime": "2025-01-15T10:30:00Z",
+      "signInAudience": "AzureADMyOrg",
+      "publisherDomain": "example.com",
+      "info": {
+        "logoUrl": null,
+        "marketingUrl": null,
+        "privacyStatementUrl": "https://privacy.example.com",
+        "supportUrl": null,
+        "termsOfServiceUrl": "https://terms.example.com"
+      },
+      "api": {
+        "acceptMappedClaims": null,
+        "knownClientApplications": [],
+        "requestedAccessTokenVersion": 2,
+        "oauth2PermissionScopes": [
+          {
+            "adminConsentDescription": "Allow the application to access Power Automate on behalf of the signed-in user.",
+            "adminConsentDisplayName": "Access Power Automate",
+            "id": "b1c2d3e4-f5a6-7890-bcde-f12345678901",
+            "isEnabled": true,
+            "type": "User",
+            "userConsentDescription": "Allow the application to access Power Automate on your behalf.",
+            "userConsentDisplayName": "Access Power Automate",
+            "value": "user_impersonation"
+          }
+        ]
+      }
+    },
+    {
+      "id": "00000000-0000-0000-0000-000000000002",
+      "appId": "z9y8x7w6-v5u4-3210-zyxw-vu9876543210",
+      "displayName": "Logic Apps Connector",
+      "createdDateTime": "2025-02-20T14:00:00Z",
+      "signInAudience": "AzureADMyOrg",
+      "publisherDomain": "example.com",
+      "info": {
+        "logoUrl": null,
+        "marketingUrl": null,
+        "privacyStatementUrl": "https://privacy.example.com",
+        "supportUrl": null,
+        "termsOfServiceUrl": "https://terms.example.com"
+      },
+      "api": {
+        "acceptMappedClaims": null,
+        "knownClientApplications": [],
+        "requestedAccessTokenVersion": 2,
+        "oauth2PermissionScopes": [
+          {
+            "adminConsentDescription": "Allow the application to access Logic Apps on behalf of the signed-in user.",
+            "adminConsentDisplayName": "Access Logic Apps",
+            "id": "c2d3e4f5-a6b7-8901-cdef-234567890123",
+            "isEnabled": true,
+            "type": "User",
+            "userConsentDescription": "Allow the application to access Logic Apps on your behalf.",
+            "userConsentDisplayName": "Access Logic Apps",
+            "value": "user_impersonation"
+          }
+        ]
+      }
+    }
+  ]
+}

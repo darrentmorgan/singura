@@ -1,0 +1,202 @@
+/**
+ * Accessibility Styles
+ * WCAG 2.1 Level AA compliant utility classes
+ */
+
+/* Screen Reader Only Class
+ * Hides content visually but keeps it accessible to screen readers
+ * DO NOT use display:none or visibility:hidden - those hide from screen readers
+ */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+/* Screen Reader Only (Focusable)
+ * Makes sr-only element visible when focused (useful for skip links)
+ */
+.sr-only-focusable:focus,
+.sr-only-focusable:active {
+  position: static;
+  width: auto;
+  height: auto;
+  margin: 0;
+  overflow: visible;
+  clip: auto;
+  white-space: normal;
+}
+
+/* Focus Visible
+ * Only show focus indicators for keyboard navigation, not mouse clicks
+ * Modern browsers support :focus-visible natively
+ */
+.focus-ring:focus-visible {
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: 2px;
+}
+
+.focus-ring:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* High Contrast Mode Support
+ * Ensures visibility in Windows High Contrast Mode
+ */
+@media (prefers-contrast: high) {
+  .dialog-overlay {
+    background-color: rgba(0, 0, 0, 0.9);
+  }
+
+  button,
+  a {
+    outline: 2px solid currentColor;
+  }
+}
+
+/* Reduced Motion Support
+ * Respects user's preference for reduced motion
+ */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Skip to Main Content Link
+ * Allows keyboard users to skip navigation
+ */
+.skip-to-content {
+  position: absolute;
+  top: -40px;
+  left: 0;
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
+  padding: 8px 16px;
+  text-decoration: none;
+  border-radius: 0 0 4px 0;
+  z-index: 100;
+  transition: top 0.2s;
+}
+
+.skip-to-content:focus {
+  top: 0;
+}
+
+/* ARIA Live Region Container
+ * Container for dynamic announcements to screen readers
+ */
+.aria-live-region {
+  position: absolute;
+  left: -10000px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+
+/* Error Message Styling
+ * Ensures error messages meet color contrast requirements
+ */
+.error-message {
+  color: hsl(var(--destructive));
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
+}
+
+/* Required Field Indicator
+ * Visually indicates required form fields
+ */
+.required-indicator {
+  color: hsl(var(--destructive));
+  font-weight: bold;
+}
+
+/* Disabled Element Styling
+ * Ensures disabled elements meet contrast requirements
+ */
+[disabled],
+[aria-disabled="true"] {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Dialog Focus Trap Helper
+ * Ensures dialogs contain focus properly
+ */
+[role="dialog"],
+[role="alertdialog"] {
+  position: relative;
+}
+
+/* Keyboard Focus Indicator
+ * Ensures all interactive elements have visible focus
+ */
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+[tabindex]:focus-visible {
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: 2px;
+}
+
+/* Link Styles for Accessibility
+ * Ensures links are distinguishable without relying on color alone
+ */
+a {
+  text-decoration: underline;
+}
+
+a:hover {
+  text-decoration: none;
+}
+
+/* Button Minimum Touch Target Size
+ * WCAG 2.1 Level AAA: 44x44 pixels for touch targets
+ */
+button,
+a[role="button"] {
+  min-height: 44px;
+  min-width: 44px;
+}
+
+/* Table Accessibility
+ * Ensures data tables have proper structure
+ */
+table[role="table"] th {
+  font-weight: bold;
+  text-align: left;
+}
+
+/* Loading State Announcement
+ * Announces loading states to screen readers
+ */
+[aria-busy="true"] {
+  cursor: wait;
+}
+
+/* Hidden but Accessible
+ * Alternative to sr-only for specific use cases
+ */
+.visually-hidden {
+  border: 0;
+  clip: rect(0 0 0 0);
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  padding: 0;
+  position: absolute;
+  width: 1px;
+}

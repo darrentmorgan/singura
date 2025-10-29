@@ -1,0 +1,36 @@
+{
+  "ok": true,
+  "entries": [
+    {
+      "id": "audit-log-001",
+      "date_create": 1698765432,
+      "action": "app_approved",
+      "actor": {
+        "type": "user",
+        "user": {
+          "id": "U0123456789",
+          "name": "admin@example.com",
+          "email": "admin@example.com"
+        }
+      },
+      "entity": {
+        "type": "app",
+        "app": {
+          "id": "A9876543210",
+          "name": "OpenAI Assistant Bot",
+          "is_bot": true,
+          "scopes": ["chat:write", "users:read"]
+        }
+      },
+      "context": {
+        "location": {
+          "type": "workspace",
+          "id": "T0123456789",
+          "name": "Test Workspace"
+        },
+        "ua": "Mozilla/5.0",
+        "ip_address": "192.168.1.100"
+      }
+    }
+  ]
+}

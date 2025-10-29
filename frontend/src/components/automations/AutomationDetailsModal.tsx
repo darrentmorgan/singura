@@ -20,7 +20,8 @@ import {
   Activity,
   Lock,
   RefreshCw,
-  Info
+  Info,
+  Search
 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
@@ -28,7 +29,7 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
-import { AutomationDiscovery } from '@/types/api';
+import { AutomationDiscovery, EnrichedMetadata } from '@/types/api';
 import { cn } from '@/lib/utils';
 import { automationsApi, feedbackApi } from '@/services/api';
 import { AutomationFeedback, FeedbackList } from '@/components/feedback';
@@ -76,6 +77,7 @@ interface DetailedAutomationData extends Omit<AutomationDiscovery, 'permissions'
     firstAuthorization?: string;
     detectionMethod?: string;
   };
+  enriched_metadata?: EnrichedMetadata;
   description?: string;
   authorizedBy?: string;
   lastActivity?: string;
@@ -129,6 +131,7 @@ interface DetailedAutomationData extends Omit<AutomationDiscovery, 'permissions'
     firstAuthorization?: string;
     detectionMethod?: string;
   };
+  enriched_metadata?: EnrichedMetadata;
   description?: string;
   authorizedBy?: string;
   lastActivity?: string;
@@ -162,7 +165,7 @@ interface AutomationDetailsModalProps {
   isOpen: boolean;
   onClose: () => void;
   onAssessRisk?: (automationId: string) => void;
-  initialTab?: 'permissions' | 'risk' | 'feedback' | 'details';
+  initialTab?: 'permissions' | 'detection' | 'risk' | 'feedback' | 'details';
   feedbackFormExpanded?: boolean;
 }
 
@@ -178,7 +181,7 @@ export const AutomationDetailsModal: React.FC<AutomationDetailsModalProps> = ({
   const [detailedData, setDetailedData] = useState<DetailedAutomationData | null>(null);
   const [feedbackList, setFeedbackList] = useState<AutomationFeedbackType[]>([]);
   const [isFeedbackLoading, setIsFeedbackLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState<'permissions' | 'risk' | 'feedback' | 'details'>(initialTab);
+  const [activeTab, setActiveTab] = useState<'permissions' | 'detection' | 'risk' | 'feedback' | 'details'>(initialTab);
 
   // Sync activeTab with initialTab prop changes
   useEffect(() => {
@@ -239,7 +242,7 @@ export const AutomationDetailsModal: React.FC<AutomationDetailsModalProps> = ({
 
   const formatDate = (dateString?: string) => {
     if (!dateString) return 'Never';
-    
+
     const date = new Date(dateString);
     return date.toLocaleDateString('en-US', {
       year: 'numeric',
@@ -248,6 +251,20 @@ export const AutomationDetailsModal: React.FC<AutomationDetailsModalProps> = ({
       hour: '2-digit',
       minute: '2-digit'
     });
+  };
+
+  const formatTimestamp = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleString('en-US', {
+      month: 'short', day: 'numeric', year: 'numeric',
+      hour: '2-digit', minute: '2-digit'
+    });
+  };
+
+  const getConfidenceColor = (confidence: number) => {
+    if (confidence >= 80) return 'bg-green-600';
+    if (confidence >= 50) return 'bg-yellow-600';
+    return 'bg-red-600';
   };
 
   const getStatusIcon = () => {
@@ -328,13 +345,16 @@ export const AutomationDetailsModal: React.FC<AutomationDetailsModalProps> = ({
         {/* Tabs */}
         <Tabs
           value={activeTab}
-          onValueChange={(value) => setActiveTab(value as 'permissions' | 'risk' | 'feedback' | 'details')}
+          onValueChange={(value) => setActiveTab(value as 'permissions' | 'detection' | 'risk' | 'feedback' | 'details')}
           className="w-full"
         >
           <div className="border-b px-6">
             <TabsList className="h-auto bg-transparent p-0">
               <TabsTrigger value="permissions" className="px-4 py-3">
                 Permissions {detailedData?.permissions && typeof detailedData.permissions !== 'string' && 'total' in detailedData.permissions && detailedData.permissions.total ? `(${detailedData.permissions.total})` : ''}
+              </TabsTrigger>
+              <TabsTrigger value="detection" className="px-4 py-3">
+                Detection
               </TabsTrigger>
               <TabsTrigger value="risk" className="px-4 py-3">
                 Risk Analysis
@@ -361,6 +381,66 @@ export const AutomationDetailsModal: React.FC<AutomationDetailsModalProps> = ({
               <TabsContent value="permissions" className="mt-0 space-y-6">
                 {detailedData?.permissions && typeof detailedData.permissions === 'object' && !Array.isArray(detailedData.permissions) ? (
                   <>
+                    {/* OAuth Authorization Card */}
+                    {detailedData.enriched_metadata?.oauth_context && (
+                      <Card>
+                        <CardHeader>
+                          <CardTitle>OAuth Authorization</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="grid grid-cols-2 gap-4 text-sm">
+                            {detailedData.enriched_metadata.oauth_context.authorizedBy && (
+                              <div>
+                                <span className="text-muted-foreground">Authorized By:</span>
+                                <p className="font-medium">{detailedData.enriched_metadata.oauth_context.authorizedBy}</p>
+                              </div>
+                            )}
+                            {detailedData.enriched_metadata.oauth_context.clientId && (
+                              <div>
+                                <span className="text-muted-foreground">Client ID:</span>
+                                <p className="font-mono text-xs">{detailedData.enriched_metadata.oauth_context.clientId}</p>
+                              </div>
+                            )}
+                            {detailedData.enriched_metadata.oauth_context.firstAuthorization && (
+                              <div>
+                                <span className="text-muted-foreground">First Authorization:</span>
+                                <p className="font-medium">{formatTimestamp(detailedData.enriched_metadata.oauth_context.firstAuthorization)}</p>
+                              </div>
+                            )}
+                            {detailedData.enriched_metadata.oauth_context.lastActivity && (
+                              <div>
+                                <span className="text-muted-foreground">Last Activity:</span>
+                                <p className="font-medium">{formatTimestamp(detailedData.enriched_metadata.oauth_context.lastActivity)}</p>
+                              </div>
+                            )}
+                            {detailedData.enriched_metadata.oauth_context.authorizationAge !== undefined && (
+                              <div>
+                                <span className="text-muted-foreground">Authorization Age:</span>
+                                <p className="font-medium">{detailedData.enriched_metadata.oauth_context.authorizationAge} days</p>
+                              </div>
+                            )}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    )}
+
+                    {/* OAuth Scopes List */}
+                    {detailedData.enriched_metadata?.oauth_context?.scopes && detailedData.enriched_metadata.oauth_context.scopes.length > 0 && (
+                      <Card>
+                        <CardHeader>
+                          <CardTitle>Granted Scopes ({detailedData.enriched_metadata.oauth_context.scopes.length})</CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-2">
+                          {detailedData.enriched_metadata.oauth_context.scopes.map((scope, i) => (
+                            <div key={i} className="p-2 bg-muted rounded flex items-center justify-between">
+                              <code className="text-sm">{scope}</code>
+                              <Badge variant="outline">OAuth 2.0</Badge>
+                            </div>
+                          ))}
+                        </CardContent>
+                      </Card>
+                    )}
+
                     {/* Overall Risk Summary */}
                     {detailedData.permissions.riskAnalysis && (
                       <Card>
@@ -453,8 +533,17 @@ export const AutomationDetailsModal: React.FC<AutomationDetailsModalProps> = ({
                         ))
                       ) : (
                         <div className="text-center py-8">
-                          <Lock className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                          <p className="text-muted-foreground">No enriched permission data available</p>
+                          {detailedData.enriched_metadata?.oauth_context ? (
+                            <>
+                              <p className="text-muted-foreground">OAuth scopes displayed above. Detailed scope enrichment coming soon.</p>
+                            </>
+                          ) : (
+                            <>
+                              <Lock className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                              <p className="text-muted-foreground">No OAuth permission data available</p>
+                              <p className="text-sm text-muted-foreground mt-2">This automation was not detected via OAuth tokens. Try the Detection tab for discovery details.</p>
+                            </>
+                          )}
                         </div>
                       )}
                     </div>
@@ -463,6 +552,79 @@ export const AutomationDetailsModal: React.FC<AutomationDetailsModalProps> = ({
                   <div className="text-center py-8">
                     <Lock className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                     <p className="text-muted-foreground">No permission data available</p>
+                  </div>
+                )}
+              </TabsContent>
+
+              {/* Detection Tab */}
+              <TabsContent value="detection" className="mt-0 space-y-6">
+                {detailedData?.enriched_metadata?.detection_evidence ? (
+                  <>
+                    {/* Detection Confidence Card */}
+                    <Card>
+                      <CardHeader>
+                        <CardTitle>Detection Confidence</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="flex items-center gap-4">
+                          <div className="flex-1">
+                            <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
+                              <div
+                                className={cn("h-full", getConfidenceColor(detailedData.enriched_metadata.detection_evidence.confidence))}
+                                style={{ width: `${detailedData.enriched_metadata.detection_evidence.confidence}%` }}
+                              />
+                            </div>
+                          </div>
+                          <span className="text-2xl font-bold">{detailedData.enriched_metadata.detection_evidence.confidence.toFixed(1)}%</span>
+                        </div>
+                        <p className="text-sm text-muted-foreground mt-2">
+                          Method: {detailedData.enriched_metadata.detection_evidence.method}
+                        </p>
+                        {detailedData.enriched_metadata.detection_evidence.lastUpdated && (
+                          <p className="text-xs text-muted-foreground">
+                            Last updated: {formatTimestamp(detailedData.enriched_metadata.detection_evidence.lastUpdated)}
+                          </p>
+                        )}
+                      </CardContent>
+                    </Card>
+
+                    {/* AI Platform Alert (if detected) */}
+                    {detailedData.enriched_metadata.detection_evidence.aiPlatforms && detailedData.enriched_metadata.detection_evidence.aiPlatforms.length > 0 && (
+                      <Alert variant="destructive">
+                        <AlertTriangle className="h-4 w-4" />
+                        <AlertTitle>AI Platform Detected</AlertTitle>
+                        <AlertDescription>
+                          This automation integrates with: {detailedData.enriched_metadata.detection_evidence.aiPlatforms.map(p => p.name).join(', ')}
+                        </AlertDescription>
+                      </Alert>
+                    )}
+
+                    {/* Detection Patterns */}
+                    {detailedData.enriched_metadata.detection_evidence.patterns && detailedData.enriched_metadata.detection_evidence.patterns.length > 0 && (
+                      <Card>
+                        <CardHeader>
+                          <CardTitle>Detection Patterns ({detailedData.enriched_metadata.detection_evidence.patterns.length})</CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                          {detailedData.enriched_metadata.detection_evidence.patterns.map((pattern, i) => (
+                            <div key={i} className="p-3 bg-muted rounded">
+                              <p className="font-medium">{pattern.description}</p>
+                              <div className="grid grid-cols-3 gap-2 mt-2 text-sm">
+                                <div><span className="text-muted-foreground">Events:</span> {pattern.eventCount}</div>
+                                <div><span className="text-muted-foreground">Window:</span> {pattern.timeWindowMs}ms</div>
+                                <div><span className="text-muted-foreground">Confidence:</span> {pattern.confidence.toFixed(1)}%</div>
+                              </div>
+                            </div>
+                          ))}
+                        </CardContent>
+                      </Card>
+                    )}
+                  </>
+                ) : (
+                  <div className="text-center py-8">
+                    <Search className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                    <p className="text-muted-foreground">No detection evidence available</p>
+                    <p className="text-sm text-muted-foreground">Detection metadata is only available for automations discovered after v2.0.</p>
                   </div>
                 )}
               </TabsContent>
@@ -574,6 +736,94 @@ export const AutomationDetailsModal: React.FC<AutomationDetailsModalProps> = ({
 
               {/* Details Tab */}
               <TabsContent value="details" className="mt-0 space-y-6">
+                {/* Technical Details Card */}
+                {detailedData?.enriched_metadata?.technical_details && (
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Technical Details</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="grid grid-cols-2 gap-4 text-sm">
+                        {detailedData.enriched_metadata.technical_details.scriptId && (
+                          <div>
+                            <span className="text-muted-foreground">Script ID:</span>
+                            <p className="font-mono">{detailedData.enriched_metadata.technical_details.scriptId}</p>
+                          </div>
+                        )}
+                        {detailedData.enriched_metadata.technical_details.fileId && (
+                          <div>
+                            <span className="text-muted-foreground">File ID:</span>
+                            <p className="font-mono">{detailedData.enriched_metadata.technical_details.fileId}</p>
+                          </div>
+                        )}
+                        {detailedData.enriched_metadata.technical_details.driveLocation && (
+                          <div>
+                            <span className="text-muted-foreground">Drive Location:</span>
+                            <p>{detailedData.enriched_metadata.technical_details.driveLocation}</p>
+                          </div>
+                        )}
+                        {detailedData.enriched_metadata.technical_details.mimeType && (
+                          <div>
+                            <span className="text-muted-foreground">Type:</span>
+                            <p>{detailedData.enriched_metadata.technical_details.mimeType}</p>
+                          </div>
+                        )}
+                        {detailedData.enriched_metadata.technical_details.shared !== undefined && (
+                          <div>
+                            <span className="text-muted-foreground">Shared:</span>
+                            <Badge variant={detailedData.enriched_metadata.technical_details.shared ? "default" : "secondary"}>
+                              {detailedData.enriched_metadata.technical_details.shared ? "Yes" : "No"}
+                            </Badge>
+                          </div>
+                        )}
+                      </div>
+
+                      {detailedData.enriched_metadata.technical_details.owners && detailedData.enriched_metadata.technical_details.owners.length > 0 && (
+                        <div className="mt-4">
+                          <span className="text-sm text-muted-foreground">Owners ({detailedData.enriched_metadata.technical_details.owners.length}):</span>
+                          <div className="flex flex-wrap gap-2 mt-2">
+                            {detailedData.enriched_metadata.technical_details.owners.map((owner, i) => (
+                              <Badge key={i} variant="outline">{owner}</Badge>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                )}
+
+                {/* Functions & Triggers Card */}
+                {detailedData?.enriched_metadata?.technical_details &&
+                 (detailedData.enriched_metadata.technical_details.functions || detailedData.enriched_metadata.technical_details.triggers) && (
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Functions & Triggers</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      {detailedData.enriched_metadata.technical_details.functions && detailedData.enriched_metadata.technical_details.functions.length > 0 && (
+                        <div>
+                          <h4 className="text-sm font-semibold mb-2">Functions ({detailedData.enriched_metadata.technical_details.functions.length})</h4>
+                          <div className="flex flex-wrap gap-2">
+                            {detailedData.enriched_metadata.technical_details.functions.map((fn, i) => (
+                              <Badge key={i} variant="outline">{fn}</Badge>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                      {detailedData.enriched_metadata.technical_details.triggers && detailedData.enriched_metadata.technical_details.triggers.length > 0 && (
+                        <div>
+                          <h4 className="text-sm font-semibold mb-2">Triggers ({detailedData.enriched_metadata.technical_details.triggers.length})</h4>
+                          <div className="flex flex-wrap gap-2">
+                            {detailedData.enriched_metadata.technical_details.triggers.map((trigger, i) => (
+                              <Badge key={i} variant="outline">{trigger}</Badge>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                )}
+
                 <Card>
                   <CardHeader>
                     <CardTitle>Basic Information</CardTitle>

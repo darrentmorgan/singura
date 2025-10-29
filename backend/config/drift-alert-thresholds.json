@@ -1,0 +1,119 @@
+{
+  "version": "1.0",
+  "description": "Detection metrics drift alert thresholds and notification channels",
+  "lastUpdated": "2025-10-29T00:00:00Z",
+  "thresholds": {
+    "precision": {
+      "warning": {
+        "threshold": 0.05,
+        "description": "5% drop in precision triggers warning"
+      },
+      "critical": {
+        "threshold": 0.07,
+        "description": "7% drop in precision triggers critical alert"
+      }
+    },
+    "recall": {
+      "warning": {
+        "threshold": 0.03,
+        "description": "3% drop in recall triggers warning"
+      },
+      "critical": {
+        "threshold": 0.05,
+        "description": "5% drop in recall triggers critical alert"
+      }
+    },
+    "f1Score": {
+      "warning": {
+        "threshold": 0.04,
+        "description": "4% drop in F1 score triggers warning"
+      },
+      "critical": {
+        "threshold": 0.06,
+        "description": "6% drop in F1 score triggers critical alert"
+      }
+    }
+  },
+  "alertChannels": {
+    "warning": {
+      "slack": {
+        "enabled": true,
+        "channel": "#detection-monitoring",
+        "mentions": ["@detection-team"]
+      },
+      "email": {
+        "enabled": true,
+        "recipients": ["detection-team@singura.ai"]
+      }
+    },
+    "critical": {
+      "slack": {
+        "enabled": true,
+        "channel": "#incidents",
+        "mentions": ["@security-team", "@on-call"]
+      },
+      "pagerduty": {
+        "enabled": true,
+        "serviceId": "detection-metrics",
+        "urgency": "high"
+      },
+      "email": {
+        "enabled": true,
+        "recipients": ["security-team@singura.ai", "on-call@singura.ai"]
+      }
+    }
+  },
+  "baselineManagement": {
+    "maxHistory": 10,
+    "retentionDays": 90,
+    "autoRecordBaseline": false,
+    "requireApproval": true
+  },
+  "detectors": {
+    "ai-provider-detector": {
+      "enabled": true,
+      "customThresholds": null
+    },
+    "velocity-detector": {
+      "enabled": true,
+      "customThresholds": null
+    },
+    "batch-operation-detector": {
+      "enabled": true,
+      "customThresholds": null
+    },
+    "off-hours-detector": {
+      "enabled": true,
+      "customThresholds": null
+    },
+    "timing-variance-detector": {
+      "enabled": true,
+      "customThresholds": null
+    },
+    "permission-escalation-detector": {
+      "enabled": true,
+      "customThresholds": null
+    },
+    "data-volume-detector": {
+      "enabled": true,
+      "customThresholds": null
+    },
+    "google-oauth-ai-detector": {
+      "enabled": true,
+      "customThresholds": null
+    },
+    "cross-platform-correlation": {
+      "enabled": true,
+      "customThresholds": null
+    },
+    "rl-velocity-detector": {
+      "enabled": true,
+      "customThresholds": {
+        "recall": {
+          "warning": 0.02,
+          "critical": 0.04
+        }
+      }
+    }
+  }
+}

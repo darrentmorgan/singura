@@ -60,7 +60,7 @@ export async function requireClerkAuth(
       // Verify JWT token with Clerk SDK
       const tokenPayload = await verifyToken(sessionToken, {
         secretKey: process.env.CLERK_SECRET_KEY || '',
-        authorizedParties: [process.env.CLERK_PUBLISHABLE_KEY || '']
+        authorizedParties: [process.env.FRONTEND_URL || 'http://localhost:4200']
       });
 
       if (!tokenPayload || !tokenPayload.sub) {
@@ -69,7 +69,7 @@ export async function requireClerkAuth(
 
       // Extract verified user information from token
       const userId = tokenPayload.sub;
-      const organizationId = tokenPayload.org_id || userId;
+      const organizationId = (tokenPayload.o as { id?: string })?.id || userId;
       const sessionId = tokenPayload.sid || crypto.randomUUID();
 
       // Optionally fetch additional user details from Clerk
