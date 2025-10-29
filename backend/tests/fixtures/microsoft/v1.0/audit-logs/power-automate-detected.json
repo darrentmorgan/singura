@@ -1,0 +1,29 @@
+{
+  "@odata.context": "https://graph.microsoft.com/v1.0/$metadata#auditLogs/directoryAudits",
+  "value": [
+    {
+      "id": "audit-log-ms-001",
+      "category": "ApplicationManagement",
+      "correlationId": "abc123-def456-ghi789",
+      "result": "success",
+      "resultReason": "",
+      "activityDisplayName": "Add service principal",
+      "activityDateTime": "2024-10-15T16:45:00Z",
+      "loggedByService": "Core Directory",
+      "initiatedBy": {
+        "user": {
+          "id": "user-001",
+          "displayName": "Admin User",
+          "userPrincipalName": "admin@example.com"
+        }
+      },
+      "targetResources": [
+        {
+          "id": "sp-001",
+          "displayName": "Power Automate - OpenAI Connector",
+          "type": "ServicePrincipal"
+        }
+      ]
+    }
+  ]
+}

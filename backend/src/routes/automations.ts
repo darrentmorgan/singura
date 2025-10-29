@@ -16,6 +16,11 @@ import {
   AutomationStatus
 } from '../types/database';
 import { ExportRequest, Automation } from '@singura/shared-types';
+import {
+  extractOAuthContext,
+  extractDetectionEvidence,
+  extractTechnicalDetails
+} from '../utils/automation-metadata-helpers';
 
 // Database query result interfaces for type safety
 interface AutomationQueryResult {
@@ -31,6 +36,7 @@ interface AutomationQueryResult {
   permissions_required: string[] | null;
   owner_info: { name?: string; email?: string } | null;
   platform_metadata: Record<string, unknown> | null;
+  detection_metadata: Record<string, unknown> | null;
   trigger_type: string | null;
   actions: string[] | null;
   risk_score: number | null;
@@ -759,6 +765,11 @@ router.get('/:id/details', async (req: ClerkAuthRequest, res: Response): Promise
           firstAuthorization: automation.platform_metadata?.firstAuthorization || undefined,
           detectionMethod: automation.platform_metadata?.detectionMethod || automation.automation_type || 'Unknown',
           riskFactors: automation.platform_metadata?.riskFactors || automation.risk_factors || []
+        },
+        enriched_metadata: {
+          oauth_context: extractOAuthContext(automation.platform_metadata),
+          detection_evidence: extractDetectionEvidence(automation.detection_metadata, automation.platform_metadata),
+          technical_details: extractTechnicalDetails(automation.platform_metadata)
         },
         connection: automation.connection_id ? {
           id: automation.connection_id,

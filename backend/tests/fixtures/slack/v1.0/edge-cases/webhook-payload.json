@@ -1,0 +1,16 @@
+{
+  "token": "verification-token-abc123",
+  "team_id": "T0123456789",
+  "api_app_id": "A0123456789",
+  "event": {
+    "type": "app_installed",
+    "app_id": "A0NEWAPP001",
+    "app_name": "Unauthorized Bot",
+    "user": "U0123456789",
+    "scope": "chat:write,channels:read,users:read",
+    "event_ts": "1698765432.000100"
+  },
+  "type": "event_callback",
+  "event_id": "Ev01234567890",
+  "event_time": 1698765432
+}

@@ -1,0 +1,8 @@
+{
+  "@odata.context": "https://graph.microsoft.com/v1.0/$metadata#appCatalogs/teamsApps/$entity",
+  "id": "12345678-1234-1234-1234-123456789012",
+  "externalId": "cf12ab34-cd56-ef78-90ab-123456789abc",
+  "displayName": "Custom Teams Bot",
+  "distributionMethod": "organization",
+  "createdDateTime": "2025-03-10T09:00:00Z"
+}

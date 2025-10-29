@@ -1,0 +1,11 @@
+{
+  "error": {
+    "code": "InvalidAuthenticationToken",
+    "message": "Access token is empty or malformed.",
+    "innerError": {
+      "date": "2025-10-29T12:00:00",
+      "request-id": "cdef3456-ab78-9012-cdef-ab3456789012",
+      "client-request-id": "def4567-bc89-0123-def4-bc4567890123"
+    }
+  }
+}

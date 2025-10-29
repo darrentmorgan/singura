@@ -1,0 +1,65 @@
+{
+  "ok": true,
+  "members": [
+    {
+      "id": "U0123456789",
+      "team_id": "T0123456789",
+      "name": "john.doe",
+      "real_name": "John Doe",
+      "is_bot": false,
+      "is_admin": true,
+      "is_owner": false,
+      "is_primary_owner": false,
+      "profile": {
+        "email": "john.doe@example.com",
+        "title": "Engineering Manager",
+        "phone": "+1-555-0100",
+        "avatar_hash": "abc123",
+        "status_text": "Working remotely",
+        "status_emoji": ":house:"
+      },
+      "tz": "America/Los_Angeles",
+      "tz_label": "Pacific Daylight Time",
+      "tz_offset": -25200
+    },
+    {
+      "id": "U9876543210",
+      "team_id": "T0123456789",
+      "name": "jane.smith",
+      "real_name": "Jane Smith",
+      "is_bot": false,
+      "is_admin": false,
+      "is_owner": false,
+      "is_primary_owner": false,
+      "profile": {
+        "email": "jane.smith@example.com",
+        "title": "Software Engineer",
+        "phone": "+1-555-0101",
+        "avatar_hash": "def456",
+        "status_text": "In a meeting",
+        "status_emoji": ":calendar:"
+      },
+      "tz": "America/New_York",
+      "tz_label": "Eastern Daylight Time",
+      "tz_offset": -14400
+    },
+    {
+      "id": "B0987654321",
+      "team_id": "T0123456789",
+      "name": "automation-bot",
+      "real_name": "Automation Bot",
+      "is_bot": true,
+      "profile": {
+        "bot_id": "B0987654321",
+        "app_id": "A0TESTAPP01",
+        "api_app_id": "A0TESTAPP01",
+        "real_name": "Automation Bot",
+        "display_name": "automation-bot"
+      }
+    }
+  ],
+  "cache_ts": 1698765432,
+  "response_metadata": {
+    "next_cursor": ""
+  }
+}

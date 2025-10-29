@@ -1,0 +1,1462 @@
+{
+  "version": "2.0",
+  "description": "Ground truth dataset for detection algorithm validation - Phase 2 Enhanced",
+  "totalSamples": 100,
+  "maliciousCount": 50,
+  "legitimateCount": 50,
+  "lastUpdated": "2025-10-29T00:00:00Z",
+  "reviewers": {
+    "engineer1": "Security Engineer",
+    "engineer2": "ML Engineer",
+    "engineer3": "Detection Specialist",
+    "engineer4": "Threat Analyst"
+  },
+  "labels": [
+    {
+      "automationId": "slack-bot-001",
+      "platform": "slack",
+      "actual": "malicious",
+      "confidence": 0.95,
+      "reviewers": ["engineer1", "engineer2"],
+      "rationale": "Bot exhibiting data exfiltration patterns with OpenAI API calls",
+      "attackType": "data_exfiltration",
+      "features": {
+        "hasAIProvider": true,
+        "aiProvider": "openai",
+        "velocityScore": 0.89,
+        "offHoursActivity": true,
+        "dataVolumeAnomalous": true
+      }
+    },
+    {
+      "automationId": "google-script-002",
+      "platform": "google",
+      "actual": "malicious",
+      "confidence": 0.92,
+      "reviewers": ["engineer1", "engineer2"],
+      "rationale": "Apps Script with excessive permission escalation and Claude API integration",
+      "attackType": "privilege_escalation",
+      "features": {
+        "hasAIProvider": true,
+        "aiProvider": "anthropic",
+        "permissionEscalation": true,
+        "batchOperations": true
+      }
+    },
+    {
+      "automationId": "microsoft-flow-003",
+      "platform": "microsoft",
+      "actual": "legitimate",
+      "confidence": 0.88,
+      "reviewers": ["engineer1", "engineer2"],
+      "rationale": "Standard business workflow automation with no AI integration",
+      "features": {
+        "hasAIProvider": false,
+        "velocityScore": 0.30,
+        "offHoursActivity": false
+      }
+    },
+    {
+      "automationId": "slack-bot-004",
+      "platform": "slack",
+      "actual": "malicious",
+      "confidence": 0.97,
+      "reviewers": ["engineer1", "engineer2", "engineer3"],
+      "rationale": "High-velocity bot with timing variance suggesting rate-limit avoidance",
+      "attackType": "rate_limit_evasion",
+      "features": {
+        "hasAIProvider": true,
+        "aiProvider": "openai",
+        "velocityScore": 0.95,
+        "timingVariance": 0.82,
+        "offHoursActivity": true
+      }
+    },
+    {
+      "automationId": "google-script-005",
+      "platform": "google",
+      "actual": "legitimate",
+      "confidence": 0.90,
+      "reviewers": ["engineer1", "engineer2"],
+      "rationale": "Standard calendar automation with predictable patterns",
+      "features": {
+        "hasAIProvider": false,
+        "velocityScore": 0.25,
+        "offHoursActivity": false,
+        "batchOperations": false
+      }
+    },
+    {
+      "automationId": "slack-bot-006",
+      "platform": "slack",
+      "actual": "malicious",
+      "confidence": 0.93,
+      "reviewers": ["engineer2", "engineer3"],
+      "rationale": "Data exfiltration bot with GPT-4 integration extracting sensitive conversations",
+      "attackType": "data_exfiltration",
+      "features": {
+        "hasAIProvider": true,
+        "aiProvider": "openai",
+        "velocityScore": 0.87,
+        "dataVolumeAnomalous": true,
+        "offHoursActivity": true
+      }
+    },
+    {
+      "automationId": "google-script-007",
+      "platform": "google",
+      "actual": "malicious",
+      "confidence": 0.91,
+      "reviewers": ["engineer1", "engineer3"],
+      "rationale": "Malicious Apps Script with Gemini API accessing admin APIs",
+      "attackType": "ai_abuse",
+      "features": {
+        "hasAIProvider": true,
+        "aiProvider": "google",
+        "permissionEscalation": true,
+        "velocityScore": 0.78
+      }
+    },
+    {
+      "automationId": "microsoft-flow-008",
+      "platform": "microsoft",
+      "actual": "legitimate",
+      "confidence": 0.89,
+      "reviewers": ["engineer1", "engineer2"],
+      "rationale": "Approved HR onboarding workflow with normal activity patterns",
+      "features": {
+        "hasAIProvider": false,
+        "velocityScore": 0.28,
+        "offHoursActivity": false
+      }
+    },
+    {
+      "automationId": "slack-bot-009",
+      "platform": "slack",
+      "actual": "legitimate",
+      "confidence": 0.86,
+      "reviewers": ["engineer2", "engineer4"],
+      "rationale": "Legitimate helpdesk bot with controlled access patterns",
+      "features": {
+        "hasAIProvider": false,
+        "velocityScore": 0.35,
+        "offHoursActivity": false
+      }
+    },
+    {
+      "automationId": "google-script-010",
+      "platform": "google",
+      "actual": "malicious",
+      "confidence": 0.94,
+      "reviewers": ["engineer1", "engineer3", "engineer4"],
+      "rationale": "Sophisticated exfiltration script with Anthropic Claude API and off-hours execution",
+      "attackType": "data_exfiltration",
+      "features": {
+        "hasAIProvider": true,
+        "aiProvider": "anthropic",
+        "velocityScore": 0.92,
+        "offHoursActivity": true,
+        "dataVolumeAnomalous": true
+      }
+    },
+    {
+      "automationId": "microsoft-flow-011",
+      "platform": "microsoft",
+      "actual": "malicious",
+      "confidence": 0.90,
+      "reviewers": ["engineer2", "engineer3"],
+      "rationale": "Unauthorized Power Automate flow with Azure OpenAI integration",
+      "attackType": "ai_abuse",
+      "features": {
+        "hasAIProvider": true,
+        "aiProvider": "openai",
+        "permissionEscalation": true,
+        "velocityScore": 0.75
+      }
+    },
+    {
+      "automationId": "slack-bot-012",
+      "platform": "slack",
+      "actual": "legitimate",
+      "confidence": 0.87,
+      "reviewers": ["engineer1", "engineer2"],
+      "rationale": "Standard notification bot with predictable patterns",
+      "features": {
+        "hasAIProvider": false,
+        "velocityScore": 0.22,
+        "offHoursActivity": false
+      }
+    },
+    {
+      "automationId": "google-script-013",
+      "platform": "google",
+      "actual": "legitimate",
+      "confidence": 0.91,
+      "reviewers": ["engineer2", "engineer3"],
+      "rationale": "Authorized expense reporting automation",
+      "features": {
+        "hasAIProvider": false,
+        "velocityScore": 0.20,
+        "batchOperations": true,
+        "offHoursActivity": false
+      }
+    },
+    {
+      "automationId": "microsoft-flow-014",
+      "platform": "microsoft",
+      "actual": "malicious",
+      "confidence": 0.96,
+      "reviewers": ["engineer1", "engineer3", "engineer4"],
+      "rationale": "Critical threat: unauthorized flow exfiltrating SharePoint data via OpenAI",
+      "attackType": "data_exfiltration",
+      "features": {
+        "hasAIProvider": true,
+        "aiProvider": "openai",
+        "velocityScore": 0.91,
+        "dataVolumeAnomalous": true,
+        "offHoursActivity": true
+      }
+    },
+    {
+      "automationId": "slack-bot-015",
+      "platform": "slack",
+      "actual": "malicious",
+      "confidence": 0.88,
+      "reviewers": ["engineer2", "engineer4"],
+      "rationale": "Suspicious bot with rate limit evasion patterns and AI calls",
+      "attackType": "rate_limit_evasion",
+      "features": {
+        "hasAIProvider": true,
+        "aiProvider": "openai",
+        "velocityScore": 0.86,
+        "timingVariance": 0.79
+      }
+    },
+    {
+      "automationId": "google-script-016",
+      "platform": "google",
+      "actual": "legitimate",
+      "confidence": 0.85,
+      "reviewers": ["engineer1", "engineer2"],
+      "rationale": "Approved document collaboration automation",
+      "features": {
+        "hasAIProvider": false,
+        "velocityScore": 0.31,
+        "offHoursActivity": false
+      }
+    },
+    {
+      "automationId": "microsoft-flow-017",
+      "platform": "microsoft",
+      "actual": "legitimate",
+      "confidence": 0.90,
+      "reviewers": ["engineer2", "engineer3"],
+      "rationale": "Standard Teams integration workflow",
+      "features": {
+        "hasAIProvider": false,
+        "velocityScore": 0.27,
+        "offHoursActivity": false
+      }
+    },
+    {
+      "automationId": "slack-bot-018",
+      "platform": "slack",
+      "actual": "malicious",
+      "confidence": 0.95,
+      "reviewers": ["engineer1", "engineer3", "engineer4"],
+      "rationale": "Advanced persistent threat with Claude API integration and privilege escalation",
+      "attackType": "privilege_escalation",
+      "features": {
+        "hasAIProvider": true,
+        "aiProvider": "anthropic",
+        "permissionEscalation": true,
+        "velocityScore": 0.84
+      }
+    },
+    {
+      "automationId": "google-script-019",
+      "platform": "google",
+      "actual": "malicious",
+      "confidence": 0.89,
+      "reviewers": ["engineer2", "engineer4"],
+      "rationale": "Unauthorized script with Gemini integration accessing Drive files",
+      "attackType": "ai_abuse",
+      "features": {
+        "hasAIProvider": true,
+        "aiProvider": "google",
+        "velocityScore": 0.76,
+        "dataVolumeAnomalous": true
+      }
+    },
+    {
+      "automationId": "microsoft-flow-020",
+      "platform": "microsoft",
+      "actual": "legitimate",
+      "confidence": 0.88,
+      "reviewers": ["engineer1", "engineer2"],
+      "rationale": "Authorized approval workflow with normal patterns",
+      "features": {
+        "hasAIProvider": false,
+        "velocityScore": 0.24,
+        "offHoursActivity": false
+      }
+    },
+    {
+      "automationId": "slack-bot-021",
+      "platform": "slack",
+      "actual": "legitimate",
+      "confidence": 0.87,
+      "reviewers": ["engineer2", "engineer3"],
+      "rationale": "Standard deployment notification bot",
+      "features": {
+        "hasAIProvider": false,
+        "velocityScore": 0.29,
+        "offHoursActivity": false
+      }
+    },
+    {
+      "automationId": "google-script-022",
+      "platform": "google",
+      "actual": "malicious",
+      "confidence": 0.93,
+      "reviewers": ["engineer1", "engineer3"],
+      "rationale": "High-risk script with OpenAI integration exfiltrating Gmail data",
+      "attackType": "data_exfiltration",
+      "features": {
+        "hasAIProvider": true,
+        "aiProvider": "openai",
+        "velocityScore": 0.90,
+        "dataVolumeAnomalous": true,
+        "offHoursActivity": true
+      }
+    },
+    {
+      "automationId": "microsoft-flow-023",
+      "platform": "microsoft",
+      "actual": "malicious",
+      "confidence": 0.92,
+      "reviewers": ["engineer2", "engineer3", "engineer4"],
+      "rationale": "Unauthorized flow with permission escalation and AI abuse",
+      "attackType": "privilege_escalation",
+      "features": {
+        "hasAIProvider": true,
+        "aiProvider": "openai",
+        "permissionEscalation": true,
+        "velocityScore": 0.81
+      }
+    },
+    {
+      "automationId": "slack-bot-024",
+      "platform": "slack",
+      "actual": "legitimate",
+      "confidence": 0.89,
+      "reviewers": ["engineer1", "engineer2"],
+      "rationale": "Approved incident response bot",
+      "features": {
+        "hasAIProvider": false,
+        "velocityScore": 0.33,
+        "offHoursActivity": false
+      }
+    },
+    {
+      "automationId": "google-script-025",
+      "platform": "google",
+      "actual": "legitimate",
+      "confidence": 0.86,
+      "reviewers": ["engineer2", "engineer4"],
+      "rationale": "Standard reporting automation with predictable patterns",
+      "features": {
+        "hasAIProvider": false,
+        "velocityScore": 0.26,
+        "batchOperations": true,
+        "offHoursActivity": false
+      }
+    },
+    {
+      "automationId": "microsoft-flow-026",
+      "platform": "microsoft",
+      "actual": "malicious",
+      "confidence": 0.94,
+      "reviewers": ["engineer1", "engineer3", "engineer4"],
+      "rationale": "Critical: unauthorized data exfiltration via Azure OpenAI",
+      "attackType": "data_exfiltration",
+      "features": {
+        "hasAIProvider": true,
+        "aiProvider": "openai",
+        "velocityScore": 0.88,
+        "dataVolumeAnomalous": true,
+        "offHoursActivity": true
+      }
+    },
+    {
+      "automationId": "slack-bot-027",
+      "platform": "slack",
+      "actual": "malicious",
+      "confidence": 0.91,
+      "reviewers": ["engineer2", "engineer3"],
+      "rationale": "Bot with timing variance patterns avoiding detection",
+      "attackType": "rate_limit_evasion",
+      "features": {
+        "hasAIProvider": true,
+        "aiProvider": "anthropic",
+        "velocityScore": 0.83,
+        "timingVariance": 0.85
+      }
+    },
+    {
+      "automationId": "google-script-028",
+      "platform": "google",
+      "actual": "legitimate",
+      "confidence": 0.88,
+      "reviewers": ["engineer1", "engineer2"],
+      "rationale": "Authorized backup automation",
+      "features": {
+        "hasAIProvider": false,
+        "velocityScore": 0.23,
+        "offHoursActivity": false
+      }
+    },
+    {
+      "automationId": "microsoft-flow-029",
+      "platform": "microsoft",
+      "actual": "legitimate",
+      "confidence": 0.90,
+      "reviewers": ["engineer2", "engineer3"],
+      "rationale": "Standard email distribution workflow",
+      "features": {
+        "hasAIProvider": false,
+        "velocityScore": 0.21,
+        "offHoursActivity": false
+      }
+    },
+    {
+      "automationId": "slack-bot-030",
+      "platform": "slack",
+      "actual": "malicious",
+      "confidence": 0.96,
+      "reviewers": ["engineer1", "engineer3", "engineer4"],
+      "rationale": "Sophisticated APT with OpenAI integration and multi-channel exfiltration",
+      "attackType": "data_exfiltration",
+      "features": {
+        "hasAIProvider": true,
+        "aiProvider": "openai",
+        "velocityScore": 0.94,
+        "dataVolumeAnomalous": true,
+        "offHoursActivity": true,
+        "batchOperations": true
+      }
+    },
+    {
+      "automationId": "google-script-031",
+      "platform": "google",
+      "actual": "malicious",
+      "confidence": 0.90,
+      "reviewers": ["engineer2", "engineer4"],
+      "rationale": "Unauthorized Gemini API integration with admin directory access",
+      "attackType": "ai_abuse",
+      "features": {
+        "hasAIProvider": true,
+        "aiProvider": "google",
+        "permissionEscalation": true,
+        "velocityScore": 0.77
+      }
+    },
+    {
+      "automationId": "microsoft-flow-032",
+      "platform": "microsoft",
+      "actual": "legitimate",
+      "confidence": 0.87,
+      "reviewers": ["engineer1", "engineer2"],
+      "rationale": "Approved document routing workflow",
+      "features": {
+        "hasAIProvider": false,
+        "velocityScore": 0.25,
+        "offHoursActivity": false
+      }
+    },
+    {
+      "automationId": "slack-bot-033",
+      "platform": "slack",
+      "actual": "legitimate",
+      "confidence": 0.85,
+      "reviewers": ["engineer2", "engineer3"],
+      "rationale": "Standard scheduling bot with predictable patterns",
+      "features": {
+        "hasAIProvider": false,
+        "velocityScore": 0.30,
+        "offHoursActivity": false
+      }
+    },
+    {
+      "automationId": "google-script-034",
+      "platform": "google",
+      "actual": "malicious",
+      "confidence": 0.92,
+      "reviewers": ["engineer1", "engineer3"],
+      "rationale": "Exfiltration script with Claude API accessing sensitive documents",
+      "attackType": "data_exfiltration",
+      "features": {
+        "hasAIProvider": true,
+        "aiProvider": "anthropic",
+        "velocityScore": 0.89,
+        "dataVolumeAnomalous": true,
+        "offHoursActivity": true
+      }
+    },
+    {
+      "automationId": "microsoft-flow-035",
+      "platform": "microsoft",
+      "actual": "malicious",
+      "confidence": 0.93,
+      "reviewers": ["engineer2", "engineer3", "engineer4"],
+      "rationale": "Unauthorized flow with OpenAI integration and privilege escalation",
+      "attackType": "privilege_escalation",
+      "features": {
+        "hasAIProvider": true,
+        "aiProvider": "openai",
+        "permissionEscalation": true,
+        "velocityScore": 0.80
+      }
+    },
+    {
+      "automationId": "slack-bot-036",
+      "platform": "slack",
+      "actual": "legitimate",
+      "confidence": 0.88,
+      "reviewers": ["engineer1", "engineer2"],
+      "rationale": "Authorized monitoring bot",
+      "features": {
+        "hasAIProvider": false,
+        "velocityScore": 0.28,
+        "offHoursActivity": false
+      }
+    },
+    {
+      "automationId": "google-script-037",
+      "platform": "google",
+      "actual": "legitimate",
+      "confidence": 0.89,
+      "reviewers": ["engineer2", "engineer4"],
+      "rationale": "Standard sync automation with normal activity",
+      "features": {
+        "hasAIProvider": false,
+        "velocityScore": 0.24,
+        "offHoursActivity": false
+      }
+    },
+    {
+      "automationId": "microsoft-flow-038",
+      "platform": "microsoft",
+      "actual": "malicious",
+      "confidence": 0.95,
+      "reviewers": ["engineer1", "engineer3", "engineer4"],
+      "rationale": "High-risk exfiltration flow with Azure OpenAI and batch operations",
+      "attackType": "data_exfiltration",
+      "features": {
+        "hasAIProvider": true,
+        "aiProvider": "openai",
+        "velocityScore": 0.90,
+        "dataVolumeAnomalous": true,
+        "batchOperations": true,
+        "offHoursActivity": true
+      }
+    },
+    {
+      "automationId": "slack-bot-039",
+      "platform": "slack",
+      "actual": "malicious",
+      "confidence": 0.89,
+      "reviewers": ["engineer2", "engineer3"],
+      "rationale": "Rate limit evasion bot with suspicious timing patterns",
+      "attackType": "rate_limit_evasion",
+      "features": {
+        "hasAIProvider": true,
+        "aiProvider": "openai",
+        "velocityScore": 0.85,
+        "timingVariance": 0.81
+      }
+    },
+    {
+      "automationId": "google-script-040",
+      "platform": "google",
+      "actual": "legitimate",
+      "confidence": 0.86,
+      "reviewers": ["engineer1", "engineer2"],
+      "rationale": "Approved archival automation",
+      "features": {
+        "hasAIProvider": false,
+        "velocityScore": 0.22,
+        "batchOperations": true,
+        "offHoursActivity": false
+      }
+    },
+    {
+      "automationId": "microsoft-flow-041",
+      "platform": "microsoft",
+      "actual": "legitimate",
+      "confidence": 0.91,
+      "reviewers": ["engineer2", "engineer3"],
+      "rationale": "Standard calendar sync workflow",
+      "features": {
+        "hasAIProvider": false,
+        "velocityScore": 0.26,
+        "offHoursActivity": false
+      }
+    },
+    {
+      "automationId": "slack-bot-042",
+      "platform": "slack",
+      "actual": "malicious",
+      "confidence": 0.94,
+      "reviewers": ["engineer1", "engineer3", "engineer4"],
+      "rationale": "Advanced threat with Anthropic Claude and permission escalation",
+      "attackType": "privilege_escalation",
+      "features": {
+        "hasAIProvider": true,
+        "aiProvider": "anthropic",
+        "permissionEscalation": true,
+        "velocityScore": 0.82,
+        "offHoursActivity": true
+      }
+    },
+    {
+      "automationId": "google-script-043",
+      "platform": "google",
+      "actual": "malicious",
+      "confidence": 0.88,
+      "reviewers": ["engineer2", "engineer4"],
+      "rationale": "Malicious script with Gemini API accessing user data",
+      "attackType": "ai_abuse",
+      "features": {
+        "hasAIProvider": true,
+        "aiProvider": "google",
+        "velocityScore": 0.74,
+        "dataVolumeAnomalous": true
+      }
+    },
+    {
+      "automationId": "microsoft-flow-044",
+      "platform": "microsoft",
+      "actual": "legitimate",
+      "confidence": 0.87,
+      "reviewers": ["engineer1", "engineer2"],
+      "rationale": "Authorized notification workflow",
+      "features": {
+        "hasAIProvider": false,
+        "velocityScore": 0.23,
+        "offHoursActivity": false
+      }
+    },
+    {
+      "automationId": "slack-bot-045",
+      "platform": "slack",
+      "actual": "legitimate",
+      "confidence": 0.90,
+      "reviewers": ["engineer2", "engineer3"],
+      "rationale": "Standard analytics bot with normal patterns",
+      "features": {
+        "hasAIProvider": false,
+        "velocityScore": 0.32,
+        "offHoursActivity": false
+      }
+    },
+    {
+      "automationId": "google-script-046",
+      "platform": "google",
+      "actual": "malicious",
+      "confidence": 0.91,
+      "reviewers": ["engineer1", "engineer3"],
+      "rationale": "Data exfiltration with OpenAI integration targeting Gmail",
+      "attackType": "data_exfiltration",
+      "features": {
+        "hasAIProvider": true,
+        "aiProvider": "openai",
+        "velocityScore": 0.87,
+        "dataVolumeAnomalous": true,
+        "offHoursActivity": true
+      }
+    },
+    {
+      "automationId": "microsoft-flow-047",
+      "platform": "microsoft",
+      "actual": "malicious",
+      "confidence": 0.92,
+      "reviewers": ["engineer2", "engineer3", "engineer4"],
+      "rationale": "Unauthorized flow with permission escalation via Azure OpenAI",
+      "attackType": "privilege_escalation",
+      "features": {
+        "hasAIProvider": true,
+        "aiProvider": "openai",
+        "permissionEscalation": true,
+        "velocityScore": 0.79
+      }
+    },
+    {
+      "automationId": "slack-bot-048",
+      "platform": "slack",
+      "actual": "legitimate",
+      "confidence": 0.86,
+      "reviewers": ["engineer1", "engineer2"],
+      "rationale": "Approved integration bot",
+      "features": {
+        "hasAIProvider": false,
+        "velocityScore": 0.27,
+        "offHoursActivity": false
+      }
+    },
+    {
+      "automationId": "google-script-049",
+      "platform": "google",
+      "actual": "legitimate",
+      "confidence": 0.88,
+      "reviewers": ["engineer2", "engineer4"],
+      "rationale": "Standard data migration automation",
+      "features": {
+        "hasAIProvider": false,
+        "velocityScore": 0.25,
+        "batchOperations": true,
+        "offHoursActivity": false
+      }
+    },
+    {
+      "automationId": "microsoft-flow-050",
+      "platform": "microsoft",
+      "actual": "malicious",
+      "confidence": 0.97,
+      "reviewers": ["engineer1", "engineer3", "engineer4"],
+      "rationale": "Critical: sophisticated exfiltration with multi-vector attack",
+      "attackType": "data_exfiltration",
+      "features": {
+        "hasAIProvider": true,
+        "aiProvider": "openai",
+        "velocityScore": 0.93,
+        "dataVolumeAnomalous": true,
+        "batchOperations": true,
+        "offHoursActivity": true,
+        "permissionEscalation": true
+      }
+    },
+    {
+      "automationId": "slack-bot-051",
+      "platform": "slack",
+      "actual": "malicious",
+      "confidence": 0.90,
+      "reviewers": ["engineer2", "engineer3"],
+      "rationale": "Timing variance bot evading rate limits with AI calls",
+      "attackType": "rate_limit_evasion",
+      "features": {
+        "hasAIProvider": true,
+        "aiProvider": "anthropic",
+        "velocityScore": 0.84,
+        "timingVariance": 0.83
+      }
+    },
+    {
+      "automationId": "google-script-052",
+      "platform": "google",
+      "actual": "legitimate",
+      "confidence": 0.87,
+      "reviewers": ["engineer1", "engineer2"],
+      "rationale": "Authorized form processing automation",
+      "features": {
+        "hasAIProvider": false,
+        "velocityScore": 0.29,
+        "offHoursActivity": false
+      }
+    },
+    {
+      "automationId": "microsoft-flow-053",
+      "platform": "microsoft",
+      "actual": "legitimate",
+      "confidence": 0.89,
+      "reviewers": ["engineer2", "engineer3"],
+      "rationale": "Standard task assignment workflow",
+      "features": {
+        "hasAIProvider": false,
+        "velocityScore": 0.24,
+        "offHoursActivity": false
+      }
+    },
+    {
+      "automationId": "slack-bot-054",
+      "platform": "slack",
+      "actual": "malicious",
+      "confidence": 0.95,
+      "reviewers": ["engineer1", "engineer3", "engineer4"],
+      "rationale": "Advanced persistent threat with OpenAI and privilege escalation",
+      "attackType": "privilege_escalation",
+      "features": {
+        "hasAIProvider": true,
+        "aiProvider": "openai",
+        "permissionEscalation": true,
+        "velocityScore": 0.86,
+        "offHoursActivity": true
+      }
+    },
+    {
+      "automationId": "google-script-055",
+      "platform": "google",
+      "actual": "malicious",
+      "confidence": 0.89,
+      "reviewers": ["engineer2", "engineer4"],
+      "rationale": "Unauthorized Gemini integration with Drive exfiltration",
+      "attackType": "ai_abuse",
+      "features": {
+        "hasAIProvider": true,
+        "aiProvider": "google",
+        "velocityScore": 0.75,
+        "dataVolumeAnomalous": true
+      }
+    },
+    {
+      "automationId": "microsoft-flow-056",
+      "platform": "microsoft",
+      "actual": "legitimate",
+      "confidence": 0.88,
+      "reviewers": ["engineer1", "engineer2"],
+      "rationale": "Approved expense tracking workflow",
+      "features": {
+        "hasAIProvider": false,
+        "velocityScore": 0.22,
+        "offHoursActivity": false
+      }
+    },
+    {
+      "automationId": "slack-bot-057",
+      "platform": "slack",
+      "actual": "legitimate",
+      "confidence": 0.86,
+      "reviewers": ["engineer2", "engineer3"],
+      "rationale": "Standard reminder bot with predictable patterns",
+      "features": {
+        "hasAIProvider": false,
+        "velocityScore": 0.31,
+        "offHoursActivity": false
+      }
+    },
+    {
+      "automationId": "google-script-058",
+      "platform": "google",
+      "actual": "malicious",
+      "confidence": 0.93,
+      "reviewers": ["engineer1", "engineer3"],
+      "rationale": "High-risk exfiltration with Claude API and admin access",
+      "attackType": "data_exfiltration",
+      "features": {
+        "hasAIProvider": true,
+        "aiProvider": "anthropic",
+        "velocityScore": 0.91,
+        "dataVolumeAnomalous": true,
+        "offHoursActivity": true,
+        "permissionEscalation": true
+      }
+    },
+    {
+      "automationId": "microsoft-flow-059",
+      "platform": "microsoft",
+      "actual": "malicious",
+      "confidence": 0.91,
+      "reviewers": ["engineer2", "engineer3", "engineer4"],
+      "rationale": "Unauthorized flow with Azure OpenAI and permission abuse",
+      "attackType": "privilege_escalation",
+      "features": {
+        "hasAIProvider": true,
+        "aiProvider": "openai",
+        "permissionEscalation": true,
+        "velocityScore": 0.78
+      }
+    },
+    {
+      "automationId": "slack-bot-060",
+      "platform": "slack",
+      "actual": "legitimate",
+      "confidence": 0.90,
+      "reviewers": ["engineer1", "engineer2"],
+      "rationale": "Authorized status update bot",
+      "features": {
+        "hasAIProvider": false,
+        "velocityScore": 0.26,
+        "offHoursActivity": false
+      }
+    },
+    {
+      "automationId": "google-script-061",
+      "platform": "google",
+      "actual": "legitimate",
+      "confidence": 0.85,
+      "reviewers": ["engineer2", "engineer4"],
+      "rationale": "Standard cleanup automation with normal patterns",
+      "features": {
+        "hasAIProvider": false,
+        "velocityScore": 0.21,
+        "batchOperations": true,
+        "offHoursActivity": false
+      }
+    },
+    {
+      "automationId": "microsoft-flow-062",
+      "platform": "microsoft",
+      "actual": "malicious",
+      "confidence": 0.94,
+      "reviewers": ["engineer1", "engineer3", "engineer4"],
+      "rationale": "Critical: data exfiltration via OpenAI with batch operations",
+      "attackType": "data_exfiltration",
+      "features": {
+        "hasAIProvider": true,
+        "aiProvider": "openai",
+        "velocityScore": 0.89,
+        "dataVolumeAnomalous": true,
+        "batchOperations": true,
+        "offHoursActivity": true
+      }
+    },
+    {
+      "automationId": "slack-bot-063",
+      "platform": "slack",
+      "actual": "malicious",
+      "confidence": 0.88,
+      "reviewers": ["engineer2", "engineer3"],
+      "rationale": "Rate limit evasion with timing variance and AI integration",
+      "attackType": "rate_limit_evasion",
+      "features": {
+        "hasAIProvider": true,
+        "aiProvider": "openai",
+        "velocityScore": 0.82,
+        "timingVariance": 0.80
+      }
+    },
+    {
+      "automationId": "google-script-064",
+      "platform": "google",
+      "actual": "legitimate",
+      "confidence": 0.89,
+      "reviewers": ["engineer1", "engineer2"],
+      "rationale": "Approved meeting scheduler automation",
+      "features": {
+        "hasAIProvider": false,
+        "velocityScore": 0.28,
+        "offHoursActivity": false
+      }
+    },
+    {
+      "automationId": "microsoft-flow-065",
+      "platform": "microsoft",
+      "actual": "legitimate",
+      "confidence": 0.87,
+      "reviewers": ["engineer2", "engineer3"],
+      "rationale": "Standard distribution list management",
+      "features": {
+        "hasAIProvider": false,
+        "velocityScore": 0.23,
+        "offHoursActivity": false
+      }
+    },
+    {
+      "automationId": "slack-bot-066",
+      "platform": "slack",
+      "actual": "malicious",
+      "confidence": 0.96,
+      "reviewers": ["engineer1", "engineer3", "engineer4"],
+      "rationale": "Sophisticated APT with Anthropic Claude and multi-channel attack",
+      "attackType": "privilege_escalation",
+      "features": {
+        "hasAIProvider": true,
+        "aiProvider": "anthropic",
+        "permissionEscalation": true,
+        "velocityScore": 0.88,
+        "offHoursActivity": true,
+        "dataVolumeAnomalous": true
+      }
+    },
+    {
+      "automationId": "google-script-067",
+      "platform": "google",
+      "actual": "malicious",
+      "confidence": 0.90,
+      "reviewers": ["engineer2", "engineer4"],
+      "rationale": "Unauthorized Gemini API integration with user directory access",
+      "attackType": "ai_abuse",
+      "features": {
+        "hasAIProvider": true,
+        "aiProvider": "google",
+        "permissionEscalation": true,
+        "velocityScore": 0.76
+      }
+    },
+    {
+      "automationId": "microsoft-flow-068",
+      "platform": "microsoft",
+      "actual": "legitimate",
+      "confidence": 0.86,
+      "reviewers": ["engineer1", "engineer2"],
+      "rationale": "Authorized inventory management workflow",
+      "features": {
+        "hasAIProvider": false,
+        "velocityScore": 0.25,
+        "offHoursActivity": false
+      }
+    },
+    {
+      "automationId": "slack-bot-069",
+      "platform": "slack",
+      "actual": "legitimate",
+      "confidence": 0.88,
+      "reviewers": ["engineer2", "engineer3"],
+      "rationale": "Standard polling bot with normal activity",
+      "features": {
+        "hasAIProvider": false,
+        "velocityScore": 0.30,
+        "offHoursActivity": false
+      }
+    },
+    {
+      "automationId": "google-script-070",
+      "platform": "google",
+      "actual": "malicious",
+      "confidence": 0.92,
+      "reviewers": ["engineer1", "engineer3"],
+      "rationale": "Exfiltration script with OpenAI targeting sensitive documents",
+      "attackType": "data_exfiltration",
+      "features": {
+        "hasAIProvider": true,
+        "aiProvider": "openai",
+        "velocityScore": 0.88,
+        "dataVolumeAnomalous": true,
+        "offHoursActivity": true
+      }
+    },
+    {
+      "automationId": "microsoft-flow-071",
+      "platform": "microsoft",
+      "actual": "malicious",
+      "confidence": 0.93,
+      "reviewers": ["engineer2", "engineer3", "engineer4"],
+      "rationale": "Unauthorized flow with OpenAI and privilege escalation",
+      "attackType": "privilege_escalation",
+      "features": {
+        "hasAIProvider": true,
+        "aiProvider": "openai",
+        "permissionEscalation": true,
+        "velocityScore": 0.81
+      }
+    },
+    {
+      "automationId": "slack-bot-072",
+      "platform": "slack",
+      "actual": "legitimate",
+      "confidence": 0.87,
+      "reviewers": ["engineer1", "engineer2"],
+      "rationale": "Approved reporting bot",
+      "features": {
+        "hasAIProvider": false,
+        "velocityScore": 0.29,
+        "offHoursActivity": false
+      }
+    },
+    {
+      "automationId": "google-script-073",
+      "platform": "google",
+      "actual": "legitimate",
+      "confidence": 0.90,
+      "reviewers": ["engineer2", "engineer4"],
+      "rationale": "Standard template generation automation",
+      "features": {
+        "hasAIProvider": false,
+        "velocityScore": 0.27,
+        "offHoursActivity": false
+      }
+    },
+    {
+      "automationId": "microsoft-flow-074",
+      "platform": "microsoft",
+      "actual": "malicious",
+      "confidence": 0.95,
+      "reviewers": ["engineer1", "engineer3", "engineer4"],
+      "rationale": "High-risk exfiltration with Azure OpenAI and batch processing",
+      "attackType": "data_exfiltration",
+      "features": {
+        "hasAIProvider": true,
+        "aiProvider": "openai",
+        "velocityScore": 0.92,
+        "dataVolumeAnomalous": true,
+        "batchOperations": true,
+        "offHoursActivity": true
+      }
+    },
+    {
+      "automationId": "slack-bot-075",
+      "platform": "slack",
+      "actual": "malicious",
+      "confidence": 0.89,
+      "reviewers": ["engineer2", "engineer3"],
+      "rationale": "Timing variance bot avoiding detection mechanisms",
+      "attackType": "rate_limit_evasion",
+      "features": {
+        "hasAIProvider": true,
+        "aiProvider": "anthropic",
+        "velocityScore": 0.83,
+        "timingVariance": 0.84
+      }
+    },
+    {
+      "automationId": "google-script-076",
+      "platform": "google",
+      "actual": "legitimate",
+      "confidence": 0.86,
+      "reviewers": ["engineer1", "engineer2"],
+      "rationale": "Authorized data validation automation",
+      "features": {
+        "hasAIProvider": false,
+        "velocityScore": 0.24,
+        "offHoursActivity": false
+      }
+    },
+    {
+      "automationId": "microsoft-flow-077",
+      "platform": "microsoft",
+      "actual": "legitimate",
+      "confidence": 0.88,
+      "reviewers": ["engineer2", "engineer3"],
+      "rationale": "Standard file organization workflow",
+      "features": {
+        "hasAIProvider": false,
+        "velocityScore": 0.22,
+        "offHoursActivity": false
+      }
+    },
+    {
+      "automationId": "slack-bot-078",
+      "platform": "slack",
+      "actual": "malicious",
+      "confidence": 0.94,
+      "reviewers": ["engineer1", "engineer3", "engineer4"],
+      "rationale": "Advanced threat with OpenAI and permission escalation patterns",
+      "attackType": "privilege_escalation",
+      "features": {
+        "hasAIProvider": true,
+        "aiProvider": "openai",
+        "permissionEscalation": true,
+        "velocityScore": 0.85,
+        "offHoursActivity": true
+      }
+    },
+    {
+      "automationId": "google-script-079",
+      "platform": "google",
+      "actual": "malicious",
+      "confidence": 0.88,
+      "reviewers": ["engineer2", "engineer4"],
+      "rationale": "Malicious Gemini integration with calendar exfiltration",
+      "attackType": "ai_abuse",
+      "features": {
+        "hasAIProvider": true,
+        "aiProvider": "google",
+        "velocityScore": 0.73,
+        "dataVolumeAnomalous": true
+      }
+    },
+    {
+      "automationId": "microsoft-flow-080",
+      "platform": "microsoft",
+      "actual": "legitimate",
+      "confidence": 0.89,
+      "reviewers": ["engineer1", "engineer2"],
+      "rationale": "Approved access request workflow",
+      "features": {
+        "hasAIProvider": false,
+        "velocityScore": 0.26,
+        "offHoursActivity": false
+      }
+    },
+    {
+      "automationId": "slack-bot-081",
+      "platform": "slack",
+      "actual": "legitimate",
+      "confidence": 0.85,
+      "reviewers": ["engineer2", "engineer3"],
+      "rationale": "Standard feedback collection bot",
+      "features": {
+        "hasAIProvider": false,
+        "velocityScore": 0.28,
+        "offHoursActivity": false
+      }
+    },
+    {
+      "automationId": "google-script-082",
+      "platform": "google",
+      "actual": "malicious",
+      "confidence": 0.91,
+      "reviewers": ["engineer1", "engineer3"],
+      "rationale": "Data exfiltration with Claude API accessing Drive files",
+      "attackType": "data_exfiltration",
+      "features": {
+        "hasAIProvider": true,
+        "aiProvider": "anthropic",
+        "velocityScore": 0.86,
+        "dataVolumeAnomalous": true,
+        "offHoursActivity": true
+      }
+    },
+    {
+      "automationId": "microsoft-flow-083",
+      "platform": "microsoft",
+      "actual": "malicious",
+      "confidence": 0.92,
+      "reviewers": ["engineer2", "engineer3", "engineer4"],
+      "rationale": "Unauthorized flow with permission escalation via OpenAI",
+      "attackType": "privilege_escalation",
+      "features": {
+        "hasAIProvider": true,
+        "aiProvider": "openai",
+        "permissionEscalation": true,
+        "velocityScore": 0.80
+      }
+    },
+    {
+      "automationId": "slack-bot-084",
+      "platform": "slack",
+      "actual": "legitimate",
+      "confidence": 0.87,
+      "reviewers": ["engineer1", "engineer2"],
+      "rationale": "Authorized standup bot",
+      "features": {
+        "hasAIProvider": false,
+        "velocityScore": 0.31,
+        "offHoursActivity": false
+      }
+    },
+    {
+      "automationId": "google-script-085",
+      "platform": "google",
+      "actual": "legitimate",
+      "confidence": 0.88,
+      "reviewers": ["engineer2", "engineer4"],
+      "rationale": "Standard email filter automation",
+      "features": {
+        "hasAIProvider": false,
+        "velocityScore": 0.23,
+        "offHoursActivity": false
+      }
+    },
+    {
+      "automationId": "microsoft-flow-086",
+      "platform": "microsoft",
+      "actual": "malicious",
+      "confidence": 0.96,
+      "reviewers": ["engineer1", "engineer3", "engineer4"],
+      "rationale": "Critical: sophisticated multi-stage exfiltration attack",
+      "attackType": "data_exfiltration",
+      "features": {
+        "hasAIProvider": true,
+        "aiProvider": "openai",
+        "velocityScore": 0.94,
+        "dataVolumeAnomalous": true,
+        "batchOperations": true,
+        "offHoursActivity": true,
+        "permissionEscalation": true
+      }
+    },
+    {
+      "automationId": "slack-bot-087",
+      "platform": "slack",
+      "actual": "malicious",
+      "confidence": 0.90,
+      "reviewers": ["engineer2", "engineer3"],
+      "rationale": "Rate limit evasion with sophisticated timing patterns",
+      "attackType": "rate_limit_evasion",
+      "features": {
+        "hasAIProvider": true,
+        "aiProvider": "openai",
+        "velocityScore": 0.84,
+        "timingVariance": 0.82
+      }
+    },
+    {
+      "automationId": "google-script-088",
+      "platform": "google",
+      "actual": "legitimate",
+      "confidence": 0.86,
+      "reviewers": ["engineer1", "engineer2"],
+      "rationale": "Approved sheet synchronization automation",
+      "features": {
+        "hasAIProvider": false,
+        "velocityScore": 0.25,
+        "offHoursActivity": false
+      }
+    },
+    {
+      "automationId": "microsoft-flow-089",
+      "platform": "microsoft",
+      "actual": "legitimate",
+      "confidence": 0.90,
+      "reviewers": ["engineer2", "engineer3"],
+      "rationale": "Standard user provisioning workflow",
+      "features": {
+        "hasAIProvider": false,
+        "velocityScore": 0.27,
+        "offHoursActivity": false
+      }
+    },
+    {
+      "automationId": "slack-bot-090",
+      "platform": "slack",
+      "actual": "malicious",
+      "confidence": 0.95,
+      "reviewers": ["engineer1", "engineer3", "engineer4"],
+      "rationale": "Sophisticated APT with Anthropic and privilege abuse",
+      "attackType": "privilege_escalation",
+      "features": {
+        "hasAIProvider": true,
+        "aiProvider": "anthropic",
+        "permissionEscalation": true,
+        "velocityScore": 0.87,
+        "offHoursActivity": true
+      }
+    },
+    {
+      "automationId": "google-script-091",
+      "platform": "google",
+      "actual": "malicious",
+      "confidence": 0.89,
+      "reviewers": ["engineer2", "engineer4"],
+      "rationale": "Unauthorized Gemini integration with admin reports access",
+      "attackType": "ai_abuse",
+      "features": {
+        "hasAIProvider": true,
+        "aiProvider": "google",
+        "permissionEscalation": true,
+        "velocityScore": 0.77
+      }
+    },
+    {
+      "automationId": "microsoft-flow-092",
+      "platform": "microsoft",
+      "actual": "legitimate",
+      "confidence": 0.87,
+      "reviewers": ["engineer1", "engineer2"],
+      "rationale": "Authorized budget tracking workflow",
+      "features": {
+        "hasAIProvider": false,
+        "velocityScore": 0.24,
+        "offHoursActivity": false
+      }
+    },
+    {
+      "automationId": "slack-bot-093",
+      "platform": "slack",
+      "actual": "legitimate",
+      "confidence": 0.88,
+      "reviewers": ["engineer2", "engineer3"],
+      "rationale": "Standard knowledge base bot",
+      "features": {
+        "hasAIProvider": false,
+        "velocityScore": 0.29,
+        "offHoursActivity": false
+      }
+    },
+    {
+      "automationId": "google-script-094",
+      "platform": "google",
+      "actual": "malicious",
+      "confidence": 0.93,
+      "reviewers": ["engineer1", "engineer3"],
+      "rationale": "High-risk exfiltration with OpenAI targeting contact data",
+      "attackType": "data_exfiltration",
+      "features": {
+        "hasAIProvider": true,
+        "aiProvider": "openai",
+        "velocityScore": 0.90,
+        "dataVolumeAnomalous": true,
+        "offHoursActivity": true
+      }
+    },
+    {
+      "automationId": "microsoft-flow-095",
+      "platform": "microsoft",
+      "actual": "malicious",
+      "confidence": 0.91,
+      "reviewers": ["engineer2", "engineer3", "engineer4"],
+      "rationale": "Unauthorized flow with Azure OpenAI and permission abuse",
+      "attackType": "privilege_escalation",
+      "features": {
+        "hasAIProvider": true,
+        "aiProvider": "openai",
+        "permissionEscalation": true,
+        "velocityScore": 0.79
+      }
+    },
+    {
+      "automationId": "slack-bot-096",
+      "platform": "slack",
+      "actual": "legitimate",
+      "confidence": 0.86,
+      "reviewers": ["engineer1", "engineer2"],
+      "rationale": "Approved onboarding bot",
+      "features": {
+        "hasAIProvider": false,
+        "velocityScore": 0.30,
+        "offHoursActivity": false
+      }
+    },
+    {
+      "automationId": "google-script-097",
+      "platform": "google",
+      "actual": "legitimate",
+      "confidence": 0.89,
+      "reviewers": ["engineer2", "engineer4"],
+      "rationale": "Standard permission audit automation",
+      "features": {
+        "hasAIProvider": false,
+        "velocityScore": 0.26,
+        "batchOperations": true,
+        "offHoursActivity": false
+      }
+    },
+    {
+      "automationId": "microsoft-flow-098",
+      "platform": "microsoft",
+      "actual": "malicious",
+      "confidence": 0.94,
+      "reviewers": ["engineer1", "engineer3", "engineer4"],
+      "rationale": "Critical: data exfiltration with batch operations and AI abuse",
+      "attackType": "data_exfiltration",
+      "features": {
+        "hasAIProvider": true,
+        "aiProvider": "openai",
+        "velocityScore": 0.91,
+        "dataVolumeAnomalous": true,
+        "batchOperations": true,
+        "offHoursActivity": true
+      }
+    },
+    {
+      "automationId": "slack-bot-099",
+      "platform": "slack",
+      "actual": "malicious",
+      "confidence": 0.88,
+      "reviewers": ["engineer2", "engineer3"],
+      "rationale": "Rate limit evasion bot with timing variance patterns",
+      "attackType": "rate_limit_evasion",
+      "features": {
+        "hasAIProvider": true,
+        "aiProvider": "anthropic",
+        "velocityScore": 0.82,
+        "timingVariance": 0.81
+      }
+    },
+    {
+      "automationId": "google-script-100",
+      "platform": "google",
+      "actual": "legitimate",
+      "confidence": 0.90,
+      "reviewers": ["engineer1", "engineer2"],
+      "rationale": "Approved data export automation with controlled access",
+      "features": {
+        "hasAIProvider": false,
+        "velocityScore": 0.28,
+        "batchOperations": true,
+        "offHoursActivity": false
+      }
+    }
+  ]
+}

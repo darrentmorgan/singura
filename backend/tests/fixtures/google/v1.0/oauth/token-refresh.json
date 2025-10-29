@@ -1,0 +1,6 @@
+{
+  "access_token": "ya29.a0AfB_byXyz987Wvu654Tsr321Qpo098Nml765Kji432Hgf210Edc098",
+  "expires_in": 3599,
+  "scope": "https://www.googleapis.com/auth/script.projects.readonly https://www.googleapis.com/auth/admin.directory.user.readonly https://www.googleapis.com/auth/admin.reports.audit.readonly",
+  "token_type": "Bearer"
+}

@@ -10,18 +10,18 @@ import {
   LayoutDashboard,
   Link2,
   Bot,
-  Shield,
-  BarChart3,
   Settings,
   HelpCircle,
   ChevronRight,
   Wifi,
   WifiOff,
-  Activity
+  Activity,
+  Puzzle
 } from 'lucide-react';
 
 import { useSidebarState, useConnectionStatus, useUIActions } from '@/stores/ui';
 import { useConnections, useActiveConnections } from '@/stores/connections';
+import { useAutomations } from '@/stores/automations';
 import { cn } from '@/lib/utils';
 
 // Platform icons mapping
@@ -64,6 +64,9 @@ export const Sidebar: React.FC<SidebarProps> = ({ className }) => {
   const connections = useConnections();
   const activeConnections = useActiveConnections();
 
+  // Automations state
+  const automations = useAutomations();
+
   // Don't render if not authenticated
   if (!isSignedIn) {
     return null;
@@ -87,25 +90,20 @@ export const Sidebar: React.FC<SidebarProps> = ({ className }) => {
       isActive: location.pathname.startsWith('/connections'),
     },
     {
+      id: 'integrations',
+      label: 'Integrations',
+      href: '/integrations',
+      icon: <Puzzle className="h-5 w-5" />,
+      badge: automations.filter(a => a.type === 'integration').length,
+      isActive: location.pathname.startsWith('/integrations'),
+    },
+    {
       id: 'automations',
       label: 'Automations',
       href: '/automations',
       icon: <Bot className="h-5 w-5" />,
+      badge: automations.filter(a => a.type !== 'integration').length,
       isActive: location.pathname.startsWith('/automations'),
-    },
-    {
-      id: 'security',
-      label: 'Security',
-      href: '/security',
-      icon: <Shield className="h-5 w-5" />,
-      isActive: location.pathname.startsWith('/security'),
-    },
-    {
-      id: 'analytics',
-      label: 'Analytics',
-      href: '/analytics',
-      icon: <BarChart3 className="h-5 w-5" />,
-      isActive: location.pathname.startsWith('/analytics'),
     },
   ];
 

@@ -1,0 +1,20 @@
+{
+  "ok": true,
+  "team": {
+    "id": "T0123456789",
+    "name": "Test Workspace",
+    "domain": "test-workspace",
+    "email_domain": "example.com",
+    "icon": {
+      "image_34": "https://test.slack.com/icon-34.png",
+      "image_44": "https://test.slack.com/icon-44.png",
+      "image_68": "https://test.slack.com/icon-68.png",
+      "image_88": "https://test.slack.com/icon-88.png",
+      "image_102": "https://test.slack.com/icon-102.png",
+      "image_132": "https://test.slack.com/icon-132.png",
+      "image_default": true
+    },
+    "enterprise_id": "E0123456789",
+    "enterprise_name": "Test Enterprise"
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "error": {
+    "code": "BadRequest",
+    "message": "Invalid filter clause",
+    "innerError": {
+      "date": "2025-10-29T12:00:00",
+      "request-id": "abc7890-ef12-3456-abc7-ef7890123456",
+      "client-request-id": "bcd8901-fa23-4567-bcd8-fa8901234567"
+    }
+  }
+}

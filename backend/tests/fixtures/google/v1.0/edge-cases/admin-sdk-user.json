@@ -1,0 +1,30 @@
+{
+  "kind": "admin#directory#user",
+  "id": "123456789012345678901",
+  "etag": "etag-user-example",
+  "primaryEmail": "john.doe@example.com",
+  "name": {
+    "givenName": "John",
+    "familyName": "Doe",
+    "fullName": "John Doe"
+  },
+  "isAdmin": true,
+  "isDelegatedAdmin": false,
+  "lastLoginTime": "2025-10-29T08:00:00.000Z",
+  "creationTime": "2020-01-15T10:00:00.000Z",
+  "agreedToTerms": true,
+  "suspended": false,
+  "archived": false,
+  "changePasswordAtNextLogin": false,
+  "ipWhitelisted": false,
+  "emails": [
+    {
+      "address": "john.doe@example.com",
+      "primary": true
+    }
+  ],
+  "customerId": "C01234567",
+  "orgUnitPath": "/Engineering",
+  "isMailboxSetup": true,
+  "includeInGlobalAddressList": true
+}
