@@ -151,6 +151,30 @@ chrome-devtools-mcp --isolated
 - All agents (qa-expert, performance-engineer) now use Chrome DevTools only
 - Main orchestrator has direct Chrome DevTools access (no delegation needed for browser tasks)
 
+### 7. Vendor Grouping Pattern [2025-10-30]
+**Context**: Group OAuth apps by vendor while preserving individual app audit trail for compliance
+
+**Solution**: View-layer grouping with database vendor columns
+- Extract vendor name via pattern matching (removes suffixes, domains)
+- Store `vendor_name` and `vendor_group` columns (nullable)
+- API supports `?groupBy=vendor` parameter (backward compatible)
+- Frontend toggle between grouped/ungrouped views
+
+**Key Insights**:
+- 90%+ extraction accuracy with simple pattern matching
+- View-layer grouping preserves compliance (SOC 2, GDPR, ISO 27001)
+- <10ms API overhead for grouped queries
+- Vendor group = `${vendorName}-${platform}` (e.g., "attio-google")
+
+**Performance**:
+- Vendor extraction: ~0.012ms per app (~83,000/sec throughput)
+- API response: <110ms for 100 automations (grouped)
+- UI transition: <200ms toggle switch
+
+**Compliance**: Individual OAuth apps remain in database (no merging), audit trail preserved
+
+**Reference**: `.archive/2025-10/vendor-grouping/` | `openspec/changes/group-automations-by-vendor/`
+
 ---
 
 ## Validated OAuth Patterns
@@ -346,14 +370,22 @@ describe('ServiceName', () => {
 
 ## Critical Pitfalls (MUST AVOID)
 
-**Top 7 Learned Lessons**:
+**Top 8 Learned Lessons**:
 1. Service Instance State Loss → Use singleton exports
 2. Slack API Method Validation → Methods like `apps.list()` don't exist
 3. Dual Storage Architecture → Link connection metadata + OAuth tokens
 4. Database Persistence Fallback → Docker containers may fail
 5. OAuth Scope Research → Research BEFORE implementing
 6. Database Migrations Not Applied → Automated runner required
-7. **Incomplete Auth Migration → Remove ALL old auth code** ⚠️ NEW
+7. **Incomplete Auth Migration → Remove ALL old auth code** ⚠️
+8. **Jest Integration Test Imports → Don't import from src/server.ts** ⚠️ NEW [2025-10-30]
+
+**Pitfall #8 Details**:
+- **Problem**: Importing pool from `src/server.ts` in tests causes "port already in use" errors
+- **Root Cause**: server.ts starts Express server on import, conflicts with test env
+- **Solution**: Separate app.ts (export app) from server.ts (start server), import from app.ts in tests
+- **Prevention**: Create test-specific server setup, mock database connections
+- **Reference**: `.archive/2025-10/vendor-grouping/` (integration test issues documented)
 
 **Full Details**: See `.claude/PITFALLS.md` with examples and solutions
 

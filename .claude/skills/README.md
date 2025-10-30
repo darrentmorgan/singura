@@ -10,6 +10,7 @@ This catalog documents all available skills for extending Claude's capabilities 
 | Create new skill | skill-creator (generate structure) | N/A (skills are documentation) |
 | Test web application | webapp-testing (Playwright guidance) | qa-expert (write test suites) |
 | OAuth integration | skill-creator (oauth template) | oauth-integration-specialist (implement) |
+| Clean repository | repo-cleanup (archive completed work) | N/A (cleanup is procedural) |
 
 **Rule of Thumb**:
 - **Skill** = "How to do X" (procedural knowledge, templates, patterns)
@@ -20,10 +21,10 @@ This catalog documents all available skills for extending Claude's capabilities 
 ## Meta Skills (Skill Creation & Management)
 
 ### skill-creator
-**Location**: `.claude/skills/skill-creator/`  
+**Location**: `.claude/skills/skill-creator/`
 **Description**: Guide for creating effective skills that extend Claude's capabilities with specialized knowledge, workflows, or tool integrations.
 
-**Triggers**: 
+**Triggers**:
 - "create skill"
 - "new skill"
 - "skill template"
@@ -52,7 +53,7 @@ Claude: *generates skill with OAuth templates, rate limiting, error handling*
 ## Technical Skills (Development & Integration)
 
 ### mcp-builder
-**Location**: `.claude/skills/mcp-builder/`  
+**Location**: `.claude/skills/mcp-builder/`
 **Description**: Guide for creating high-quality MCP (Model Context Protocol) servers that enable Claude to interact with external services through well-designed tools.
 
 **Triggers**:
@@ -159,6 +160,62 @@ Claude: "Both servers running: Frontend http://localhost:4200, Backend http://lo
 
 ---
 
+## Maintenance Skills (Repository & Documentation)
+
+### repo-cleanup
+**Location**: `.claude/skills/repo-cleanup/`
+**Description**: Intelligent repository cleanup - assess root files, extract learnings, update CLAUDE.md, and archive completed work. Maintains clean repository structure while preserving knowledge.
+
+**Triggers**:
+- "clean repository"
+- "archive documentation"
+- "clean up root"
+- "extract learnings"
+- "organize documentation"
+
+**Use Cases**:
+- Archive completed implementation documentation
+- Extract patterns/pitfalls from completed work → CLAUDE.md
+- Relocate misplaced documentation to proper subdirectories
+- Remove temporary files and duplicates
+- Create organized archive structure with metadata
+
+**Key Features**:
+- Automatic file categorization (archive, integrate, relocate, delete)
+- Learning extraction from completed work
+- CLAUDE.md integration with timestamped entries
+- Archive metadata generation (JSON + README)
+- Safety guardrails (preview, dry-run, confirmations)
+- Git integration (separate commits per action type)
+
+**Example Usage**:
+```
+User: "Clean up the root directory after vendor grouping implementation"
+Claude: *loads repo-cleanup*
+Claude: *scans 24 root files*
+Claude: "Found 4 files to archive, 2 learnings to extract, 3 files to relocate"
+Claude: *extracts vendor grouping pattern → CLAUDE.md*
+Claude: *archives to .archive/2025-10/vendor-grouping/*
+Claude: "Root cleaned: 24→5 files, 2 new CLAUDE.md entries, 5 git commits"
+```
+
+**Cleanup Categories**:
+- **Archive**: `*IMPLEMENTATION*COMPLETE*.md`, `*SUMMARY*.md` (with completion dates)
+- **Integration**: Extract patterns/pitfalls → Add to CLAUDE.md
+- **Relocate**: `*TEST*GUIDE*.md` → `docs/testing/`, `*DEMO*.md` → `docs/guides/`
+- **Delete**: `*.log`, `*.tmp`, `*_BACKUP*.md`, duplicates
+- **Preserve**: `README.md`, `CLAUDE.md`, `RUNBOOK.md`, `AGENTS.md`
+
+**Safety Features**:
+- Preview plan before execution
+- Dry-run mode by default
+- User confirmation for deletions
+- Atomic operations (archive first, delete last)
+- Git commit per action type
+- Rollback instructions on error
+
+---
+
 ## Skills by Category
 
 ### 🔐 Security & Authentication
@@ -178,6 +235,9 @@ Claude: "Both servers running: Frontend http://localhost:4200, Backend http://lo
 ### 📦 Meta & Development
 - **skill-creator**: Skill development and management
 - **dev-server-startup**: Development environment startup and management
+
+### 🧹 Maintenance & Documentation
+- **repo-cleanup**: Repository organization, learning extraction, documentation archival
 
 ---
 
@@ -218,7 +278,7 @@ Claude: "Both servers running: Frontend http://localhost:4200, Backend http://lo
    - Phase 3: Review code quality, security
    - Phase 4: Add to mcp.json, test integration
 
-3. **Delegate implementation**: 
+3. **Delegate implementation**:
    ```
    "backend-architect: implement this MCP server scaffold"
    ```
@@ -244,6 +304,41 @@ Claude: "Both servers running: Frontend http://localhost:4200, Backend http://lo
    }
    ```
 
+### Cleaning Up Repository
+
+1. **Use repo-cleanup**:
+   ```
+   "Clean up the repository after [feature] completion"
+   ```
+
+2. **Review cleanup plan**:
+   - Preview files to archive/relocate/delete
+   - Confirm learning extraction looks correct
+   - Verify CLAUDE.md updates are accurate
+
+3. **Execute cleanup**:
+   - Archive completed documentation
+   - Integrate learnings into CLAUDE.md
+   - Relocate misplaced files
+   - Delete temporary files
+
+4. **Verify results**:
+   ```bash
+   # Check root directory
+   ls -1 *.md
+
+   # Verify archive structure
+   ls -R .archive/
+
+   # Check CLAUDE.md updates
+   git diff CLAUDE.md
+   ```
+
+5. **Push changes**:
+   ```bash
+   git push origin main
+   ```
+
 ---
 
 ## MCP Server Library
@@ -251,10 +346,10 @@ Claude: "Both servers running: Frontend http://localhost:4200, Backend http://lo
 ### Active MCP Servers
 
 #### chrome-devtools
-**Status**: ✅ Active  
-**Location**: External (npx)  
-**Purpose**: Browser automation, testing, debugging  
-**Tools**: navigate, click, screenshot, evaluate, console, network  
+**Status**: ✅ Active
+**Location**: External (npx)
+**Purpose**: Browser automation, testing, debugging
+**Tools**: navigate, click, screenshot, evaluate, console, network
 **Configuration**:
 ```json
 {
@@ -266,13 +361,13 @@ Claude: "Both servers running: Frontend http://localhost:4200, Backend http://lo
 ### Planned MCP Servers
 
 #### supabase (Phase 2)
-**Status**: 📋 Planned  
-**Purpose**: Database operations, migrations, RLS testing  
+**Status**: 📋 Planned
+**Purpose**: Database operations, migrations, RLS testing
 **Tools**: query_database, create_migration, test_rls_policy, list_tables
 
 #### clickup (Phase 2)
-**Status**: 📋 Planned  
-**Purpose**: Task management, project tracking  
+**Status**: 📋 Planned
+**Purpose**: Task management, project tracking
 **Tools**: create_task, update_task_status, list_tasks, add_comment
 
 ---
@@ -360,5 +455,5 @@ See `.claude/skills/skill-creator/` for detailed creation process.
 ---
 
 **Last Updated**: 2025-10-30
-**Total Skills**: 4 (skill-creator, mcp-builder, webapp-testing, dev-server-startup)
+**Total Skills**: 5 (skill-creator, mcp-builder, webapp-testing, dev-server-startup, repo-cleanup)
 **Total MCP Servers**: 1 active, 2 planned
