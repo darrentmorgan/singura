@@ -1,3 +1,4 @@
+import { EventEmitter } from 'events';
 import {
   AIplatformAuditLog,
   AIPlatform,
@@ -13,6 +14,11 @@ import {
  * Google SSO or OAuth.
  */
 export class GoogleOAuthAIDetectorService {
+  private eventEmitter: EventEmitter;
+
+  constructor() {
+    this.eventEmitter = new EventEmitter();
+  }
   private readonly AI_PLATFORM_PATTERNS = {
     chatgpt: {
       domains: [
@@ -96,7 +102,26 @@ export class GoogleOAuthAIDetectorService {
     }
 
     // Normalize to AIplatformAuditLog
-    return this.normalizeToAIPlatformLog(googleEvent, detectedPlatform, parameters);
+    const result = this.normalizeToAIPlatformLog(googleEvent, detectedPlatform, parameters);
+
+    // Emit detection event for metrics tracking
+    const highestSeverity = result.riskIndicators.reduce((max, indicator) => {
+      const severityLevel = { low: 1, medium: 2, high: 3, critical: 4 };
+      const currentLevel = severityLevel[indicator.severity] || 1;
+      return Math.max(max, currentLevel);
+    }, 1);
+
+    this.eventEmitter.emit('detection', {
+      automationId: result.id,
+      predicted: highestSeverity >= 3 ? 'malicious' : 'legitimate',
+      confidence: result.riskIndicators.length > 0
+        ? Math.max(...result.riskIndicators.map(r => r.confidence))
+        : 50,
+      detectorName: 'GoogleOAuthAIDetector',
+      timestamp: new Date()
+    });
+
+    return result;
   }
 
   /**
@@ -302,6 +327,16 @@ export class GoogleOAuthAIDetectorService {
       platform: key as AIPlatform,
       displayName: value.displayName
     }));
+  }
+
+  /**
+   * Subscribe to detection events for metrics tracking
+   *
+   * @param event - Event name (e.g., 'detection')
+   * @param listener - Event handler function
+   */
+  on(event: string, listener: (...args: any[]) => void): void {
+    this.eventEmitter.on(event, listener);
   }
 }
 

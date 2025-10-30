@@ -1,0 +1,331 @@
+{
+  "falsePositives": [
+    {
+      "automationId": "slack-bot-009",
+      "detectorName": "ai-provider-detector",
+      "predictedMalicious": true,
+      "actualLegitimate": true,
+      "confidence": 0.5761789735311214,
+      "timestamp": "2025-10-30T02:12:18.428Z",
+      "automationDetails": {
+        "platform": "slack",
+        "type": "bot",
+        "features": {
+          "hasAIProvider": false,
+          "velocityScore": 0.35,
+          "offHoursActivity": false
+        }
+      },
+      "analysis": "Low velocity score (0.35) should reduce suspicion; Normal business hours activity pattern flagged incorrectly; AI provider detector triggered despite no AI integration detected"
+    },
+    {
+      "automationId": "slack-bot-012",
+      "detectorName": "ai-provider-detector",
+      "predictedMalicious": true,
+      "actualLegitimate": true,
+      "confidence": 0.6683992648170755,
+      "timestamp": "2025-10-30T02:12:18.428Z",
+      "automationDetails": {
+        "platform": "slack",
+        "type": "bot",
+        "features": {
+          "hasAIProvider": false,
+          "velocityScore": 0.22,
+          "offHoursActivity": false
+        }
+      },
+      "analysis": "Low velocity score (0.22) should reduce suspicion; Normal business hours activity pattern flagged incorrectly; AI provider detector triggered despite no AI integration detected"
+    },
+    {
+      "automationId": "microsoft-flow-029",
+      "detectorName": "ai-provider-detector",
+      "predictedMalicious": true,
+      "actualLegitimate": true,
+      "confidence": 0.5872432199365145,
+      "timestamp": "2025-10-30T02:12:18.428Z",
+      "automationDetails": {
+        "platform": "microsoft",
+        "type": "power-automate",
+        "features": {
+          "hasAIProvider": false,
+          "velocityScore": 0.21,
+          "offHoursActivity": false
+        }
+      },
+      "analysis": "Low velocity score (0.21) should reduce suspicion; Normal business hours activity pattern flagged incorrectly; AI provider detector triggered despite no AI integration detected"
+    },
+    {
+      "automationId": "google-script-040",
+      "detectorName": "ai-provider-detector",
+      "predictedMalicious": true,
+      "actualLegitimate": true,
+      "confidence": 0.5640815695628794,
+      "timestamp": "2025-10-30T02:12:18.428Z",
+      "automationDetails": {
+        "platform": "google",
+        "type": "apps-script",
+        "features": {
+          "hasAIProvider": false,
+          "velocityScore": 0.22,
+          "batchOperations": true,
+          "offHoursActivity": false
+        }
+      },
+      "analysis": "Low velocity score (0.22) should reduce suspicion; Normal business hours activity pattern flagged incorrectly; Batch operations without anomalous data volume may be legitimate automation; AI provider detector triggered despite no AI integration detected"
+    },
+    {
+      "automationId": "slack-bot-045",
+      "detectorName": "ai-provider-detector",
+      "predictedMalicious": true,
+      "actualLegitimate": true,
+      "confidence": 0.6842411034775602,
+      "timestamp": "2025-10-30T02:12:18.428Z",
+      "automationDetails": {
+        "platform": "slack",
+        "type": "bot",
+        "features": {
+          "hasAIProvider": false,
+          "velocityScore": 0.32,
+          "offHoursActivity": false
+        }
+      },
+      "analysis": "Low velocity score (0.32) should reduce suspicion; Normal business hours activity pattern flagged incorrectly; AI provider detector triggered despite no AI integration detected"
+    },
+    {
+      "automationId": "slack-bot-072",
+      "detectorName": "ai-provider-detector",
+      "predictedMalicious": true,
+      "actualLegitimate": true,
+      "confidence": 0.6895380613071695,
+      "timestamp": "2025-10-30T02:12:18.428Z",
+      "automationDetails": {
+        "platform": "slack",
+        "type": "bot",
+        "features": {
+          "hasAIProvider": false,
+          "velocityScore": 0.29,
+          "offHoursActivity": false
+        }
+      },
+      "analysis": "Low velocity score (0.29) should reduce suspicion; Normal business hours activity pattern flagged incorrectly; AI provider detector triggered despite no AI integration detected"
+    },
+    {
+      "automationId": "slack-bot-084",
+      "detectorName": "ai-provider-detector",
+      "predictedMalicious": true,
+      "actualLegitimate": true,
+      "confidence": 0.6684300264245778,
+      "timestamp": "2025-10-30T02:12:18.428Z",
+      "automationDetails": {
+        "platform": "slack",
+        "type": "bot",
+        "features": {
+          "hasAIProvider": false,
+          "velocityScore": 0.31,
+          "offHoursActivity": false
+        }
+      },
+      "analysis": "Low velocity score (0.31) should reduce suspicion; Normal business hours activity pattern flagged incorrectly; AI provider detector triggered despite no AI integration detected"
+    },
+    {
+      "automationId": "microsoft-flow-089",
+      "detectorName": "ai-provider-detector",
+      "predictedMalicious": true,
+      "actualLegitimate": true,
+      "confidence": 0.6532386416279267,
+      "timestamp": "2025-10-30T02:12:18.428Z",
+      "automationDetails": {
+        "platform": "microsoft",
+        "type": "power-automate",
+        "features": {
+          "hasAIProvider": false,
+          "velocityScore": 0.27,
+          "offHoursActivity": false
+        }
+      },
+      "analysis": "Low velocity score (0.27) should reduce suspicion; Normal business hours activity pattern flagged incorrectly; AI provider detector triggered despite no AI integration detected"
+    },
+    {
+      "automationId": "slack-bot-096",
+      "detectorName": "ai-provider-detector",
+      "predictedMalicious": true,
+      "actualLegitimate": true,
+      "confidence": 0.6818384658812994,
+      "timestamp": "2025-10-30T02:12:18.428Z",
+      "automationDetails": {
+        "platform": "slack",
+        "type": "bot",
+        "features": {
+          "hasAIProvider": false,
+          "velocityScore": 0.3,
+          "offHoursActivity": false
+        }
+      },
+      "analysis": "Low velocity score (0.3) should reduce suspicion; Normal business hours activity pattern flagged incorrectly; AI provider detector triggered despite no AI integration detected"
+    },
+    {
+      "automationId": "google-script-097",
+      "detectorName": "ai-provider-detector",
+      "predictedMalicious": true,
+      "actualLegitimate": true,
+      "confidence": 0.587573785778781,
+      "timestamp": "2025-10-30T02:12:18.428Z",
+      "automationDetails": {
+        "platform": "google",
+        "type": "apps-script",
+        "features": {
+          "hasAIProvider": false,
+          "velocityScore": 0.26,
+          "batchOperations": true,
+          "offHoursActivity": false
+        }
+      },
+      "analysis": "Low velocity score (0.26) should reduce suspicion; Normal business hours activity pattern flagged incorrectly; Batch operations without anomalous data volume may be legitimate automation; AI provider detector triggered despite no AI integration detected"
+    }
+  ],
+  "falseNegatives": [
+    {
+      "automationId": "microsoft-flow-050",
+      "detectorName": "ai-provider-detector",
+      "predictedLegitimate": true,
+      "actualMalicious": true,
+      "confidence": 0.6831942963699142,
+      "timestamp": "2025-10-30T02:12:18.428Z",
+      "automationDetails": {
+        "platform": "microsoft",
+        "type": "power-automate",
+        "features": {
+          "hasAIProvider": true,
+          "aiProvider": "openai",
+          "velocityScore": 0.93,
+          "dataVolumeAnomalous": true,
+          "batchOperations": true,
+          "offHoursActivity": true,
+          "permissionEscalation": true
+        },
+        "attackType": "data_exfiltration"
+      },
+      "analysis": "High velocity score (0.93) not weighted enough; AI provider detector failed to flag AI integration; Permission escalation detector not triggered; Data volume detector missed anomalous pattern; Off-hours data exfiltration pattern missed"
+    },
+    {
+      "automationId": "slack-bot-001",
+      "detectorName": "none",
+      "predictedLegitimate": true,
+      "actualMalicious": true,
+      "confidence": 0,
+      "timestamp": "2025-10-30T02:12:18.429Z",
+      "automationDetails": {
+        "platform": "slack",
+        "type": "bot",
+        "features": {
+          "hasAIProvider": true,
+          "aiProvider": "openai",
+          "velocityScore": 0.89,
+          "offHoursActivity": true,
+          "dataVolumeAnomalous": true
+        },
+        "attackType": "data_exfiltration"
+      },
+      "analysis": "Critical miss: data_exfiltration attack not detected by any detector; AI provider (openai) integration went undetected; Anomalous data volume pattern missed"
+    },
+    {
+      "automationId": "google-script-002",
+      "detectorName": "none",
+      "predictedLegitimate": true,
+      "actualMalicious": true,
+      "confidence": 0,
+      "timestamp": "2025-10-30T02:12:18.429Z",
+      "automationDetails": {
+        "platform": "google",
+        "type": "apps-script",
+        "features": {
+          "hasAIProvider": true,
+          "aiProvider": "anthropic",
+          "permissionEscalation": true,
+          "batchOperations": true
+        },
+        "attackType": "privilege_escalation"
+      },
+      "analysis": "Critical miss: privilege_escalation attack not detected by any detector; AI provider (anthropic) integration went undetected; Permission escalation pattern not flagged"
+    }
+  ],
+  "stats": {
+    "totalFP": 10,
+    "totalFN": 3,
+    "totalTP": 48,
+    "totalTN": 39,
+    "fpRate": 0.20408163265306123,
+    "fnRate": 0.058823529411764705,
+    "byDetector": [
+      {
+        "detector": "baseline-detector",
+        "fpCount": 0,
+        "fnCount": 0,
+        "totalErrors": 0,
+        "fpRate": 0,
+        "fnRate": 0
+      },
+      {
+        "detector": "velocity-detector",
+        "fpCount": 0,
+        "fnCount": 0,
+        "totalErrors": 0,
+        "fpRate": 0,
+        "fnRate": 0
+      },
+      {
+        "detector": "ai-provider-detector",
+        "fpCount": 10,
+        "fnCount": 1,
+        "totalErrors": 11,
+        "fpRate": 1,
+        "fnRate": 1
+      }
+    ],
+    "byPlatform": [
+      {
+        "platform": "microsoft",
+        "fpCount": 2,
+        "fnCount": 1,
+        "totalErrors": 3,
+        "fpRate": 0.125,
+        "fnRate": 0.0625
+      },
+      {
+        "platform": "slack",
+        "fpCount": 6,
+        "fnCount": 0,
+        "totalErrors": 6,
+        "fpRate": 0.375,
+        "fnRate": 0
+      },
+      {
+        "platform": "google",
+        "fpCount": 2,
+        "fnCount": 0,
+        "totalErrors": 2,
+        "fpRate": 0.11764705882352941,
+        "fnRate": 0
+      }
+    ],
+    "byAttackType": [
+      {
+        "attackType": "data_exfiltration",
+        "fpCount": 0,
+        "fnCount": 2
+      },
+      {
+        "attackType": "privilege_escalation",
+        "fpCount": 0,
+        "fnCount": 1
+      }
+    ]
+  },
+  "recommendations": [
+    "CRITICAL: ai-provider-detector has high false positive rate (100.0%). Consider tuning confidence thresholds or feature weights.",
+    "CRITICAL: ai-provider-detector has high false negative rate (100.0%). This is a security risk - review detection logic and feature extraction.",
+    "ai-provider-detector has 11 total misclassifications. This detector needs comprehensive review and retraining.",
+    "slack platform has high false positive rate (37.5%). Review platform-specific feature extraction and normalization.",
+    "CRITICAL: 2 threats completely missed by all detectors. Urgent review required - possible blind spot in detection coverage."
+  ]
+}

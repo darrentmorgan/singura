@@ -1,3 +1,4 @@
+import { EventEmitter } from 'events';
 import {
   GoogleWorkspaceEvent,
   GoogleActivityPattern
@@ -23,6 +24,7 @@ interface EscalationPattern {
 }
 
 export class PermissionEscalationDetectorService {
+  private eventEmitter: EventEmitter;
   private readonly PERMISSION_LEVELS: Record<string, number> = {
     'read': 0,
     'viewer': 0,
@@ -36,6 +38,10 @@ export class PermissionEscalationDetectorService {
     'owner': 4,
     'organizer': 4
   };
+
+  constructor() {
+    this.eventEmitter = new EventEmitter();
+  }
 
   /**
    * Detect permission escalation patterns in Google Workspace events
@@ -67,6 +73,15 @@ export class PermissionEscalationDetectorService {
       if (escalationPattern) {
         const pattern = this.convertToActivityPattern(escalationPattern);
         patterns.push(pattern);
+
+        // Emit detection event for metrics tracking
+        this.eventEmitter.emit('detection', {
+          automationId: pattern.patternId,
+          predicted: pattern.confidence > 75 ? 'malicious' : 'legitimate',
+          confidence: pattern.confidence,
+          detectorName: 'PermissionEscalationDetector',
+          timestamp: new Date()
+        });
       }
     }
 
@@ -333,6 +348,16 @@ export class PermissionEscalationDetectorService {
       suspiciousVelocity: 0.1,          // 0.1 escalations/day = ~3/month
       minimumEventsForAnalysis: 3        // Need at least 3 permission events (unless critical jump)
     };
+  }
+
+  /**
+   * Subscribe to detection events for metrics tracking
+   *
+   * @param event - Event name (e.g., 'detection')
+   * @param listener - Event handler function
+   */
+  on(event: string, listener: (...args: any[]) => void): void {
+    this.eventEmitter.on(event, listener);
   }
 }
 

@@ -1,0 +1,94 @@
+# Codecov Configuration for Singura Backend Testing Suite
+# https://docs.codecov.com/docs/codecov-yaml
+
+codecov:
+  require_ci_to_pass: yes
+  notify:
+    after_n_builds: 5  # Wait for all parallel jobs (unit, integration, security, e2e, stress)
+    wait_for_ci: yes
+
+coverage:
+  precision: 2
+  round: down
+  range: "70...100"
+
+  status:
+    project:
+      default:
+        target: 80%
+        threshold: 2%  # Allow 2% drop
+        if_ci_failed: error
+
+      # Security and OAuth code requires 100% coverage
+      security:
+        target: 100%
+        threshold: 0%
+        paths:
+          - "src/security/**"
+          - "src/services/oauth/**"
+          - "src/middleware/auth/**"
+        if_no_uploads: error
+        if_ci_failed: error
+
+      # Core detection algorithm requires high coverage
+      detection:
+        target: 95%
+        threshold: 1%
+        paths:
+          - "src/services/detection/**"
+        if_no_uploads: error
+
+    patch:
+      default:
+        target: 80%
+        threshold: 5%
+        if_ci_failed: error
+
+  # Flag management for different test types
+  flags:
+    unit:
+      paths:
+        - "src/**"
+      carryforward: true
+
+    integration:
+      paths:
+        - "src/**"
+      carryforward: true
+
+    security:
+      paths:
+        - "src/security/**"
+        - "src/services/oauth/**"
+      carryforward: true
+
+    e2e:
+      paths:
+        - "src/**"
+      carryforward: true
+
+comment:
+  layout: "reach, diff, flags, files"
+  behavior: default
+  require_changes: no
+  require_base: no
+  require_head: yes
+
+  # Customize PR comment content
+  after_n_builds: 5
+
+ignore:
+  - "tests/**"
+  - "scripts/**"
+  - "**/*.test.ts"
+  - "**/*.spec.ts"
+  - "**/dist/**"
+  - "**/node_modules/**"
+  - "**/*.d.ts"
+
+# GitHub Checks integration
+github_checks:
+  annotations: true
+
+# Slack notifications (optional)
+slack_app: false

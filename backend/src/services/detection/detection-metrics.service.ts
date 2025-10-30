@@ -238,7 +238,7 @@ export class DetectionMetricsService {
     }
 
     // Generate thresholds from unique confidence values
-    const uniqueConfidences = [...new Set(sortedPredictions.map(p => p.confidence))];
+    const uniqueConfidences = Array.from(new Set(sortedPredictions.map(p => p.confidence)));
     const thresholds = [0, ...uniqueConfidences.sort((a, b) => b - a), 1];
 
     const curve: Array<{ threshold: number; precision: number; recall: number }> = [];

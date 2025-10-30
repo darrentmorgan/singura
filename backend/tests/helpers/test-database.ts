@@ -73,7 +73,8 @@ export class TestDatabase {
     const fixtures: TestFixtures = {
       organization: null as any,
       platformConnection: null as any,
-      encryptedCredentials: []
+      encryptedCredentials: [],
+      discoveryRun: null as any
     };
 
     // Create test organization with unique values
@@ -92,7 +93,7 @@ export class TestDatabase {
     `, [uniqueId]);
     fixtures.organization = orgResult.rows[0] as OrganizationRecord;
 
-    // Create test platform connection  
+    // Create test platform connection
     const connResult = await this.query(`
       INSERT INTO platform_connections (
         organization_id, platform_type, platform_user_id, platform_workspace_id,
@@ -106,6 +107,18 @@ export class TestDatabase {
       ) RETURNING *
     `, [fixtures.organization.id]);
     fixtures.platformConnection = connResult.rows[0] as ConnectionRecord;
+
+    // Create test discovery run
+    const discoveryRunResult = await this.query(`
+      INSERT INTO discovery_runs (
+        organization_id, platform_connection_id, status,
+        started_at, completed_at, automations_found
+      ) VALUES (
+        $1, $2, 'completed',
+        NOW(), NOW(), 0
+      ) RETURNING *
+    `, [fixtures.organization.id, fixtures.platformConnection.id]);
+    fixtures.discoveryRun = discoveryRunResult.rows[0];
 
     // Note: No users table in current schema - authentication is mocked in tests
 
@@ -217,6 +230,7 @@ export interface TestFixtures {
   organization: OrganizationRecord;
   platformConnection: ConnectionRecord;
   encryptedCredentials: Record<string, unknown>[];
+  discoveryRun: any;
 }
 
 // Export singleton instance

@@ -4,6 +4,7 @@
  * Phase 1: AI Provider Detection (Production-Ready)
  */
 
+import { EventEmitter } from 'events';
 import {
   GoogleWorkspaceEvent,
   AutomationSignature,
@@ -29,8 +30,14 @@ type AIProviderDetection = AIProviderDetectionResult;
  * - Model name extraction (gpt-4, claude-3-opus, gemini-pro, etc.)
  * - Evidence collection for each detection
  * - Compatible with existing detection engine
+ * - Metrics tracking via EventEmitter for DetectionMetricsService
  */
 export class AIProviderDetectorService {
+  private eventEmitter: EventEmitter;
+
+  constructor() {
+    this.eventEmitter = new EventEmitter();
+  }
   /**
    * Detect AI providers from Google Workspace events
    * Returns automation signatures (legacy format) for backward compatibility
@@ -40,7 +47,20 @@ export class AIProviderDetectorService {
    */
   detectAIProviders(events: GoogleWorkspaceEvent[]): AutomationSignature[] {
     const detections = this.detectAIProvidersInternal(events);
-    return this.generateAutomationSignatures(detections, events);
+    const signatures = this.generateAutomationSignatures(detections, events);
+
+    // Emit detection events for metrics tracking
+    for (const signature of signatures) {
+      this.eventEmitter.emit('detection', {
+        automationId: signature.signatureId,
+        predicted: signature.riskLevel === 'critical' || signature.riskLevel === 'high' ? 'malicious' : 'legitimate',
+        confidence: signature.confidence,
+        detectorName: 'AIProviderDetector',
+        timestamp: new Date()
+      });
+    }
+
+    return signatures;
   }
 
   /**
@@ -485,6 +505,16 @@ export class AIProviderDetectorService {
       averageConfidence: detections.length > 0 ? Math.round(totalConfidence / detections.length) : 0,
       detectionMethods
     };
+  }
+
+  /**
+   * Subscribe to detection events for metrics tracking
+   *
+   * @param event - Event name (e.g., 'detection')
+   * @param listener - Event handler function
+   */
+  on(event: string, listener: (...args: any[]) => void): void {
+    this.eventEmitter.on(event, listener);
   }
 }
 

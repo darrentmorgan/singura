@@ -1,3 +1,4 @@
+import { EventEmitter } from 'events';
 import {
   BatchOperationDetector,
   GoogleWorkspaceEvent,
@@ -6,12 +7,31 @@ import {
 } from '@singura/shared-types';
 
 export class BatchOperationDetectorService implements BatchOperationDetector {
+  private eventEmitter: EventEmitter;
+
+  constructor() {
+    this.eventEmitter = new EventEmitter();
+  }
+
   detectBatchOperations(events: GoogleWorkspaceEvent[]): GoogleActivityPattern[] {
     const batchGroups = this.identifySimilarActions(events);
-    
-    return batchGroups
+
+    const patterns = batchGroups
       .filter(group => this.calculateBatchLikelihood(group) > 0.7) // High confidence batch
       .map(group => this.convertBatchGroupToActivityPattern(group));
+
+    // Emit detection events for metrics tracking
+    for (const pattern of patterns) {
+      this.eventEmitter.emit('detection', {
+        automationId: pattern.patternId,
+        predicted: pattern.confidence > 80 ? 'malicious' : 'legitimate',
+        confidence: pattern.confidence,
+        detectorName: 'BatchOperationDetector',
+        timestamp: new Date()
+      });
+    }
+
+    return patterns;
   }
 
   identifySimilarActions(events: GoogleWorkspaceEvent[]): BatchOperationGroup[] {
@@ -213,7 +233,7 @@ export class BatchOperationDetectorService implements BatchOperationDetector {
     if (group.events.length === 0) {
       throw new Error('Cannot convert empty batch group to activity pattern');
     }
-    
+
     const representativeEvent = group.events[0]!;
 
     return {
@@ -240,5 +260,15 @@ export class BatchOperationDetectorService implements BatchOperationDetector {
         supportingEvents: group.events.map(e => e.eventId)
       }
     };
+  }
+
+  /**
+   * Subscribe to detection events for metrics tracking
+   *
+   * @param event - Event name (e.g., 'detection')
+   * @param listener - Event handler function
+   */
+  on(event: string, listener: (...args: any[]) => void): void {
+    this.eventEmitter.on(event, listener);
   }
 }

@@ -1,22 +1,29 @@
-import { 
-  VelocityDetector, 
-  GoogleWorkspaceEvent, 
-  TemporalPattern, 
-  isValidGoogleActivityPattern 
+import { EventEmitter } from 'events';
+import {
+  VelocityDetector,
+  GoogleWorkspaceEvent,
+  TemporalPattern,
+  isValidGoogleActivityPattern
 } from '@singura/shared-types';
 
 export class VelocityDetectorService implements VelocityDetector {
+  private eventEmitter: EventEmitter;
+
+  constructor() {
+    this.eventEmitter = new EventEmitter();
+  }
+
   detectVelocityAnomalies(events: GoogleWorkspaceEvent[]): TemporalPattern[] {
     const velocityPatterns: TemporalPattern[] = [];
     const thresholds = this.getVelocityThresholds();
-    
+
     // Group events by type
     const eventsByType = this.groupEventsByType(events);
 
     Object.entries(eventsByType).forEach(([type, typeEvents]) => {
       const timeWindow = this.calculateTimeWindow(typeEvents);
       const velocity = this.calculateEventsPerSecond(typeEvents, timeWindow.durationMs);
-      
+
       if (this.isInhumanVelocity(velocity, type)) {
         const pattern: TemporalPattern = {
           patternId: `velocity_anomaly_${type}_${Date.now()}`,
@@ -38,6 +45,15 @@ export class VelocityDetectorService implements VelocityDetector {
         };
 
         velocityPatterns.push(pattern);
+
+        // Emit detection event for metrics tracking
+        this.eventEmitter.emit('detection', {
+          automationId: pattern.patternId,
+          predicted: pattern.anomalyScore > 75 ? 'malicious' : 'legitimate',
+          confidence: pattern.confidence,
+          detectorName: 'VelocityDetector',
+          timestamp: new Date()
+        });
       }
     });
 
@@ -130,5 +146,15 @@ export class VelocityDetectorService implements VelocityDetector {
     const anomalyScore = this.calculateAnomalyScore(velocity, actionType);
     // Confidence is directly proportional to anomaly score
     return Math.min(anomalyScore * 1.2, 100);
+  }
+
+  /**
+   * Subscribe to detection events for metrics tracking
+   *
+   * @param event - Event name (e.g., 'detection')
+   * @param listener - Event handler function
+   */
+  on(event: string, listener: (...args: any[]) => void): void {
+    this.eventEmitter.on(event, listener);
   }
 }

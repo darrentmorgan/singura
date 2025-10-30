@@ -1,3 +1,4 @@
+import { EventEmitter } from 'events';
 import {
   GoogleWorkspaceEvent,
   GoogleActivityPattern,
@@ -24,6 +25,7 @@ import { BehavioralBaselineLearningService } from '../ml-behavioral/behavioral-b
 import { ReinforcementLearningService } from '../reinforcement-learning.service';
 
 export class DetectionEngineService {
+  private eventEmitter: EventEmitter;
   private velocityDetector: VelocityDetectorService;
   private batchOperationDetector: BatchOperationDetectorService;
   private offHoursDetector: OffHoursDetectorService;
@@ -36,6 +38,7 @@ export class DetectionEngineService {
   private reinforcementLearningService: ReinforcementLearningService;
 
   constructor(private organizationId?: string) {
+    this.eventEmitter = new EventEmitter();
     this.velocityDetector = new VelocityDetectorService();
     this.batchOperationDetector = new BatchOperationDetectorService();
     this.offHoursDetector = new OffHoursDetectorService();
@@ -324,5 +327,16 @@ export class DetectionEngineService {
       (averagePatternRisk * 0.6 + averageIndicatorRisk * 0.4),
       100
     );
+  }
+
+  /**
+   * Subscribe to detection events for metrics tracking
+   * Note: This aggregates events from all sub-detectors
+   *
+   * @param event - Event name (e.g., 'detection')
+   * @param listener - Event handler function
+   */
+  on(event: string, listener: (...args: any[]) => void): void {
+    this.eventEmitter.on(event, listener);
   }
 }

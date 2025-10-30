@@ -1,3 +1,4 @@
+import { EventEmitter } from 'events';
 import {
   OffHoursDetector,
   GoogleWorkspaceEvent,
@@ -8,6 +9,12 @@ import {
 import { DateTime } from 'luxon';
 
 export class OffHoursDetectorService implements OffHoursDetector {
+  private eventEmitter: EventEmitter;
+
+  constructor() {
+    this.eventEmitter = new EventEmitter();
+  }
+
   detectOffHoursActivity(
     events: GoogleWorkspaceEvent[],
     businessHours: ActivityTimeframe['businessHours']
@@ -23,7 +30,20 @@ export class OffHoursDetectorService implements OffHoursDetector {
     const totalActivityPercentage = this.calculateOffHoursRisk(offHoursEvents, events);
 
     if (totalActivityPercentage >= this.getOffHoursThresholds().suspiciousActivityThreshold) {
-      return this.generateOffHoursActivityPatterns(offHoursEvents, totalActivityPercentage);
+      const patterns = this.generateOffHoursActivityPatterns(offHoursEvents, totalActivityPercentage);
+
+      // Emit detection events for metrics tracking
+      for (const pattern of patterns) {
+        this.eventEmitter.emit('detection', {
+          automationId: pattern.patternId,
+          predicted: pattern.confidence > 70 ? 'malicious' : 'legitimate',
+          confidence: pattern.confidence,
+          detectorName: 'OffHoursDetector',
+          timestamp: new Date()
+        });
+      }
+
+      return patterns;
     }
 
     return [];
@@ -134,9 +154,19 @@ export class OffHoursDetectorService implements OffHoursDetector {
 
   private determineRiskLevel(offHoursPercentage: number): GoogleActivityPattern['metadata']['actionType'] {
     const thresholds = this.getOffHoursThresholds();
-    
+
     if (offHoursPercentage < thresholds.suspiciousActivityThreshold) return 'file_edit';
     if (offHoursPercentage < thresholds.criticalActivityThreshold) return 'file_share';
     return 'script_execution';
+  }
+
+  /**
+   * Subscribe to detection events for metrics tracking
+   *
+   * @param event - Event name (e.g., 'detection')
+   * @param listener - Event handler function
+   */
+  on(event: string, listener: (...args: any[]) => void): void {
+    this.eventEmitter.on(event, listener);
   }
 }

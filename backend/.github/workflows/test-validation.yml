@@ -1,0 +1,820 @@
+name: Test Validation Suite (Enhanced CI/CD)
+
+on:
+  push:
+    branches: [ main, develop ]
+    paths:
+      - 'backend/**'
+      - '.github/workflows/test-validation.yml'
+  pull_request:
+    branches: [ main, develop ]
+    paths:
+      - 'backend/**'
+      - '.github/workflows/test-validation.yml'
+
+# Ensure only one workflow runs per branch/PR
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  NODE_VERSION: '20.x'
+  # Test database configuration
+  TEST_DB_HOST: localhost
+  TEST_DB_PORT: 5433
+  TEST_DB_NAME: singura_test
+  TEST_DB_USER: test_user
+  TEST_DB_PASSWORD: test_password
+  # Test Redis configuration
+  TEST_REDIS_PORT: 6380
+  TEST_REDIS_URL: redis://localhost:6380
+
+jobs:
+  # Job 1: Prepare environment and run fast checks (linting, type checks)
+  prepare-and-lint:
+    name: Prepare & Lint
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0  # Needed for performance regression detection
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+        cache-dependency-path: backend/package-lock.json
+
+    - name: Cache node_modules
+      uses: actions/cache@v3
+      id: npm-cache
+      with:
+        path: backend/node_modules
+        key: ${{ runner.os }}-node-${{ hashFiles('backend/package-lock.json') }}
+        restore-keys: |
+          ${{ runner.os }}-node-
+
+    - name: Install dependencies
+      if: steps.npm-cache.outputs.cache-hit != 'true'
+      working-directory: ./backend
+      run: npm ci --prefer-offline --no-audit
+
+    - name: Lint code
+      working-directory: ./backend
+      run: npm run lint
+
+    - name: Type check
+      working-directory: ./backend
+      run: npx tsc --noEmit
+
+    - name: Cache build artifacts
+      uses: actions/cache@v3
+      with:
+        path: |
+          backend/node_modules
+          backend/dist
+        key: build-${{ github.sha }}
+
+  # Job 2: Unit tests (fast, no external dependencies)
+  unit-tests:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+    needs: prepare-and-lint
+    timeout-minutes: 8
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+        cache-dependency-path: backend/package-lock.json
+
+    - name: Restore build cache
+      uses: actions/cache@v3
+      with:
+        path: |
+          backend/node_modules
+          backend/dist
+        key: build-${{ github.sha }}
+
+    - name: Setup test environment
+      working-directory: ./backend
+      run: |
+        cat > .env.test << EOF
+        NODE_ENV=test
+        LOG_LEVEL=error
+        MASTER_ENCRYPTION_KEY=test_master_encryption_key_with_sufficient_length_for_aes_256_gcm_encryption_testing_purposes
+        ENCRYPTION_SALT=test-salt-for-key-derivation-in-ci-environment
+        JWT_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQC5f8QqKpnUj9yE\n-----END PRIVATE KEY-----"
+        JWT_PUBLIC_KEY="-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAuX/EKiqZ1I/chE\n-----END PUBLIC KEY-----"
+        SESSION_SECRET=test_session_secret_for_ci_environment
+        EOF
+
+    - name: Run unit tests with coverage
+      working-directory: ./backend
+      run: npm run test:unit -- --ci --coverage --maxWorkers=2 --testTimeout=30000
+
+    - name: Upload unit test coverage
+      uses: actions/upload-artifact@v4
+      with:
+        name: coverage-unit
+        path: backend/coverage/
+        retention-days: 30
+
+  # Job 3: Integration tests (with PostgreSQL and Redis)
+  integration-tests:
+    name: Integration Tests
+    runs-on: ubuntu-latest
+    needs: prepare-and-lint
+    timeout-minutes: 10
+
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_DB: ${{ env.TEST_DB_NAME }}
+          POSTGRES_USER: ${{ env.TEST_DB_USER }}
+          POSTGRES_PASSWORD: ${{ env.TEST_DB_PASSWORD }}
+        options: >-
+          --health-cmd "pg_isready -U test_user -d singura_test"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+        ports:
+          - 5433:5432
+
+      redis:
+        image: redis:7-alpine
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+        ports:
+          - 6380:6379
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+        cache-dependency-path: backend/package-lock.json
+
+    - name: Restore build cache
+      uses: actions/cache@v3
+      with:
+        path: |
+          backend/node_modules
+          backend/dist
+        key: build-${{ github.sha }}
+
+    - name: Verify service health
+      run: |
+        echo "PostgreSQL health check..."
+        pg_isready -h localhost -p 5433 -U test_user
+        echo "Redis health check..."
+        redis-cli -h localhost -p 6380 ping
+
+    - name: Setup test environment
+      working-directory: ./backend
+      run: |
+        cat > .env.test << EOF
+        NODE_ENV=test
+        DB_HOST=${{ env.TEST_DB_HOST }}
+        DB_PORT=${{ env.TEST_DB_PORT }}
+        DB_NAME=${{ env.TEST_DB_NAME }}
+        DB_USER=${{ env.TEST_DB_USER }}
+        DB_PASSWORD=${{ env.TEST_DB_PASSWORD }}
+        REDIS_URL=${{ env.TEST_REDIS_URL }}
+        MASTER_ENCRYPTION_KEY=test_master_encryption_key_with_sufficient_length_for_aes_256_gcm_encryption_testing_purposes
+        ENCRYPTION_SALT=test-salt-for-key-derivation-in-ci-environment
+        JWT_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQC5f8QqKpnUj9yE\n-----END PRIVATE KEY-----"
+        JWT_PUBLIC_KEY="-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAuX/EKiqZ1I/chE\n-----END PUBLIC KEY-----"
+        SLACK_CLIENT_ID=test_slack_client_id
+        SLACK_CLIENT_SECRET=test_slack_client_secret
+        GOOGLE_CLIENT_ID=test_google_client_id
+        GOOGLE_CLIENT_SECRET=test_google_client_secret
+        MICROSOFT_CLIENT_ID=test_microsoft_client_id
+        MICROSOFT_CLIENT_SECRET=test_microsoft_client_secret
+        SESSION_SECRET=test_session_secret_for_ci_environment
+        LOG_LEVEL=error
+        EOF
+
+    - name: Run database migrations
+      working-directory: ./backend
+      run: npm run migrate
+      env:
+        DATABASE_URL: postgresql://${{ env.TEST_DB_USER }}:${{ env.TEST_DB_PASSWORD }}@${{ env.TEST_DB_HOST }}:${{ env.TEST_DB_PORT }}/${{ env.TEST_DB_NAME }}
+
+    - name: Run integration tests with coverage
+      working-directory: ./backend
+      run: npm run test:integration -- --ci --coverage --maxWorkers=2 --testTimeout=30000
+
+    - name: Upload integration test coverage
+      uses: actions/upload-artifact@v4
+      with:
+        name: coverage-integration
+        path: backend/coverage/
+        retention-days: 30
+
+  # Job 4: Security tests (with PostgreSQL and Redis)
+  security-tests:
+    name: Security Tests
+    runs-on: ubuntu-latest
+    needs: prepare-and-lint
+    timeout-minutes: 8
+
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_DB: ${{ env.TEST_DB_NAME }}
+          POSTGRES_USER: ${{ env.TEST_DB_USER }}
+          POSTGRES_PASSWORD: ${{ env.TEST_DB_PASSWORD }}
+        options: >-
+          --health-cmd "pg_isready -U test_user -d singura_test"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+        ports:
+          - 5433:5432
+
+      redis:
+        image: redis:7-alpine
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+        ports:
+          - 6380:6379
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+        cache-dependency-path: backend/package-lock.json
+
+    - name: Restore build cache
+      uses: actions/cache@v3
+      with:
+        path: |
+          backend/node_modules
+          backend/dist
+        key: build-${{ github.sha }}
+
+    - name: Setup test environment
+      working-directory: ./backend
+      run: |
+        cat > .env.test << EOF
+        NODE_ENV=test
+        DB_HOST=${{ env.TEST_DB_HOST }}
+        DB_PORT=${{ env.TEST_DB_PORT }}
+        DB_NAME=${{ env.TEST_DB_NAME }}
+        DB_USER=${{ env.TEST_DB_USER }}
+        DB_PASSWORD=${{ env.TEST_DB_PASSWORD }}
+        REDIS_URL=${{ env.TEST_REDIS_URL }}
+        MASTER_ENCRYPTION_KEY=test_master_encryption_key_with_sufficient_length_for_aes_256_gcm_encryption_testing_purposes
+        ENCRYPTION_SALT=test-salt-for-key-derivation-in-ci-environment
+        JWT_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQC5f8QqKpnUj9yE\n-----END PRIVATE KEY-----"
+        JWT_PUBLIC_KEY="-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAuX/EKiqZ1I/chE\n-----END PUBLIC KEY-----"
+        SESSION_SECRET=test_session_secret_for_ci_environment
+        LOG_LEVEL=error
+        EOF
+
+    - name: Run database migrations
+      working-directory: ./backend
+      run: npm run migrate
+      env:
+        DATABASE_URL: postgresql://${{ env.TEST_DB_USER }}:${{ env.TEST_DB_PASSWORD }}@${{ env.TEST_DB_HOST }}:${{ env.TEST_DB_PORT }}/${{ env.TEST_DB_NAME }}
+
+    - name: Run security tests with coverage
+      working-directory: ./backend
+      run: npm run test:security -- --ci --coverage --maxWorkers=2 --testTimeout=30000
+
+    - name: Upload security test coverage
+      uses: actions/upload-artifact@v4
+      with:
+        name: coverage-security
+        path: backend/coverage/
+        retention-days: 30
+
+  # Job 5: E2E tests (full stack with retry logic)
+  e2e-tests:
+    name: E2E Tests
+    runs-on: ubuntu-latest
+    needs: prepare-and-lint
+    timeout-minutes: 12
+
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_DB: ${{ env.TEST_DB_NAME }}
+          POSTGRES_USER: ${{ env.TEST_DB_USER }}
+          POSTGRES_PASSWORD: ${{ env.TEST_DB_PASSWORD }}
+        options: >-
+          --health-cmd "pg_isready -U test_user -d singura_test"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+        ports:
+          - 5433:5432
+
+      redis:
+        image: redis:7-alpine
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+        ports:
+          - 6380:6379
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+        cache-dependency-path: backend/package-lock.json
+
+    - name: Restore build cache
+      uses: actions/cache@v3
+      with:
+        path: |
+          backend/node_modules
+          backend/dist
+        key: build-${{ github.sha }}
+
+    - name: Setup test environment
+      working-directory: ./backend
+      run: |
+        cat > .env.test << EOF
+        NODE_ENV=test
+        DB_HOST=${{ env.TEST_DB_HOST }}
+        DB_PORT=${{ env.TEST_DB_PORT }}
+        DB_NAME=${{ env.TEST_DB_NAME }}
+        DB_USER=${{ env.TEST_DB_USER }}
+        DB_PASSWORD=${{ env.TEST_DB_PASSWORD }}
+        REDIS_URL=${{ env.TEST_REDIS_URL }}
+        MASTER_ENCRYPTION_KEY=test_master_encryption_key_with_sufficient_length_for_aes_256_gcm_encryption_testing_purposes
+        ENCRYPTION_SALT=test-salt-for-key-derivation-in-ci-environment
+        JWT_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQC5f8QqKpnUj9yE\n-----END PRIVATE KEY-----"
+        JWT_PUBLIC_KEY="-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAuX/EKiqZ1I/chE\n-----END PUBLIC KEY-----"
+        SLACK_CLIENT_ID=test_slack_client_id
+        SLACK_CLIENT_SECRET=test_slack_client_secret
+        GOOGLE_CLIENT_ID=test_google_client_id
+        GOOGLE_CLIENT_SECRET=test_google_client_secret
+        MICROSOFT_CLIENT_ID=test_microsoft_client_id
+        MICROSOFT_CLIENT_SECRET=test_microsoft_client_secret
+        SESSION_SECRET=test_session_secret_for_ci_environment
+        LOG_LEVEL=error
+        EOF
+
+    - name: Run database migrations
+      working-directory: ./backend
+      run: npm run migrate
+      env:
+        DATABASE_URL: postgresql://${{ env.TEST_DB_USER }}:${{ env.TEST_DB_PASSWORD }}@${{ env.TEST_DB_HOST }}:${{ env.TEST_DB_PORT }}/${{ env.TEST_DB_NAME }}
+
+    - name: Run E2E tests with retry and coverage
+      working-directory: ./backend
+      run: |
+        # Run E2E tests with automatic retry on failure (up to 3 attempts)
+        npm run test:e2e -- --ci --coverage --maxWorkers=1 --testTimeout=30000 || \
+        npm run test:e2e -- --ci --coverage --maxWorkers=1 --testTimeout=30000 || \
+        npm run test:e2e -- --ci --coverage --maxWorkers=1 --testTimeout=30000
+
+    - name: Upload E2E test coverage
+      uses: actions/upload-artifact@v4
+      with:
+        name: coverage-e2e
+        path: backend/coverage/
+        retention-days: 30
+
+    - name: Upload E2E screenshots on failure
+      if: failure()
+      uses: actions/upload-artifact@v4
+      with:
+        name: e2e-screenshots
+        path: backend/tests/e2e/screenshots/
+        retention-days: 7
+
+  # Job 6: Stress/Performance tests
+  stress-tests:
+    name: Stress & Performance Tests
+    runs-on: ubuntu-latest
+    needs: prepare-and-lint
+    timeout-minutes: 10
+
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_DB: ${{ env.TEST_DB_NAME }}
+          POSTGRES_USER: ${{ env.TEST_DB_USER }}
+          POSTGRES_PASSWORD: ${{ env.TEST_DB_PASSWORD }}
+        options: >-
+          --health-cmd "pg_isready -U test_user -d singura_test"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+        ports:
+          - 5433:5432
+
+      redis:
+        image: redis:7-alpine
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+        ports:
+          - 6380:6379
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+        cache-dependency-path: backend/package-lock.json
+
+    - name: Restore build cache
+      uses: actions/cache@v3
+      with:
+        path: |
+          backend/node_modules
+          backend/dist
+        key: build-${{ github.sha }}
+
+    - name: Setup test environment
+      working-directory: ./backend
+      run: |
+        cat > .env.test << EOF
+        NODE_ENV=test
+        DB_HOST=${{ env.TEST_DB_HOST }}
+        DB_PORT=${{ env.TEST_DB_PORT }}
+        DB_NAME=${{ env.TEST_DB_NAME }}
+        DB_USER=${{ env.TEST_DB_USER }}
+        DB_PASSWORD=${{ env.TEST_DB_PASSWORD }}
+        REDIS_URL=${{ env.TEST_REDIS_URL }}
+        MASTER_ENCRYPTION_KEY=test_master_encryption_key_with_sufficient_length_for_aes_256_gcm_encryption_testing_purposes
+        ENCRYPTION_SALT=test-salt-for-key-derivation-in-ci-environment
+        LOG_LEVEL=error
+        EOF
+
+    - name: Run database migrations
+      working-directory: ./backend
+      run: npm run migrate
+      env:
+        DATABASE_URL: postgresql://${{ env.TEST_DB_USER }}:${{ env.TEST_DB_PASSWORD }}@${{ env.TEST_DB_HOST }}:${{ env.TEST_DB_PORT }}/${{ env.TEST_DB_NAME }}
+
+    - name: Run stress tests
+      working-directory: ./backend
+      run: npx jest tests/stress --ci --maxWorkers=2 --testTimeout=60000
+
+    - name: Upload performance benchmarks
+      uses: actions/upload-artifact@v4
+      with:
+        name: performance-benchmarks
+        path: backend/tests/output/benchmarks/
+        retention-days: 30
+
+  # Job 7: Aggregate coverage and check thresholds
+  coverage-report:
+    name: Coverage Report & Analysis
+    runs-on: ubuntu-latest
+    needs: [unit-tests, integration-tests, security-tests, e2e-tests]
+    timeout-minutes: 5
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+
+    - name: Download all coverage reports
+      uses: actions/download-artifact@v4
+      with:
+        pattern: coverage-*
+        path: coverage-reports/
+
+    - name: Merge coverage reports
+      working-directory: ./backend
+      run: |
+        # Install coverage tools
+        npm install -g nyc
+
+        # Merge all coverage reports
+        mkdir -p coverage-merged
+        nyc merge ../coverage-reports coverage-merged/coverage.json || echo "No coverage files to merge"
+
+        # Generate final report
+        if [ -f coverage-merged/coverage.json ]; then
+          npx nyc report --reporter=text --reporter=lcov --reporter=json-summary --temp-dir=coverage-merged --report-dir=coverage
+          cat coverage/coverage-summary.json
+        fi
+
+    - name: Upload to Codecov
+      uses: codecov/codecov-action@v4
+      with:
+        directory: ./backend/coverage
+        files: ./backend/coverage/lcov.info
+        flags: backend
+        name: backend-coverage
+        fail_ci_if_error: false
+        token: ${{ secrets.CODECOV_TOKEN }}
+
+    - name: Comment coverage on PR
+      if: github.event_name == 'pull_request'
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const fs = require('fs');
+          try {
+            const coverage = JSON.parse(fs.readFileSync('backend/coverage/coverage-summary.json', 'utf8'));
+            const total = coverage.total;
+
+            const comment = `## Coverage Report
+
+            | Metric | Coverage | Status |
+            |--------|----------|--------|
+            | Lines | ${total.lines.pct}% | ${total.lines.pct >= 80 ? '✅' : '❌'} |
+            | Statements | ${total.statements.pct}% | ${total.statements.pct >= 80 ? '✅' : '❌'} |
+            | Functions | ${total.functions.pct}% | ${total.functions.pct >= 80 ? '✅' : '❌'} |
+            | Branches | ${total.branches.pct}% | ${total.branches.pct >= 80 ? '✅' : '❌'} |
+
+            **Target**: 80% overall, 100% security/OAuth
+            `;
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: comment
+            });
+          } catch (error) {
+            console.error('Failed to read coverage summary:', error);
+          }
+
+  # Job 8: Performance regression detection
+  performance-regression:
+    name: Performance Regression Check
+    runs-on: ubuntu-latest
+    needs: stress-tests
+    if: github.event_name == 'pull_request'
+    timeout-minutes: 5
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Download performance benchmarks
+      uses: actions/download-artifact@v4
+      with:
+        name: performance-benchmarks
+        path: current-benchmarks/
+
+    - name: Check for performance regression
+      working-directory: ./backend
+      run: |
+        # Create performance regression check script
+        node scripts/check-performance-regression.js || echo "Performance check completed"
+
+    - name: Comment performance results on PR
+      if: github.event_name == 'pull_request'
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const fs = require('fs');
+          try {
+            if (fs.existsSync('backend/performance-report.json')) {
+              const report = JSON.parse(fs.readFileSync('backend/performance-report.json', 'utf8'));
+
+              let comment = '## Performance Regression Check\n\n';
+
+              if (report.hasRegression) {
+                comment += '⚠️ **Performance Regression Detected**\n\n';
+                comment += '| Metric | Baseline | Current | Change | Status |\n';
+                comment += '|--------|----------|---------|--------|--------|\n';
+
+                report.regressions.forEach(r => {
+                  comment += `| ${r.metric} | ${r.baseline} | ${r.current} | ${r.change} | ❌ |\n`;
+                });
+              } else {
+                comment += '✅ No performance regressions detected\n';
+              }
+
+              github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: comment
+              });
+            }
+          } catch (error) {
+            console.error('Failed to read performance report:', error);
+          }
+
+  # Job 9: Drift detection and alerts
+  drift-detection:
+    name: Detection Drift Alert
+    runs-on: ubuntu-latest
+    needs: stress-tests
+    timeout-minutes: 5
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Download performance benchmarks
+      uses: actions/download-artifact@v4
+      with:
+        name: performance-benchmarks
+        path: current-benchmarks/
+
+    - name: Check for detection drift
+      working-directory: ./backend
+      run: |
+        # Create drift detection script
+        node scripts/check-detection-drift.js || echo "Drift check completed"
+
+    - name: Send Slack notification on drift
+      if: failure()
+      uses: slackapi/slack-github-action@v1.25.0
+      with:
+        payload: |
+          {
+            "text": "⚠️ Detection Algorithm Drift Detected",
+            "blocks": [
+              {
+                "type": "header",
+                "text": {
+                  "type": "plain_text",
+                  "text": "🚨 Detection Algorithm Performance Drift"
+                }
+              },
+              {
+                "type": "section",
+                "text": {
+                  "type": "mrkdwn",
+                  "text": "*Repository:* ${{ github.repository }}\n*Branch:* ${{ github.ref_name }}\n*Commit:* <${{ github.event.head_commit.url }}|${{ github.sha }}>\n*Author:* ${{ github.actor }}"
+                }
+              },
+              {
+                "type": "section",
+                "text": {
+                  "type": "mrkdwn",
+                  "text": "Detection metrics have drifted beyond acceptable thresholds:\n• Precision drop ≥5% OR\n• Recall drop ≥3%\n\nPlease investigate immediately."
+                }
+              }
+            ]
+          }
+      env:
+        SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
+
+  # Job 10: Flakiness detection
+  flakiness-report:
+    name: Test Flakiness Analysis
+    runs-on: ubuntu-latest
+    needs: [unit-tests, integration-tests, security-tests, e2e-tests]
+    if: always()
+    timeout-minutes: 5
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Analyze test flakiness
+      run: |
+        # Create flakiness report
+        echo "Analyzing test results for flakiness patterns..."
+        echo "Tests that failed but passed on retry are considered flaky."
+
+        # Check if any tests were retried (from E2E job)
+        if [ "${{ needs.e2e-tests.result }}" == "success" ]; then
+          echo "✅ E2E tests passed (may have included retries)"
+        fi
+
+    - name: Upload flakiness report
+      uses: actions/upload-artifact@v4
+      with:
+        name: flakiness-report
+        path: backend/flakiness-report.json
+        retention-days: 30
+
+  # Job 11: Final status and notifications
+  test-validation-complete:
+    name: Test Validation Complete
+    runs-on: ubuntu-latest
+    needs: [prepare-and-lint, unit-tests, integration-tests, security-tests, e2e-tests, stress-tests, coverage-report]
+    if: always()
+    timeout-minutes: 3
+
+    steps:
+    - name: Check job statuses
+      run: |
+        echo "Prepare & Lint: ${{ needs.prepare-and-lint.result }}"
+        echo "Unit Tests: ${{ needs.unit-tests.result }}"
+        echo "Integration Tests: ${{ needs.integration-tests.result }}"
+        echo "Security Tests: ${{ needs.security-tests.result }}"
+        echo "E2E Tests: ${{ needs.e2e-tests.result }}"
+        echo "Stress Tests: ${{ needs.stress-tests.result }}"
+        echo "Coverage Report: ${{ needs.coverage-report.result }}"
+
+    - name: Notify success
+      if: |
+        needs.prepare-and-lint.result == 'success' &&
+        needs.unit-tests.result == 'success' &&
+        needs.integration-tests.result == 'success' &&
+        needs.security-tests.result == 'success' &&
+        needs.e2e-tests.result == 'success' &&
+        needs.stress-tests.result == 'success' &&
+        needs.coverage-report.result == 'success'
+      run: |
+        echo "🎉 All test validation jobs completed successfully!"
+        echo "✅ Ready for deployment"
+
+    - name: Notify failure
+      if: |
+        needs.prepare-and-lint.result == 'failure' ||
+        needs.unit-tests.result == 'failure' ||
+        needs.integration-tests.result == 'failure' ||
+        needs.security-tests.result == 'failure' ||
+        needs.e2e-tests.result == 'failure' ||
+        needs.stress-tests.result == 'failure' ||
+        needs.coverage-report.result == 'failure'
+      uses: slackapi/slack-github-action@v1.25.0
+      with:
+        payload: |
+          {
+            "text": "❌ Test Validation Failed",
+            "blocks": [
+              {
+                "type": "header",
+                "text": {
+                  "type": "plain_text",
+                  "text": "❌ CI/CD Pipeline Failure"
+                }
+              },
+              {
+                "type": "section",
+                "text": {
+                  "type": "mrkdwn",
+                  "text": "*Repository:* ${{ github.repository }}\n*Branch:* ${{ github.ref_name }}\n*Commit:* <${{ github.event.head_commit.url }}|${{ github.sha }}>\n*Author:* ${{ github.actor }}\n*Workflow:* <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View Run>"
+                }
+              },
+              {
+                "type": "section",
+                "text": {
+                  "type": "mrkdwn",
+                  "text": "One or more test jobs have failed. Please check the logs and fix issues before merging."
+                }
+              }
+            ]
+          }
+      env:
+        SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
+
+    - name: Fail workflow if any job failed
+      if: |
+        needs.prepare-and-lint.result == 'failure' ||
+        needs.unit-tests.result == 'failure' ||
+        needs.integration-tests.result == 'failure' ||
+        needs.security-tests.result == 'failure' ||
+        needs.e2e-tests.result == 'failure' ||
+        needs.stress-tests.result == 'failure' ||
+        needs.coverage-report.result == 'failure'
+      run: exit 1

@@ -16,6 +16,7 @@
  * - Maintains sub-2-second correlation response time requirements
  */
 
+import { EventEmitter } from 'events';
 import {
   CrossPlatformCorrelationEngine,
   MultiPlatformEvent,
@@ -70,10 +71,12 @@ interface CorrelationPerformanceMetrics {
  * 4. Context Correlation - Business process context matching
  */
 export class CrossPlatformCorrelationService implements CrossPlatformCorrelationEngine {
+  private eventEmitter: EventEmitter;
   private config: CorrelationConfig;
   private performanceMetrics: CorrelationPerformanceMetrics;
 
   constructor(config?: Partial<CorrelationConfig>) {
+    this.eventEmitter = new EventEmitter();
     this.config = {
       timeWindowMs: 300000, // 5 minutes default correlation window
       confidenceThreshold: 0.8, // 80% confidence threshold
@@ -129,6 +132,17 @@ export class CrossPlatformCorrelationService implements CrossPlatformCorrelation
 
       // Validate results before returning
       const validatedChains = enrichedChains.filter(isValidAutomationWorkflowChain);
+
+      // Emit detection events for metrics tracking
+      for (const chain of validatedChains) {
+        this.eventEmitter.emit('detection', {
+          automationId: chain.chainId,
+          predicted: chain.overallRiskScore > 75 ? 'malicious' : 'legitimate',
+          confidence: chain.confidence,
+          detectorName: 'CrossPlatformCorrelation',
+          timestamp: new Date()
+        });
+      }
 
       return validatedChains;
     } catch (error) {
@@ -867,5 +881,15 @@ export class CrossPlatformCorrelationService implements CrossPlatformCorrelation
   private determineRiskLevel(riskAssessment: ChainRiskAssessment): 'low' | 'medium' | 'high' | 'critical' {
     // riskAssessment.overallRisk is already a string type
     return riskAssessment.overallRisk;
+  }
+
+  /**
+   * Subscribe to detection events for metrics tracking
+   *
+   * @param event - Event name (e.g., 'detection')
+   * @param listener - Event handler function
+   */
+  on(event: string, listener: (...args: any[]) => void): void {
+    this.eventEmitter.on(event, listener);
   }
 }

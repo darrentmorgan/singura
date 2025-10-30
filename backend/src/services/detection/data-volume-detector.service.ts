@@ -1,3 +1,4 @@
+import { EventEmitter } from 'events';
 import {
   GoogleWorkspaceEvent,
   GoogleActivityPattern,
@@ -21,6 +22,11 @@ interface UserDailyVolume {
 }
 
 export class DataVolumeDetectorService {
+  private eventEmitter: EventEmitter;
+
+  constructor() {
+    this.eventEmitter = new EventEmitter();
+  }
   private readonly DOWNLOAD_EVENT_TYPES = [
     'file_download',
     'file_export',
@@ -72,6 +78,15 @@ export class DataVolumeDetectorService {
           thresholds
         );
         patterns.push(pattern);
+
+        // Emit detection event for metrics tracking
+        this.eventEmitter.emit('detection', {
+          automationId: pattern.patternId,
+          predicted: pattern.confidence > 75 ? 'malicious' : 'legitimate',
+          confidence: pattern.confidence,
+          detectorName: 'DataVolumeDetector',
+          timestamp: new Date()
+        });
       }
     }
 
@@ -309,6 +324,16 @@ export class DataVolumeDetectorService {
       minimumEventsForBaseline: 7,                    // 7 days history
       fileCountThreshold: 100                         // 100+ files/day
     };
+  }
+
+  /**
+   * Subscribe to detection events for metrics tracking
+   *
+   * @param event - Event name (e.g., 'detection')
+   * @param listener - Event handler function
+   */
+  on(event: string, listener: (...args: any[]) => void): void {
+    this.eventEmitter.on(event, listener);
   }
 }
 

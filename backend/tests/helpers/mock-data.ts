@@ -610,4 +610,80 @@ export class MockDataGenerator {
       ]
     };
   }
+
+  /**
+   * Generate mock automation discoveries for E2E testing
+   * @param count Number of automations to generate
+   * @param platform Platform type
+   * @param organizationId Organization ID
+   */
+  static generateAutomations(count: number, platform: Platform, organizationId: string): any[] {
+    const automationTypes = ['bot', 'workflow', 'integration', 'webhook', 'app'];
+    const statuses = ['active', 'inactive', 'error'];
+    const riskLevels = ['low', 'medium', 'high', 'critical'];
+    const automationNames = {
+      slack: ['Sales Bot', 'Support Agent', 'Standup Bot', 'Report Generator', 'Notification Handler'],
+      google: ['Email Automation', 'Sheet Sync', 'Calendar Manager', 'Form Processor', 'Drive Organizer'],
+      microsoft: ['Teams Notifier', 'Planner Sync', 'Email Classifier', 'Calendar Bot', 'Document Workflow']
+    };
+
+    const automations: any[] = [];
+
+    for (let i = 0; i < count; i++) {
+      const randomType = automationTypes[Math.floor(Math.random() * automationTypes.length)];
+      const randomStatus = statuses[Math.floor(Math.random() * statuses.length)];
+      const randomRiskLevel = riskLevels[Math.floor(Math.random() * riskLevels.length)];
+      const nameList = automationNames[platform] || ['Generic Automation'];
+      const randomName = nameList[Math.floor(Math.random() * nameList.length)];
+
+      // Calculate risk score based on risk level
+      const riskScoreRanges = {
+        low: [0, 30],
+        medium: [31, 60],
+        high: [61, 85],
+        critical: [86, 100]
+      };
+      const [minScore, maxScore] = riskScoreRanges[randomRiskLevel as keyof typeof riskScoreRanges];
+      const riskScore = Math.floor(Math.random() * (maxScore - minScore + 1)) + minScore;
+
+      const automation = {
+        id: crypto.randomUUID(),
+        name: `${randomName} ${i + 1}`,
+        type: randomType,
+        platform,
+        platformType: platform,
+        riskLevel: randomRiskLevel,
+        riskScore,
+        status: randomStatus,
+        connectionId: `conn-${platform}-${organizationId}`,
+        organizationId,
+        metadata: {
+          description: `Test ${randomType} automation for ${platform}`,
+          permissions: this.getMockPermissions(platform),
+          triggers: ['schedule', 'webhook', 'manual'].slice(0, Math.floor(Math.random() * 3) + 1),
+          lastRun: new Date(Date.now() - Math.random() * 7 * 24 * 3600000).toISOString(),
+        },
+        detectionEvidence: {
+          discoveryMethod: 'api_scan',
+          confidence: Math.floor(Math.random() * 30) + 70, // 70-100%
+          indicators: [
+            'OAuth token usage detected',
+            'Automated API calls identified',
+            'Recurring execution pattern'
+          ].slice(0, Math.floor(Math.random() * 3) + 1),
+          firstSeen: new Date(Date.now() - Math.random() * 30 * 24 * 3600000).toISOString(),
+          lastSeen: new Date(Date.now() - Math.random() * 24 * 3600000).toISOString(),
+        },
+        createdAt: new Date(Date.now() - Math.random() * 90 * 24 * 3600000).toISOString(),
+        updatedAt: new Date(Date.now() - Math.random() * 7 * 24 * 3600000).toISOString(),
+        lastTriggered: new Date(Date.now() - Math.random() * 3 * 24 * 3600000).toISOString(),
+        affectedUsers: Math.floor(Math.random() * 50) + 1,
+        dataAccess: ['read', 'write', 'delete'].slice(0, Math.floor(Math.random() * 3) + 1),
+      };
+
+      automations.push(automation);
+    }
+
+    return automations;
+  }
 }

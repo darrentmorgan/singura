@@ -1,3 +1,4 @@
+import { EventEmitter } from 'events';
 import {
   GoogleWorkspaceEvent,
   GoogleActivityPattern,
@@ -12,6 +13,12 @@ import {
  * Solution: Detect low timing variance - humans are irregular, bots are metronomic
  */
 export class TimingVarianceDetectorService {
+  private eventEmitter: EventEmitter;
+
+  constructor() {
+    this.eventEmitter = new EventEmitter();
+  }
+
   /**
    * Detect suspicious timing patterns in Google Workspace events
    *
@@ -47,6 +54,15 @@ export class TimingVarianceDetectorService {
       const pattern = this.analyzeUserTimingVariance(userEvents, thresholds);
       if (pattern) {
         patterns.push(pattern);
+
+        // Emit detection event for metrics tracking
+        this.eventEmitter.emit('detection', {
+          automationId: pattern.patternId,
+          predicted: pattern.confidence > 75 ? 'malicious' : 'legitimate',
+          confidence: pattern.confidence,
+          detectorName: 'TimingVarianceDetector',
+          timestamp: new Date()
+        });
       }
     }
 
@@ -302,6 +318,16 @@ export class TimingVarianceDetectorService {
     } else {
       return `Timing pattern shows human-like variance (CV: ${cvPercent}%).`;
     }
+  }
+
+  /**
+   * Subscribe to detection events for metrics tracking
+   *
+   * @param event - Event name (e.g., 'detection')
+   * @param listener - Event handler function
+   */
+  on(event: string, listener: (...args: any[]) => void): void {
+    this.eventEmitter.on(event, listener);
   }
 }
 

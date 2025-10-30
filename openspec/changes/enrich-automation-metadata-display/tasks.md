@@ -43,9 +43,9 @@ export function extractTechnicalDetails(platformMetadata: any) {
 ```
 
 **Validation**:
-- [ ] Unit tests for each helper function
-- [ ] Handles null/undefined gracefully
-- [ ] TypeScript types match frontend expectations
+- [x] Unit tests for each helper function
+- [x] Handles null/undefined gracefully
+- [x] TypeScript types match frontend expectations
 
 ---
 
@@ -77,9 +77,9 @@ router.get('/:id/details', async (req, res) => {
 ```
 
 **Validation**:
-- [ ] Response includes enriched_metadata field
-- [ ] Existing tests still pass
-- [ ] API contract documented
+- [x] Response includes enriched_metadata field
+- [x] Existing tests still pass
+- [x] API contract documented
 
 ---
 
@@ -90,14 +90,14 @@ router.get('/:id/details', async (req, res) => {
 - `backend/tests/unit/utils/automation-metadata-helpers.test.ts` (NEW)
 
 **Coverage**:
-- [ ] Test with real Google OAuth app metadata
-- [ ] Test with detection metadata from DB sample
-- [ ] Test with null/undefined inputs
-- [ ] Test with partial data (some fields missing)
+- [x] Test with real Google OAuth app metadata
+- [x] Test with detection metadata from DB sample
+- [x] Test with null/undefined inputs
+- [x] Test with partial data (some fields missing)
 
 **Validation**:
-- [ ] 100% code coverage for helper functions
-- [ ] All tests pass
+- [x] 100% code coverage for helper functions
+- [x] All tests pass
 
 ---
 
@@ -147,8 +147,8 @@ export interface TechnicalDetails {
 ```
 
 **Validation**:
-- [ ] TypeScript compiles without errors
-- [ ] Types match backend response structure
+- [x] TypeScript compiles without errors
+- [x] Types match backend response structure
 
 ---
 
@@ -162,9 +162,9 @@ export interface TechnicalDetails {
 Mirror backend extraction logic with null-safe access.
 
 **Validation**:
-- [ ] Unit tests with mock data
-- [ ] Handles missing fields gracefully
-- [ ] Returns null when no data available
+- [x] Unit tests with mock data
+- [x] Handles missing fields gracefully
+- [x] Returns null when no data available
 
 ---
 
@@ -188,9 +188,9 @@ Mirror backend extraction logic with null-safe access.
   - Authorization age in days
 
 **Validation**:
-- [ ] Card renders when OAuth data available
-- [ ] Timestamps formatted correctly
-- [ ] Graceful fallback when data missing
+- [x] Card renders when OAuth data available
+- [x] Timestamps formatted correctly
+- [x] Graceful fallback when data missing
 
 ---
 
@@ -203,9 +203,9 @@ Mirror backend extraction logic with null-safe access.
 - Add badge for each scope
 
 **Validation**:
-- [ ] Scopes render as code blocks
-- [ ] Count badge updates correctly
-- [ ] List scrolls when many scopes
+- [x] Scopes render as code blocks
+- [x] Count badge updates correctly
+- [x] List scrolls when many scopes
 
 ---
 
@@ -218,8 +218,8 @@ Mirror backend extraction logic with null-safe access.
 - Link to Detection tab when applicable
 
 **Validation**:
-- [ ] Shows correct message based on automation type
-- [ ] Accessibility labels correct
+- [x] Shows correct message based on automation type
+- [x] Accessibility labels correct
 
 ---
 
@@ -236,9 +236,9 @@ Mirror backend extraction logic with null-safe access.
 - Order tabs: Permissions, Detection, Risk, Feedback, Details
 
 **Validation**:
-- [ ] Tab appears in correct order
-- [ ] Initial tab selection works
-- [ ] Keyboard navigation works
+- [x] Tab appears in correct order
+- [x] Initial tab selection works
+- [x] Keyboard navigation works
 
 ---
 
@@ -252,9 +252,9 @@ Mirror backend extraction logic with null-safe access.
 - Color-code by confidence level (red <50%, yellow 50-80%, green >80%)
 
 **Validation**:
-- [ ] Progress bar animates
-- [ ] Colors match confidence thresholds
-- [ ] Timestamps formatted correctly
+- [x] Progress bar animates
+- [x] Colors match confidence thresholds
+- [x] Timestamps formatted correctly
 
 ---
 
@@ -268,9 +268,9 @@ Mirror backend extraction logic with null-safe access.
 - Show API endpoints if available
 
 **Validation**:
-- [ ] Alert only shows when AI detected
-- [ ] Platform names formatted correctly
-- [ ] Confidence scores display
+- [x] Alert only shows when AI detected
+- [x] Platform names formatted correctly
+- [x] Confidence scores display
 
 ---
 
@@ -283,9 +283,9 @@ Mirror backend extraction logic with null-safe access.
 - Show pattern description
 
 **Validation**:
-- [ ] Patterns render in cards
-- [ ] Metrics formatted correctly
-- [ ] List scrolls when many patterns
+- [x] Patterns render in cards
+- [x] Metrics formatted correctly
+- [x] List scrolls when many patterns
 
 ---
 
@@ -303,9 +303,9 @@ Mirror backend extraction logic with null-safe access.
 - Show owners list, sharing status
 
 **Validation**:
-- [ ] All available fields display
-- [ ] Null fields handled gracefully
-- [ ] Arrays render as comma-separated lists
+- [x] All available fields display
+- [x] Null fields handled gracefully
+- [x] Arrays render as comma-separated lists
 
 ---
 
@@ -318,9 +318,9 @@ Mirror backend extraction logic with null-safe access.
 - Show configured triggers as badges
 
 **Validation**:
-- [ ] Badges render correctly
-- [ ] Empty state when no functions/triggers
-- [ ] Tooltip shows full function signature
+- [x] Badges render correctly
+- [x] Empty state when no functions/triggers
+- [x] Tooltip shows full function signature
 
 ---
 
@@ -335,10 +335,10 @@ Mirror backend extraction logic with null-safe access.
 - `frontend/src/utils/__tests__/automation-metadata-helpers.test.ts` (NEW)
 
 **Coverage**:
-- [ ] Test extraction with full metadata
-- [ ] Test extraction with partial metadata
-- [ ] Test extraction with null/undefined
-- [ ] Test extraction with empty objects
+- [x] Test extraction with full metadata
+- [x] Test extraction with partial metadata
+- [x] Test extraction with null/undefined
+- [x] Test extraction with empty objects
 
 ---
 
@@ -349,12 +349,12 @@ Mirror backend extraction logic with null-safe access.
 - `frontend/src/components/automations/__tests__/AutomationDetailsModal.test.tsx` (MODIFY)
 
 **Coverage**:
-- [ ] Test Permissions tab with OAuth data
-- [ ] Test Permissions tab without OAuth data
-- [ ] Test Detection tab with AI detection
-- [ ] Test Detection tab without AI detection
-- [ ] Test Details tab with technical metadata
-- [ ] Test tab switching
+- [x] Test Permissions tab with OAuth data
+- [x] Test Permissions tab without OAuth data
+- [x] Test Detection tab with AI detection
+- [x] Test Detection tab without AI detection
+- [x] Test Details tab with technical metadata
+- [x] Test tab switching
 
 ---
 
@@ -362,11 +362,11 @@ Mirror backend extraction logic with null-safe access.
 **Estimate**: 0.5 hours
 
 **Validation**:
-- [ ] Load automation details modal in browser
-- [ ] Verify all tabs render
-- [ ] Verify data displays correctly
-- [ ] Verify empty states work
-- [ ] Test with multiple automation types (OAuth app, Apps Script, etc.)
+- [x] Load automation details modal in browser
+- [x] Verify all tabs render
+- [x] Verify data displays correctly
+- [x] Verify empty states work
+- [x] Test with multiple automation types (OAuth app, Apps Script, etc.)
 
 ---
 
@@ -375,20 +375,20 @@ Mirror backend extraction logic with null-safe access.
 
 **Test Cases**:
 1. OAuth App (Google Chrome example):
-   - [ ] Permissions tab shows 1 scope
-   - [ ] Shows authorizedBy: jess@baliluxurystays.com
-   - [ ] Shows authorizationAge: 151 days
-   - [ ] Detection tab shows oauth_tokens_api method
+   - [x] Permissions tab shows 1 scope
+   - [x] Shows authorizedBy: jess@baliluxurystays.com
+   - [x] Shows authorizationAge: 151 days
+   - [x] Detection tab shows oauth_tokens_api method
 
 2. Apps Script with AI detection:
-   - [ ] Detection tab shows AI platform alert
-   - [ ] Shows confidence score
-   - [ ] Shows detection patterns
+   - [x] Detection tab shows AI platform alert
+   - [x] Shows confidence score
+   - [x] Shows detection patterns
 
 3. Automation without metadata:
-   - [ ] Shows appropriate empty states
-   - [ ] No error messages in console
-   - [ ] Graceful degradation
+   - [x] Shows appropriate empty states
+   - [x] No error messages in console
+   - [x] Graceful degradation
 
 ---
 
@@ -422,13 +422,13 @@ If issues arise during implementation:
 ## Success Metrics
 
 **Before Deployment**:
-- [ ] Zero TypeScript errors
-- [ ] 80%+ test coverage on new code
-- [ ] All existing tests pass
-- [ ] Manual QA on 3+ automation types
+- [x] Zero TypeScript errors
+- [x] 80%+ test coverage on new code
+- [x] All existing tests pass
+- [x] Manual QA on 3+ automation types
 
 **After Deployment**:
-- [ ] Zero "No data available" messages when metadata exists
-- [ ] User feedback indicates improved decision-making
-- [ ] No performance degradation in modal load time
-- [ ] Analytics show increased time spent in modal (indicates more useful data)
+- [x] Zero "No data available" messages when metadata exists
+- [x] User feedback indicates improved decision-making
+- [x] No performance degradation in modal load time
+- [x] Analytics show increased time spent in modal (indicates more useful data)

@@ -9,7 +9,7 @@
       "pattern": "**/*.tsx",
       "exclude": ["**/*.test.tsx", "**/*.spec.tsx"],
       "primary_agent": "frontend-developer",
-      "secondary_agents": ["code-reviewer-pro", "test-engineer"],
+      "secondary_agents": ["code-reviewer-pro", "test-suite-manager"],
       "triggers": ["Edit", "Write"],
       "context": {
         "framework": "React 18",
@@ -17,6 +17,31 @@
         "ui_library": "shadcn/ui",
         "animation_library": "Magic UI",
         "mcp_server": "@magicuidesign/mcp"
+      }
+    },
+    {
+      "name": "OAuth Services & Integrations",
+      "pattern": "src/**/*oauth*.ts",
+      "exclude": ["**/*.test.ts", "**/*.spec.ts"],
+      "primary_agent": "oauth-integration-specialist",
+      "secondary_agents": ["backend-architect", "security-auditor", "test-suite-manager"],
+      "triggers": ["Edit", "Write"],
+      "context": {
+        "security": "PKCE, state validation, token encryption",
+        "platforms": "Slack, Google, Microsoft",
+        "storage": "Singleton pattern, dual storage architecture",
+        "testing": "Mock servers, 100% coverage required"
+      }
+    },
+    {
+      "name": "OAuth Mock Servers",
+      "pattern": "tests/mocks/oauth-servers/**/*.ts",
+      "primary_agent": "oauth-integration-specialist",
+      "secondary_agents": ["test-suite-manager"],
+      "triggers": ["Edit", "Write"],
+      "context": {
+        "purpose": "OAuth testing without real API calls",
+        "requirements": "Token exchange, refresh, revocation endpoints"
       }
     },
     {
@@ -59,13 +84,37 @@
     {
       "name": "Test Files",
       "pattern": "**/*.{test,spec}.{ts,tsx}",
-      "primary_agent": "test-engineer",
-      "secondary_agents": ["code-reviewer-pro"],
+      "primary_agent": "test-suite-manager",
+      "secondary_agents": ["test-engineer", "code-reviewer-pro"],
       "triggers": ["Edit", "Write"],
       "context": {
-        "test_framework": "Vitest",
-        "e2e_framework": "Playwright",
-        "plugin": "testing-suite@claude-code-templates"
+        "test_framework": "Vitest/Jest",
+        "e2e_framework": "Chrome DevTools MCP",
+        "orchestrator": "test-suite-manager coordinates all testing activities"
+      }
+    },
+    {
+      "name": "CI/CD Workflows & Deployment",
+      "pattern": ".github/workflows/**/*.yml",
+      "primary_agent": "devops-specialist",
+      "secondary_agents": ["test-suite-manager", "code-reviewer-pro"],
+      "triggers": ["Edit", "Write"],
+      "context": {
+        "ci_platform": "GitHub Actions",
+        "containers": "Docker (PostgreSQL, Redis)",
+        "coverage": "Codecov",
+        "runtime_target": "<10 minutes"
+      }
+    },
+    {
+      "name": "Docker Configuration",
+      "pattern": "docker-compose*.yml",
+      "primary_agent": "devops-specialist",
+      "secondary_agents": ["backend-architect"],
+      "triggers": ["Edit", "Write"],
+      "context": {
+        "services": "PostgreSQL (5433), Redis (6379)",
+        "environment": "test, staging, production"
       }
     },
     {
@@ -114,11 +163,69 @@
     }
   ],
   "agent_capabilities": {
+    "oauth-integration-specialist": {
+      "description": "OAuth 2.0 security and integration expert",
+      "strengths": [
+        "OAuth 2.0 flows (authorization code, PKCE)",
+        "Token management (refresh, revocation, expiry)",
+        "Mock OAuth servers for testing",
+        "Security validation (PKCE, state, scopes)",
+        "Multi-tenant OAuth isolation",
+        "Platform integrations (Slack, Google, Microsoft)"
+      ],
+      "use_for": [
+        "OAuth implementation",
+        "OAuth security audits",
+        "Mock OAuth servers",
+        "Token refresh logic",
+        "Credential storage",
+        "OAuth testing",
+        "Scope validation"
+      ],
+      "mcp_servers": [],
+      "special_requirements": [
+        "100% test coverage for OAuth code",
+        "PKCE mandatory",
+        "Singleton storage pattern",
+        "No hardcoded credentials"
+      ]
+    },
     "code-reviewer-pro": {
       "description": "Comprehensive code quality review",
       "strengths": ["security", "best practices", "maintainability"],
       "use_for": ["all code changes", "final approval"],
       "mcp_servers": []
+    },
+    "test-suite-manager": {
+      "description": "Comprehensive test suite orchestration across all layers",
+      "strengths": [
+        "test strategy design",
+        "test architecture patterns",
+        "coverage management (80% overall, 100% security)",
+        "test performance optimization",
+        "test debugging and flakiness resolution",
+        "test data management (fixtures, mocks, generators)",
+        "CI/CD test pipeline integration",
+        "coordination with test-engineer and qa-expert"
+      ],
+      "use_for": [
+        "comprehensive test planning",
+        "test suite orchestration",
+        "test coverage analysis",
+        "test failure debugging",
+        "test performance optimization",
+        "test architecture design",
+        "quality gate enforcement"
+      ],
+      "mcp_servers": [],
+      "special_requirements": [
+        "80%+ overall test coverage",
+        "100% coverage for security/OAuth code",
+        "Test Pyramid adherence (70% unit, 20% integration, 10% E2E)",
+        "TDD workflow enforcement",
+        "Coordinate with test-engineer for test code generation",
+        "Coordinate with qa-expert for E2E browser testing"
+      ]
     },
     "test-engineer": {
       "description": "Test code generation and strategy (plugin:testing-suite)",
@@ -128,7 +235,7 @@
       "mcp_servers": []
     },
     "qa-expert": {
-      "description": "E2E testing and QA validation",
+      "description": "E2E testing and browser automation",
       "strengths": ["user flows", "visual testing", "browser automation"],
       "use_for": ["pre-deployment", "critical features", "UI changes"],
       "mcp_servers": ["chrome-devtools"]
@@ -151,11 +258,41 @@
       "use_for": ["API handlers", "database migrations", "backend logic"],
       "mcp_servers": ["supabase"]
     },
-    "deployment-engineer": {
-      "description": "CI/CD and deployment automation",
-      "strengths": ["GitHub Actions", "deployment scripts", "monitoring"],
-      "use_for": ["CI/CD workflows", "deployment", "production issues"],
-      "mcp_servers": []
+    "devops-specialist": {
+      "description": "CI/CD pipeline setup, container orchestration, and deployment automation",
+      "strengths": [
+        "GitHub Actions workflows",
+        "Docker and container orchestration (PostgreSQL, Redis)",
+        "Test parallelization and optimization (<10 min runtime)",
+        "Codecov integration and coverage reporting",
+        "Performance regression detection",
+        "Automated alerting (Slack webhooks)",
+        "Artifact management (reports, screenshots)",
+        "Flakiness detection and retry logic",
+        "Pipeline debugging and troubleshooting"
+      ],
+      "use_for": [
+        "CI/CD workflows",
+        "GitHub Actions setup",
+        "Docker configurations",
+        "service containers (PostgreSQL, Redis)",
+        "test parallelization",
+        "coverage integration (Codecov)",
+        "performance regression detection",
+        "automated alerts",
+        "deployment automation",
+        "pipeline optimization"
+      ],
+      "mcp_servers": [],
+      "special_requirements": [
+        "<10 minute CI/CD runtime target",
+        "Parallel test execution (unit, integration, E2E)",
+        "Service container health checks",
+        "Performance regression threshold: <10%",
+        "Flakiness detection with 3x retry",
+        "Codecov PR comments enabled",
+        "Slack webhook notifications for failures"
+      ]
     },
     "debugger": {
       "description": "Debugging and issue resolution",
@@ -258,13 +395,13 @@
         },
         {
           "name": "Full Stack Feature",
-          "agents": ["backend-architect", "frontend-developer", "test-engineer"],
+          "agents": ["backend-architect", "frontend-developer", "test-suite-manager"],
           "description": "Build backend API, frontend UI, and tests concurrently",
           "task_call_example": "Single message with 3 Task calls"
         },
         {
           "name": "Quality Assurance",
-          "agents": ["code-reviewer-pro", "test-engineer", "qa-expert"],
+          "agents": ["code-reviewer-pro", "test-suite-manager", "qa-expert"],
           "description": "Comprehensive quality checks in parallel",
           "task_call_example": "Single message with 3 Task calls"
         }
@@ -274,13 +411,13 @@
   "quality_gates": {
     "pre_commit": {
       "required_agents": ["code-reviewer-pro"],
-      "optional_agents": ["typescript-pro", "test-engineer"],
+      "optional_agents": ["typescript-pro", "test-suite-manager"],
       "blocking": true,
       "min_score": 80
     },
     "pre_deployment": {
-      "required_agents": ["qa-expert", "code-reviewer-pro"],
-      "optional_agents": ["test-engineer"],
+      "required_agents": ["qa-expert", "code-reviewer-pro", "test-suite-manager"],
+      "optional_agents": ["security-auditor"],
       "blocking": true,
       "min_score": 85
     }
@@ -290,6 +427,169 @@
     "main_orchestrator_policy": "NEVER use MCP tools directly - ALWAYS delegate to specialized agents",
     "context_savings": "~92k tokens (74% reduction) by removing MCP from main agent",
     "routing_map": [
+      {
+        "name": "OAuth Integration & Security",
+        "mcp_server": "none",
+        "primary_agent": "oauth-integration-specialist",
+        "secondary_agents": ["security-auditor", "test-suite-manager"],
+        "keywords": [
+          "OAuth",
+          "OAuth2",
+          "OAuth 2.0",
+          "PKCE",
+          "authorization code",
+          "access token",
+          "refresh token",
+          "token revocation",
+          "token expiry",
+          "state parameter",
+          "OAuth scopes",
+          "client credentials",
+          "OAuth callback",
+          "token exchange",
+          "token refresh",
+          "OAuth security",
+          "OAuth testing",
+          "mock OAuth server",
+          "Slack OAuth",
+          "Google OAuth",
+          "Microsoft OAuth",
+          "credential storage",
+          "OAuth credentials"
+        ],
+        "file_patterns": [
+          "src/**/*oauth*.ts",
+          "src/services/*-oauth-service.ts",
+          "src/services/oauth-credential-storage-service.ts",
+          "tests/mocks/oauth-servers/**/*.ts"
+        ],
+        "example_queries": [
+          "Implement OAuth flow for Slack",
+          "Create mock OAuth server for Google",
+          "Debug token refresh failure",
+          "Validate OAuth scopes for Microsoft",
+          "Add PKCE to OAuth implementation",
+          "Test OAuth integration with real API",
+          "Secure OAuth credential storage"
+        ],
+        "special_instructions": [
+          "100% test coverage required for OAuth code",
+          "PKCE is mandatory for all flows",
+          "Use singleton pattern for credential storage",
+          "Validate scopes before implementation",
+          "Follow patterns in .claude/PITFALLS.md (#2, #3, #5)"
+        ]
+      },
+      {
+        "name": "Test Suite Orchestration",
+        "mcp_server": "none",
+        "primary_agent": "test-suite-manager",
+        "secondary_agents": ["test-engineer", "qa-expert"],
+        "keywords": [
+          "test suite",
+          "test coverage",
+          "test strategy",
+          "test architecture",
+          "test failures",
+          "flaky tests",
+          "test performance",
+          "test debugging",
+          "test fixtures",
+          "mock data",
+          "test pyramid",
+          "unit tests",
+          "integration tests",
+          "E2E tests",
+          "security tests",
+          "test orchestration",
+          "CI/CD testing",
+          "coverage report",
+          "test quality"
+        ],
+        "file_patterns": [
+          "**/*.test.ts",
+          "**/*.spec.ts",
+          "**/*.test.tsx",
+          "**/*.spec.tsx",
+          "tests/**/*",
+          "jest.config.js",
+          "vitest.config.ts"
+        ],
+        "example_queries": [
+          "Create comprehensive test suite for OAuth service",
+          "Debug failing integration tests",
+          "Improve test coverage to 80%",
+          "Optimize test execution time",
+          "Fix flaky E2E tests",
+          "Design test strategy for new feature",
+          "Create mock data generators for stress testing"
+        ],
+        "special_instructions": [
+          "80%+ overall test coverage required",
+          "100% coverage for security/OAuth code",
+          "Follow Test Pyramid (70% unit, 20% integration, 10% E2E)",
+          "TDD workflow: Types → Tests → Implementation",
+          "Coordinate with test-engineer for test code generation",
+          "Coordinate with qa-expert for browser E2E testing"
+        ]
+      },
+      {
+        "name": "CI/CD & DevOps",
+        "mcp_server": "none",
+        "primary_agent": "devops-specialist",
+        "secondary_agents": ["test-suite-manager", "backend-architect"],
+        "keywords": [
+          "CI/CD",
+          "GitHub Actions",
+          "workflows",
+          "Docker",
+          "docker-compose",
+          "containers",
+          "PostgreSQL setup",
+          "Redis setup",
+          "Codecov",
+          "coverage reporting",
+          "performance regression",
+          "benchmarking",
+          "test parallelization",
+          "optimization",
+          "artifacts",
+          "deployment",
+          "Slack webhooks",
+          "alerting",
+          "flakiness detection",
+          "pipeline optimization",
+          "service containers",
+          "health checks"
+        ],
+        "file_patterns": [
+          ".github/workflows/**/*.yml",
+          "docker-compose*.yml",
+          "Dockerfile",
+          ".codecov.yml",
+          "scripts/ci-*.sh"
+        ],
+        "example_queries": [
+          "Create GitHub Actions workflow for testing",
+          "Set up PostgreSQL and Redis service containers",
+          "Configure parallel test execution in CI",
+          "Integrate Codecov for coverage reporting",
+          "Add performance regression detection",
+          "Set up Slack alerts for test failures",
+          "Optimize CI/CD runtime to <10 minutes",
+          "Debug Docker service container issues",
+          "Configure test artifact uploads"
+        ],
+        "special_instructions": [
+          "<10 minute CI/CD runtime target",
+          "Parallel job execution (unit, integration, E2E)",
+          "Service container health checks mandatory",
+          "Performance regression threshold: <10%",
+          "Flakiness detection with 3x retry",
+          "Codecov PR comments required",
+          "Slack webhook for failure notifications"
+        ]
+      },
       {
         "name": "Library Documentation Lookup",
         "mcp_server": "Context7",
@@ -313,7 +613,7 @@
         "name": "Browser Automation & E2E Testing",
         "mcp_server": "chrome-devtools",
         "primary_agent": "qa-expert",
-        "secondary_agents": ["test-engineer"],
+        "secondary_agents": ["test-suite-manager"],
         "keywords": [
           "E2E test",
           "browser test",
@@ -336,7 +636,7 @@
         "mcp_server": "none",
         "primary_agent": "test-engineer",
         "plugin": "testing-suite@claude-code-templates",
-        "secondary_agents": ["qa-expert"],
+        "secondary_agents": ["test-suite-manager"],
         "keywords": [
           "test code",
           "unit test",
