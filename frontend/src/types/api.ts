@@ -177,6 +177,16 @@ export interface DiscoveryResponse {
   message: string;
 }
 
+// Vendor Grouping Types
+export interface VendorGroup {
+  vendorName: string;
+  platform: PlatformType;
+  applicationCount: number;
+  highestRiskLevel: RiskLevel;
+  lastSeen: string;
+  applications: AutomationDiscovery[];
+}
+
 // Automation Enriched Metadata Types
 export interface OAuthContext {
   scopes: string[];

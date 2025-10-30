@@ -8,6 +8,7 @@ import { PlatformConnector, OAuthCredentials, ConnectionResult, AutomationEvent,
 import { AIAuditLogQuery, AIAuditLogResult, AIplatformAuditLog, AIPlatform } from '@singura/shared-types';
 import { encryptedCredentialRepository } from '../database/repositories/encrypted-credential';
 import { googleOAuthAIDetector } from '../services/detection/google-oauth-ai-detector.service';
+import { extractVendorName, generateVendorGroup } from '../utils/vendor-extraction';
 
 /**
  * Map Google actorType to our AuditLogEntry actorType enum
@@ -919,6 +920,10 @@ export class GoogleConnector implements PlatformConnector {
           // Assess risk based on scopes and AI platform status
           const riskAssessment = this.assessOAuthAppRisk(token, aiDetection);
 
+          // Extract vendor information for grouping
+          const vendorName = extractVendorName(token.displayText);
+          const vendorGroup = generateVendorGroup(vendorName, 'google');
+
           automations.push({
             id: `google-oauth-${token.clientId}`,
             name: token.displayText || `OAuth App: ${token.clientId}`,
@@ -943,7 +948,9 @@ export class GoogleConnector implements PlatformConnector {
               aiPlatformName: aiDetection.platformName,
               aiPlatformConfidence: aiDetection.confidence,
               detectionMethod: 'oauth_tokens_api',
-              riskFactors: riskAssessment.riskFactors
+              riskFactors: riskAssessment.riskFactors,
+              vendorName: vendorName,
+              vendorGroup: vendorGroup
             },
             createdAt: new Date(), // Token API doesn't provide creation date
             lastTriggered: null,

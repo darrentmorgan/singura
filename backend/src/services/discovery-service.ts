@@ -404,15 +404,19 @@ export class DiscoveryService {
             platform_metadata,
             first_discovered_at,
             last_seen_at,
-            is_active
-          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20)
-          ON CONFLICT (platform_connection_id, external_id) 
+            is_active,
+            vendor_name,
+            vendor_group
+          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22)
+          ON CONFLICT (platform_connection_id, external_id)
           DO UPDATE SET
             name = EXCLUDED.name,
             description = EXCLUDED.description,
             status = EXCLUDED.status,
             last_seen_at = NOW(),
             platform_metadata = EXCLUDED.platform_metadata,
+            vendor_name = EXCLUDED.vendor_name,
+            vendor_group = EXCLUDED.vendor_group,
             updated_at = NOW()
           RETURNING *
         `;
@@ -437,7 +441,9 @@ export class DiscoveryService {
           JSON.stringify(automation.metadata),
           automation.createdAt,
           new Date(),
-          true
+          true,
+          automation.metadata?.vendorName || null,
+          automation.metadata?.vendorGroup || null
         ];
 
         const result = await db.query<DiscoveredAutomation>(query, values);

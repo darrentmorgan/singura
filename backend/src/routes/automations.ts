@@ -33,6 +33,7 @@ interface AutomationQueryResult {
   risk_level: string | null;
   first_discovered_at: Date;
   last_triggered_at: Date | null;
+  last_seen_at: Date;
   permissions_required: string[] | null;
   owner_info: { name?: string; email?: string } | null;
   platform_metadata: Record<string, unknown> | null;
@@ -44,6 +45,8 @@ interface AutomationQueryResult {
   recommendations: string[] | null;
   data_access_patterns: string[] | null;
   external_id: string | null;
+  vendor_name: string | null;
+  vendor_group: string | null;
 }
 
 interface AutomationStatsQueryResult {
@@ -123,6 +126,114 @@ function calculateRiskScore(metadata: any): number {
   return Math.min(100, baseScore + factorScore);
 }
 
+/**
+ * Group automations by vendor
+ * Returns vendor groups with aggregated automation data
+ */
+function groupAutomationsByVendor(automations: any[]): any[] {
+  // Group by vendor_group (platform-scoped vendor identifier)
+  const vendorGroups = new Map<string, any[]>();
+
+  for (const automation of automations) {
+    const vendorGroup = automation.vendor_group;
+
+    // Skip automations without vendor grouping
+    if (!vendorGroup) {
+      continue;
+    }
+
+    if (!vendorGroups.has(vendorGroup)) {
+      vendorGroups.set(vendorGroup, []);
+    }
+    vendorGroups.get(vendorGroup)!.push(automation);
+  }
+
+  // Transform groups into response format
+  const grouped = Array.from(vendorGroups.entries()).map(([vendorGroup, apps]) => {
+    // Extract vendor name from first app (all should have same vendor_name)
+    const vendorName = apps[0].vendor_name || vendorGroup;
+
+    // Calculate highest risk level across all apps
+    const riskLevels = apps.map(app => {
+      const metadata = (app.platform_metadata as any) || {};
+      return calculateRiskLevel(metadata);
+    });
+    const highestRisk = getHighestRiskLevel(riskLevels);
+
+    // Get unique permission count across all apps
+    const allPermissions = new Set<string>();
+    apps.forEach(app => {
+      const permissions = app.permissions_required || [];
+      permissions.forEach((p: string) => allPermissions.add(p));
+    });
+
+    // Get latest last_seen_at
+    const latestSeen = apps.reduce((latest, app) => {
+      const appSeen = new Date(app.last_seen_at);
+      return appSeen > latest ? appSeen : latest;
+    }, new Date(0));
+
+    return {
+      vendorGroup,
+      vendorName,
+      applicationCount: apps.length,
+      applications: apps.map(app => {
+        const platformMetadata = (app.platform_metadata as any) || {};
+        const calculatedRiskLevel = calculateRiskLevel(platformMetadata);
+        const calculatedRiskScore = calculateRiskScore(platformMetadata);
+
+        return {
+          id: app.id,
+          name: app.name,
+          description: app.description,
+          type: app.automation_type,
+          platform: app.platform_type,
+          status: app.status,
+          riskLevel: calculatedRiskLevel,
+          createdAt: app.first_discovered_at,
+          lastTriggered: app.last_triggered_at,
+          permissions: app.permissions_required || [],
+          createdBy: app.owner_info?.name || app.owner_info?.email,
+          metadata: {
+            ...platformMetadata,
+            isInternal: true,
+            triggers: app.trigger_type ? [app.trigger_type] : [],
+            actions: app.actions || [],
+            riskScore: calculatedRiskScore,
+            riskFactors: platformMetadata.riskFactors || app.risk_factors || [],
+            recommendations: app.recommendations || [],
+          }
+        };
+      }),
+      riskLevel: highestRisk,
+      totalPermissions: allPermissions.size,
+      lastSeen: latestSeen,
+      platform: apps[0].platform_type
+    };
+  });
+
+  return grouped;
+}
+
+/**
+ * Determine highest risk level from array of risk levels
+ */
+function getHighestRiskLevel(levels: Array<'low' | 'medium' | 'high' | 'critical'>): 'low' | 'medium' | 'high' | 'critical' {
+  const priority = { critical: 4, high: 3, medium: 2, low: 1 };
+  let highest: 'low' | 'medium' | 'high' | 'critical' = 'low';
+  let highestPriority = 0;
+
+  for (const level of levels) {
+    const p = priority[level] || 0;
+    if (p > highestPriority) {
+      highestPriority = p;
+      highest = level;
+    }
+  }
+
+  return highest;
+}
+
 // Validation schemas
 const automationFiltersSchema = z.object({
   platform: z.enum(['slack', 'google', 'microsoft', 'hubspot', 'salesforce', 'notion', 'asana', 'jira']).optional(),
@@ -134,6 +245,7 @@ const automationFiltersSchema = z.object({
   limit: z.coerce.number().min(1).max(100).default(20),
   sort_by: z.enum(['name', 'type', 'riskLevel', 'lastTriggered', 'createdAt']).default('name'),
   sort_order: z.enum(['ASC', 'DESC']).default('ASC'),
+  groupBy: z.enum(['vendor']).optional(),
 });
 
 /**
@@ -152,21 +264,22 @@ router.get('/', validateRequest({ query: automationFiltersSchema }), async (req:
       return;
     }
 
-    const { 
-      platform, 
-      status, 
-      type, 
-      riskLevel, 
-      search, 
-      page, 
-      limit, 
-      sort_by, 
-      sort_order 
+    const {
+      platform,
+      status,
+      type,
+      riskLevel,
+      search,
+      page,
+      limit,
+      sort_by,
+      sort_order,
+      groupBy
     } = req.query as unknown as z.infer<typeof automationFiltersSchema>;
 
     // Build base query
     let query = `
-      SELECT 
+      SELECT
         da.id,
         da.external_id,
         da.name,
@@ -187,6 +300,8 @@ router.get('/', validateRequest({ query: automationFiltersSchema }), async (req:
         da.is_active,
         da.created_at,
         da.updated_at,
+        da.vendor_name,
+        da.vendor_group,
         pc.platform_type,
         pc.display_name as connection_name,
         ra.risk_level,
@@ -293,48 +408,71 @@ router.get('/', validateRequest({ query: automationFiltersSchema }), async (req:
 
     // Transform results to match frontend expectations
     const typedResult = result as { rows: AutomationQueryResult[] };
-    const automations = typedResult.rows.map(row => {
-      // Extract platform metadata and calculate risk from it
-      const platformMetadata = (row.platform_metadata as any) || {};
-      const calculatedRiskLevel = calculateRiskLevel(platformMetadata);
-      const calculatedRiskScore = calculateRiskScore(platformMetadata);
 
-      return {
-        id: row.id,
-        name: row.name,
-        description: row.description,
-        type: row.automation_type,
-        platform: row.platform_type,
-        status: row.status,
-        riskLevel: calculatedRiskLevel, // Use calculated risk from platform metadata
-        createdAt: row.first_discovered_at,
-        lastTriggered: row.last_triggered_at,
-        permissions: row.permissions_required || [],
-        createdBy: row.owner_info?.name || row.owner_info?.email,
-        metadata: {
-          ...platformMetadata,
-          isInternal: true,
-          triggers: row.trigger_type ? [row.trigger_type] : [],
-          actions: row.actions || [],
-          riskScore: calculatedRiskScore, // Use calculated score
-          riskFactors: platformMetadata.riskFactors || row.risk_factors || [],
-          recommendations: row.recommendations || [],
+    // Check if groupBy=vendor was requested
+    if (groupBy === 'vendor') {
+      // Group automations by vendor
+      const vendorGroups = groupAutomationsByVendor(typedResult.rows);
+
+      // Return grouped response
+      res.json({
+        success: true,
+        vendorGroups,
+        grouped: true,
+        pagination: {
+          page,
+          limit,
+          total: vendorGroups.length,
+          totalPages: Math.ceil(vendorGroups.length / limit),
+          hasNext: page < Math.ceil(vendorGroups.length / limit),
+          hasPrevious: page > 1,
         }
-      };
-    });
+      });
+    } else {
+      // Return ungrouped response (backward compatible)
+      const automations = typedResult.rows.map(row => {
+        // Extract platform metadata and calculate risk from it
+        const platformMetadata = (row.platform_metadata as any) || {};
+        const calculatedRiskLevel = calculateRiskLevel(platformMetadata);
+        const calculatedRiskScore = calculateRiskScore(platformMetadata);
 
-    res.json({
-      success: true,
-      automations,
-      pagination: {
-        page,
-        limit,
-        total,
-        totalPages,
-        hasNext: page < totalPages,
-        hasPrevious: page > 1,
-      }
-    });
+        return {
+          id: row.id,
+          name: row.name,
+          description: row.description,
+          type: row.automation_type,
+          platform: row.platform_type,
+          status: row.status,
+          riskLevel: calculatedRiskLevel, // Use calculated risk from platform metadata
+          createdAt: row.first_discovered_at,
+          lastTriggered: row.last_triggered_at,
+          permissions: row.permissions_required || [],
+          createdBy: row.owner_info?.name || row.owner_info?.email,
+          metadata: {
+            ...platformMetadata,
+            isInternal: true,
+            triggers: row.trigger_type ? [row.trigger_type] : [],
+            actions: row.actions || [],
+            riskScore: calculatedRiskScore, // Use calculated score
+            riskFactors: platformMetadata.riskFactors || row.risk_factors || [],
+            recommendations: row.recommendations || [],
+          }
+        };
+      });
+
+      res.json({
+        success: true,
+        automations,
+        pagination: {
+          page,
+          limit,
+          total,
+          totalPages,
+          hasNext: page < totalPages,
+          hasPrevious: page > 1,
+        }
+      });
+    }
 
   } catch (error) {
     console.error('Failed to get automations:', error);

@@ -18,21 +18,34 @@ import { automationsApi } from '@/services/api';
 interface AutomationsState {
   // Discovery results by connection
   discoveries: Record<string, DiscoveryResult>;
-  
+
   // Flattened list of all automations for easy access
   automations: AutomationDiscovery[];
-  
+
+  // Vendor grouped automations
+  vendorGroups: Array<{
+    vendorName: string;
+    platform: PlatformType;
+    applicationCount: number;
+    highestRiskLevel: RiskLevel;
+    lastSeen: string;
+    applications: AutomationDiscovery[];
+  }>;
+
+  // Vendor grouping toggle state
+  groupByVendor: boolean;
+
   // Discovery progress tracking
   discoveryProgress: Record<string, DiscoveryProgress>;
-  
+
   // Selected automation for details view
   selectedAutomation: AutomationDiscovery | null;
-  
+
   // Loading and error states
   isDiscovering: boolean;
   isAnalyzing: boolean;
   error: string | null;
-  
+
   // Filters and search
   filters: {
     platform?: PlatformType;
@@ -41,7 +54,7 @@ interface AutomationsState {
     type?: string;
     search?: string;
   };
-  
+
   // Pagination for automations list
   pagination: {
     page: number;
@@ -49,13 +62,13 @@ interface AutomationsState {
     total: number;
     totalPages: number;
   };
-  
+
   // Sort options
   sorting: {
     sortBy: 'name' | 'type' | 'riskLevel' | 'lastTriggered' | 'createdAt';
     sortOrder: 'ASC' | 'DESC';
   };
-  
+
   // Statistics
   stats: {
     totalAutomations: number;
@@ -72,29 +85,32 @@ interface AutomationsActions {
   startDiscovery: (connectionId: string) => Promise<boolean>;
   getDiscoveryResult: (connectionId: string) => Promise<DiscoveryResult | null>;
   refreshDiscovery: (connectionId: string) => Promise<boolean>;
-  
+
   // Automation management
   fetchAutomations: (filters?: Partial<AutomationsState['filters']>) => Promise<boolean>;
   fetchAutomationStats: () => Promise<boolean>;
-  
+
+  // Vendor grouping
+  setGroupByVendor: (enabled: boolean) => void;
+
   // Real-time updates
   updateDiscoveryProgress: (connectionId: string, progress: DiscoveryProgress) => void;
   updateDiscoveryResult: (connectionId: string, result: DiscoveryResult) => void;
   addAutomation: (automation: AutomationDiscovery) => void;
   updateAutomation: (automationId: string, updates: Partial<AutomationDiscovery>) => void;
   removeAutomation: (automationId: string) => void;
-  
+
   // Selection and filtering
   selectAutomation: (automation: AutomationDiscovery | null) => void;
   setFilters: (filters: Partial<AutomationsState['filters']>) => void;
   clearFilters: () => void;
   setSearch: (search: string) => void;
-  
+
   // Pagination and sorting
   setPage: (page: number) => void;
   setLimit: (limit: number) => void;
   setSorting: (sortBy: AutomationsState['sorting']['sortBy'], sortOrder: AutomationsState['sorting']['sortOrder']) => void;
-  
+
   // State management
   setDiscovering: (isDiscovering: boolean) => void;
   setAnalyzing: (isAnalyzing: boolean) => void;
@@ -105,9 +121,21 @@ interface AutomationsActions {
 
 type AutomationsStore = AutomationsState & AutomationsActions;
 
+// Load persisted groupBy state from localStorage
+const loadGroupByVendor = (): boolean => {
+  try {
+    const stored = localStorage.getItem('automations:groupByVendor');
+    return stored ? JSON.parse(stored) : false;
+  } catch {
+    return false;
+  }
+};
+
 const initialState: AutomationsState = {
   discoveries: {},
   automations: [],
+  vendorGroups: [],
+  groupByVendor: loadGroupByVendor(),
   discoveryProgress: {},
   selectedAutomation: null,
   isDiscovering: false,
@@ -224,31 +252,48 @@ export const useAutomationsStore = create<AutomationsStore>()(
     // Automation management
     fetchAutomations: async (filters) => {
       set({ isAnalyzing: true, error: null });
-      
+
       try {
-        const { pagination, sorting } = get();
+        const { pagination, sorting, groupByVendor } = get();
         const queryFilters = { ...get().filters, ...filters };
-        
+
         const response = await automationsApi.getAutomations({
           ...queryFilters,
           page: pagination.page,
           limit: pagination.limit,
           sort_by: sorting.sortBy,
           sort_order: sorting.sortOrder,
+          ...(groupByVendor && { groupBy: 'vendor' }),
         });
 
-        if (response.success && response.automations) {
+        if (response.success) {
           const paginationData = response.pagination as { total?: number; totalPages?: number } | undefined;
-          set({
-            automations: response.automations,
-            pagination: {
-              ...pagination,
-              total: paginationData?.total || 0,
-              totalPages: paginationData?.totalPages || 0,
-            },
-            isAnalyzing: false,
-            error: null,
-          });
+
+          if (groupByVendor && response.vendorGroups) {
+            // Update vendor groups
+            set({
+              vendorGroups: response.vendorGroups,
+              pagination: {
+                ...pagination,
+                total: paginationData?.total || 0,
+                totalPages: paginationData?.totalPages || 0,
+              },
+              isAnalyzing: false,
+              error: null,
+            });
+          } else if (response.automations) {
+            // Update regular automations list
+            set({
+              automations: response.automations,
+              pagination: {
+                ...pagination,
+                total: paginationData?.total || 0,
+                totalPages: paginationData?.totalPages || 0,
+              },
+              isAnalyzing: false,
+              error: null,
+            });
+          }
           return true;
         } else {
           set({
@@ -385,6 +430,19 @@ export const useAutomationsStore = create<AutomationsStore>()(
       });
     },
 
+    // Vendor grouping
+    setGroupByVendor: (enabled: boolean) => {
+      set({ groupByVendor: enabled });
+      // Persist to localStorage
+      try {
+        localStorage.setItem('automations:groupByVendor', JSON.stringify(enabled));
+      } catch (error) {
+        console.error('Failed to persist groupByVendor state:', error);
+      }
+      // Re-fetch automations with new grouping
+      get().fetchAutomations();
+    },
+
     // State management
     setDiscovering: (isDiscovering: boolean) => {
       set({ isDiscovering });
@@ -410,6 +468,8 @@ export const useAutomationsStore = create<AutomationsStore>()(
 
 // Selectors for optimized re-renders
 export const useAutomations = () => useAutomationsStore(state => state.automations);
+export const useVendorGroups = () => useAutomationsStore(state => state.vendorGroups);
+export const useGroupByVendor = () => useAutomationsStore(state => state.groupByVendor);
 export const useDiscoveries = () => useAutomationsStore(state => state.discoveries);
 export const useDiscoveryProgress = () => useAutomationsStore(state => state.discoveryProgress);
 export const useSelectedAutomation = () => useAutomationsStore(state => state.selectedAutomation);
@@ -428,6 +488,7 @@ export const useAutomationsActions = () => useAutomationsStore(state => ({
   refreshDiscovery: state.refreshDiscovery,
   fetchAutomations: state.fetchAutomations,
   fetchAutomationStats: state.fetchAutomationStats,
+  setGroupByVendor: state.setGroupByVendor,
   updateDiscoveryProgress: state.updateDiscoveryProgress,
   updateDiscoveryResult: state.updateDiscoveryResult,
   addAutomation: state.addAutomation,

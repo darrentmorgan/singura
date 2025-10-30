@@ -26,8 +26,10 @@ import { ExportDialog } from './ExportDialog';
 import {
   AutomationDiscovery
 } from '@/types/api';
-import { 
+import {
   useAutomations,
+  useVendorGroups,
+  useGroupByVendor,
   useAutomationsActions,
   useAutomationsLoading,
   useAutomationsFilters,
@@ -35,6 +37,7 @@ import {
   useAutomationsStats,
   useFilteredAutomations
 } from '@/stores/automations';
+import { VendorGroupedView } from './VendorGroupedView';
 import { useUIActions } from '@/stores/ui';
 import { cn } from '@/lib/utils';
 
@@ -70,6 +73,8 @@ export const AutomationsList: React.FC<AutomationsListProps> = ({
   // Store state (use prop if provided, otherwise fetch from store)
   const storeAutomations = useAutomations();
   const storeFilteredAutomations = useFilteredAutomations();
+  const vendorGroups = useVendorGroups();
+  const groupByVendor = useGroupByVendor();
   const isLoading = useAutomationsLoading();
   const filters = useAutomationsFilters();
   const sorting = useAutomationsSorting();
@@ -78,7 +83,7 @@ export const AutomationsList: React.FC<AutomationsListProps> = ({
   // Use prop if provided, otherwise use store's filtered automations
   const automations = automationsProp || storeAutomations;
   const filteredAutomations = automationsProp || storeFilteredAutomations;
-  
+
   // Actions
   const {
     fetchAutomations,
@@ -86,7 +91,8 @@ export const AutomationsList: React.FC<AutomationsListProps> = ({
     setFilters,
     setSearch,
     setSorting,
-    selectAutomation
+    selectAutomation,
+    setGroupByVendor
   } = useAutomationsActions();
   const { showError, showSuccess } = useUIActions();
 
@@ -374,23 +380,60 @@ export const AutomationsList: React.FC<AutomationsListProps> = ({
           </select>
         </div>
 
-        {/* View Mode Toggle */}
-        <div className="flex items-center space-x-1 bg-muted rounded-md p-1">
-          <Button
-            variant={viewMode === 'grid' ? 'default' : 'ghost'}
-            size="sm"
-            onClick={() => setViewMode('grid')}
+        {/* Group by Vendor Toggle */}
+        <div className="flex items-center space-x-2">
+          <label
+            htmlFor="group-by-vendor-toggle"
+            className="text-sm font-medium text-foreground cursor-pointer"
           >
-            <Grid3x3 className="h-4 w-4" />
-          </Button>
-          <Button
-            variant={viewMode === 'list' ? 'default' : 'ghost'}
-            size="sm"
-            onClick={() => setViewMode('list')}
+            Group by Vendor
+          </label>
+          <button
+            id="group-by-vendor-toggle"
+            role="switch"
+            aria-checked={groupByVendor}
+            aria-label="Toggle vendor grouping"
+            className={cn(
+              'relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2',
+              groupByVendor ? 'bg-primary' : 'bg-muted-foreground/30'
+            )}
+            onClick={() => setGroupByVendor(!groupByVendor)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                setGroupByVendor(!groupByVendor);
+              }
+            }}
+            tabIndex={0}
           >
-            <List className="h-4 w-4" />
-          </Button>
+            <span
+              className={cn(
+                'inline-block h-4 w-4 transform rounded-full bg-white transition-transform duration-200',
+                groupByVendor ? 'translate-x-6' : 'translate-x-1'
+              )}
+            />
+          </button>
         </div>
+
+        {/* View Mode Toggle - Only show when not grouped */}
+        {!groupByVendor && (
+          <div className="flex items-center space-x-1 bg-muted rounded-md p-1">
+            <Button
+              variant={viewMode === 'grid' ? 'default' : 'ghost'}
+              size="sm"
+              onClick={() => setViewMode('grid')}
+            >
+              <Grid3x3 className="h-4 w-4" />
+            </Button>
+            <Button
+              variant={viewMode === 'list' ? 'default' : 'ghost'}
+              size="sm"
+              onClick={() => setViewMode('list')}
+            >
+              <List className="h-4 w-4" />
+            </Button>
+          </div>
+        )}
       </div>
 
       {/* Sort Controls */}
@@ -418,10 +461,18 @@ export const AutomationsList: React.FC<AutomationsListProps> = ({
         ))}
       </div>
 
-      {/* Automations Grid/List */}
-      {finalAutomations.length > 0 ? (
+      {/* Automations Grid/List or Vendor Grouped View */}
+      {groupByVendor ? (
+        /* Vendor Grouped View */
+        <VendorGroupedView
+          vendorGroups={vendorGroups}
+          onViewDetails={handleViewDetails}
+          isLoading={isLoading && vendorGroups.length === 0}
+        />
+      ) : finalAutomations.length > 0 ? (
+        /* Regular Grid/List View */
         <div className={cn(
-          viewMode === 'grid' 
+          viewMode === 'grid'
             ? "grid gap-6 md:grid-cols-2 xl:grid-cols-3"
             : "space-y-4"
         )}>
@@ -438,6 +489,7 @@ export const AutomationsList: React.FC<AutomationsListProps> = ({
           ))}
         </div>
       ) : (
+        /* Empty State */
         <div className="text-center py-12 space-y-4">
           <div className="mx-auto w-16 h-16 bg-muted rounded-full flex items-center justify-center">
             <Bot className="h-8 w-8 text-muted-foreground" />
@@ -445,7 +497,7 @@ export const AutomationsList: React.FC<AutomationsListProps> = ({
           <div>
             <h3 className="text-xl font-semibold text-foreground">No automations found</h3>
             <p className="text-muted-foreground mt-2 max-w-md mx-auto">
-              {automations.length === 0 
+              {automations.length === 0
                 ? "Connect platforms and run discovery scans to find automations."
                 : "Try adjusting your search or filter criteria."
               }

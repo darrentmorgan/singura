@@ -218,7 +218,12 @@ class ApiService {
     return this.request<DiscoveryResponse>('POST', `/connections/${connectionId}/discover/refresh`);
   }
 
-  async getAutomations(filters: Record<string, unknown> = {}): Promise<{ success: boolean, automations: AutomationDiscovery[], pagination: Record<string, unknown> }> {
+  async getAutomations(filters: Record<string, unknown> = {}): Promise<{
+    success: boolean,
+    automations?: AutomationDiscovery[],
+    vendorGroups?: import('@/types/api').VendorGroup[],
+    pagination: Record<string, unknown>
+  }> {
     const params = new URLSearchParams();
 
     Object.entries(filters).forEach(([key, value]) => {
@@ -227,7 +232,12 @@ class ApiService {
       }
     });
 
-    return this.request<{ success: boolean, automations: AutomationDiscovery[], pagination: Record<string, unknown> }>('GET', `/automations?${params.toString()}`);
+    return this.request<{
+      success: boolean,
+      automations?: AutomationDiscovery[],
+      vendorGroups?: import('@/types/api').VendorGroup[],
+      pagination: Record<string, unknown>
+    }>('GET', `/automations?${params.toString()}`);
   }
 
   async getAutomationStats(): Promise<ApiResponse<Record<string, unknown>>> {
