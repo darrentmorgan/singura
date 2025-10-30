@@ -90,7 +90,7 @@ User: *delegates to backend-architect to implement the actual server code*
 - Character limiting (100K max response)
 
 ### webapp-testing
-**Location**: `.claude/skills/webapp-testing/`  
+**Location**: `.claude/skills/webapp-testing/`
 **Description**: Toolkit for interacting with and testing local web applications using Playwright, supporting frontend functionality verification, UI debugging, and performance profiling.
 
 **Triggers**:
@@ -101,7 +101,7 @@ User: *delegates to backend-architect to implement the actual server code*
 
 **Use Cases**:
 - Verifying frontend functionality
-- Debugging UI behavior  
+- Debugging UI behavior
 - Capturing browser screenshots
 - Viewing browser logs
 - Performance profiling
@@ -119,6 +119,43 @@ Claude: *loads webapp-testing*
 Claude: *provides Playwright test structure*
 User: *delegates to qa-expert to implement test suite*
 ```
+
+### dev-server-startup
+**Location**: `.claude/skills/dev-server-startup/`
+**Description**: Guide for starting Singura's development servers (frontend and backend) with proper port management, Docker service verification, and health checks.
+
+**Triggers**:
+- "start servers"
+- "start dev environment"
+- "stand up servers"
+- "run development servers"
+
+**Use Cases**:
+- Starting full development environment
+- Verifying all services are running
+- Troubleshooting server startup issues
+- Resetting development environment
+
+**Key Features**:
+- Port conflict detection and resolution (4200, 4201)
+- Docker service health verification (PostgreSQL, Redis)
+- Background process management
+- Health check validation
+- Startup troubleshooting guide
+
+**Example Usage**:
+```
+User: "Can we stand up our servers front and backend"
+Claude: *loads dev-server-startup*
+Claude: *checks ports, verifies Docker, starts both servers*
+Claude: "Both servers running: Frontend http://localhost:4200, Backend http://localhost:4201"
+```
+
+**Singura-Specific Configuration**:
+- Backend: Port 4201 (npm run dev)
+- Frontend: Port 4200 (Vite dev server)
+- PostgreSQL: Port 5433 (Docker)
+- Redis: Port 6379 (Docker)
 
 ---
 
@@ -140,6 +177,7 @@ User: *delegates to qa-expert to implement test suite*
 
 ### 📦 Meta & Development
 - **skill-creator**: Skill development and management
+- **dev-server-startup**: Development environment startup and management
 
 ---
 
@@ -321,6 +359,6 @@ See `.claude/skills/skill-creator/` for detailed creation process.
 
 ---
 
-**Last Updated**: 2025-10-30  
-**Total Skills**: 3 (skill-creator, mcp-builder, webapp-testing)  
+**Last Updated**: 2025-10-30
+**Total Skills**: 4 (skill-creator, mcp-builder, webapp-testing, dev-server-startup)
 **Total MCP Servers**: 1 active, 2 planned
